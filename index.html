@@ -271,9 +271,15 @@
         let patrimonioAnterior = 0;
         dados.forEach((registro, index) => {
             if (index === 0) patrimonioAnterior = registro.patrimonio - registro.aportes;
-            const saldoPeriodo = registro.patrimonio - patrimonioAnterior - registro.aportes;
-            const crescimentoPercentual = (patrimonioAnterior + registro.aportes) > 0 ?
-                (saldoPeriodo / (patrimonioAnterior + registro.aportes)) * 100 : 0;
+const dataAporte = new Date(registro.dataFechamento);
+const diasNoMes = new Date(dataAporte.getFullYear(), dataAporte.getMonth() + 1, 0).getDate();
+const diaAporte = dataAporte.getDate();
+const proporcaoTempo = (diasNoMes - diaAporte + 1) / diasNoMes;
+
+const baseInvestida = patrimonioAnterior + (registro.aportes * proporcaoTempo);
+const saldoPeriodo = registro.patrimonio - patrimonioAnterior - registro.aportes;
+const crescimentoPercentual = baseInvestida > 0 ? (saldoPeriodo / baseInvestida) * 100 : 0;
+
             patrimonioAnterior = registro.patrimonio;
             const tr = document.createElement('tr');
             tr.innerHTML = `
