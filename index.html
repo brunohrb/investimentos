@@ -101,6 +101,38 @@
 </div>
 
 <script>
+
+let indiceRegistroSelecionado = null;
+
+function abrirAportesMes(index) {
+
+    console.log(">> abrirAportesMes iniciado", index);
+
+    const dados = getDadosAtuais();
+    console.log("dados carregados:", dados);
+
+    const registro = dados[index];
+    console.log("registro selecionado:", registro);
+
+    if (!registro) {
+        alert("Erro: registro não encontrado!");
+        return;
+    }
+
+    if (!registro.aportesDetalhados) {
+        console.log("criando estrutura de aportes");
+        registro.aportesDetalhados = [];
+    }
+
+    document.getElementById("tituloAportesMes").innerText =
+        `${getBanco()} — ${registro.periodo}`;
+
+    console.log("painel pronto — abrindo...");
+
+    document.getElementById("painelAportes").style.right = "0px";
+}
+
+
     /* ----------------------- DADOS COMPLETOS ------------------------- */
     const dadosIniciais = {
         "C6 Bruno": [
@@ -402,22 +434,46 @@
                     <td>${formatarMoeda(registro.patrimonioUSD, 'USD')}</td>
                     <td class="${crescimentoPercentualUSD >= 0 ? 'pos' : 'neg'}">${crescimentoPercentualUSD.toFixed(2)}%</td>
                     <td>
-                        <button onclick="editarRegistro(${index})" class="btn-edit">Editar</button>
-                        <button onclick="deletarRegistro(${index})" class="btn-delete">Excluir</button>
+<button onclick="editarRegistro(${index})" class="btn-edit">Editar</button>
+<button onclick="deletarRegistro(${index})" class="btn-delete">Excluir</button>
+
+<button onclick="abrirAportesMes(${index})" class="btn-edit">
+    ➕ Aportes
+</button>
+
                     </td>`;
-            } else {
-                // Conteúdo para corretoras BRL (seu layout original)
-                tr.innerHTML = `
-                    <td>${registro.periodo}</td>
-                    <td>${formatarMoeda(registro.aportes || 0, 'BRL')}</td>
-                    <td>${formatarMoeda(registro.patrimonio || 0, 'BRL')}</td>
-                    <td class="${saldoPeriodoBRL >= 0 ? 'pos' : 'neg'}">${formatarMoeda(saldoPeriodoBRL, 'BRL')}</td>
-                    <td class="${crescimentoPercentualBRL >= 0 ? 'pos' : 'neg'}">${crescimentoPercentualBRL.toFixed(2)}%</td>
-                    <td>
-                        <button onclick="editarRegistro(${index})" class="btn-edit">Editar</button>
-                        <button onclick="deletarRegistro(${index})" class="btn-delete">Excluir</button>
-                    </td>`;
-            }
+           } else {
+
+    // Conteúdo para corretoras BRL
+    tr.innerHTML = `
+        <td>${registro.periodo}</td>
+        <td>${formatarMoeda(registro.aportes || 0, 'BRL')}</td>
+        <td>${formatarMoeda(registro.patrimonio || 0, 'BRL')}</td>
+        <td class="${saldoPeriodoBRL >= 0 ? 'pos' : 'neg'}">
+            ${formatarMoeda(saldoPeriodoBRL, 'BRL')}
+        </td>
+        <td class="${crescimentoPercentualBRL >= 0 ? 'pos' : 'neg'}">
+            ${crescimentoPercentualBRL.toFixed(2)}%
+        </td>
+
+        <td>
+
+            <button onclick="editarRegistro(${index})" class="btn-edit">
+                Editar
+            </button>
+
+            <button onclick="deletarRegistro(${index})" class="btn-delete">
+                Excluir
+            </button>
+
+            <button onclick="abrirAportesMes(${index})" class="btn-edit">
+                ➕ Aportes
+            </button>
+
+        </td>
+    `;
+}
+
             tabelaCorpo.appendChild(tr);
         });
         
@@ -427,38 +483,66 @@
     }
 
 
-    function editarRegistro(index) {
-        const registro = getDadosAtuais()[index];
-        document.getElementById('dataInput').value = registro.dataFechamento;
-        document.getElementById('valorAporteInput').value = registro.aportes;
-        document.getElementById('patrimonioAtualInput').value = registro.patrimonio;
-        document.getElementById('registroIndex').value = index;
-        document.getElementById('btnRegistrar').style.display = 'none';
-        document.getElementById('btnSalvarEdicao').style.display = 'inline';
+function editarRegistro(index) {
+
+    const registro = getDadosAtuais()[index];
+    const isUSD = registro.isUSD === true;
+
+    document.getElementById('dataInput').value = registro.dataFechamento;
+    document.getElementById('valorAporteInput').value = registro.aportes;
+    document.getElementById('patrimonioAtualInput').value = registro.patrimonio;
+
+    // 🔹 Preenche campos USD quando corretora for americana
+    if (isUSD) {
+        document.getElementById('valorAporteInputUSD').value = registro.aportesUSD || 0;
+        document.getElementById('patrimonioAtualInputUSD').value = registro.patrimonioUSD || 0;
     }
 
-    function salvarEdicao() {
-        const index = document.getElementById('registroIndex').value;
-        const banco = getBanco();
-        const dataInput = document.getElementById('dataInput').value;
-        const aporte = parseFloat(document.getElementById('valorAporteInput').value) || 0;
-        const patrimonioFinal = parseFloat(document.getElementById('patrimonioAtualInput').value);
+    document.getElementById('registroIndex').value = index;
+    document.getElementById('btnRegistrar').style.display = 'none';
+    document.getElementById('btnSalvarEdicao').style.display = 'inline';
+}
 
-        if (!dataInput || isNaN(patrimonioFinal)) return alert("Preencha data e patrimônio!");
+  function salvarEdicao() {
 
-        const [ano, mes] = dataInput.split('-');
-        const periodoLabel = `${mes}/${ano}`;
+    const index = document.getElementById('registroIndex').value;
+    const banco = getBanco();
 
-        dadosMultiBancos[banco][index] = {
-            periodo: periodoLabel,
-            dataFechamento: dataInput,
-            aportes: aporte,
-            patrimonio: patrimonioFinal
-        };
+    const dataInput = document.getElementById('dataInput').value;
+    const aporte = parseFloat(valorAporteInput.value) || 0;
+    const patrimonioFinal = parseFloat(patrimonioAtualInput.value);
 
-        atualizarTudo();
-        limparCampos();
+    if (!dataInput || isNaN(patrimonioFinal)) {
+        return alert("Preencha data e patrimônio!");
     }
+
+    const [ano, mes] = dataInput.split('-');
+    const periodoLabel = `${mes}/${ano}`;
+
+    // 🔹 Recupera registro existente (não cria outro)
+    const registro = dadosMultiBancos[banco][index];
+    const isUSD = registro.isUSD === true;
+
+    registro.periodo = periodoLabel;
+    registro.dataFechamento = dataInput;
+    registro.aportes = aporte;
+    registro.patrimonio = patrimonioFinal;
+
+    // 🔹 Atualiza também dados USD quando for conta americana
+    if (isUSD) {
+        registro.aportesUSD =
+            parseFloat(valorAporteInputUSD.value) || 0;
+
+        registro.patrimonioUSD =
+            parseFloat(patrimonioAtualInputUSD.value) || 0;
+
+        registro.isUSD = true; // mantém flag
+    }
+
+    atualizarTudo();
+    limparCampos();
+}
+
 
     function deletarRegistro(index) {
         if (confirm("Tem certeza que deseja excluir este registro?")) {
@@ -596,5 +680,51 @@ function atualizarTotalGeral() {
 
     window.onload = () => { popularSelectorBancos(); atualizarTudo(); };
 </script>
+
+<div id="painelAportes" style="
+    position: fixed;
+    top: 0;
+    right: -420px;
+    width: 400px;
+    height: 100%;
+    background: #ffffff;
+    box-shadow: -4px 0 12px rgba(0,0,0,.2);
+    padding: 20px;
+    transition: .3s;
+    overflow-y: auto;
+">
+
+    <h3>Aportes do Mês</h3>
+
+    <p id="tituloAportesMes" style="font-weight:bold;"></p>
+
+    <hr>
+
+    <div id="listaAportesMes"></div>
+
+    <hr>
+
+    <h4>Novo Aporte</h4>
+
+    <label>Data do aporte</label>
+    <input type="date" id="aporteDataInput">
+
+    <label>Valor R$</label>
+    <input type="number" id="aporteBRLInput" placeholder="Aporte em reais">
+
+    <label>Valor $</label>
+    <input type="number" id="aporteUSDInput" placeholder="Aporte em dólar">
+
+    <button onclick="salvarNovoAporte()">Salvar aporte</button>
+
+    <br><br>
+
+    <button onclick="fecharPainelAportes()">Fechar</button>
+
+</div>
+
+
 </body>
 </html>
+
+
