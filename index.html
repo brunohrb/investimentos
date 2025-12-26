@@ -63,15 +63,22 @@
         <button onclick="exportarDados()" class="btn-backup">Backup (Exportar)</button>
     </div>
 
-    <input type="hidden" id="registroIndex">
+<input type="hidden" id="registroIndex">
 
-    <div class="inputs">
-        <input type="date" id="dataInput">
-        <input type="number" id="valorAporteInput" placeholder="Valor do Aporte R$">
-        <input type="number" id="patrimonioAtualInput" placeholder="Patrimônio Total Atual R$">
-        <button onclick="adicionarRegistro()" id="btnRegistrar">Registrar Mês</button>
-        <button onclick="salvarEdicao()" style="display:none;" id="btnSalvarEdicao">Salvar Edição</button>
-    </div>
+<div class="inputs">
+    <input type="date" id="dataInput">
+    <input type="number" id="valorAporteInput" placeholder="Valor do Aporte R$">
+    <input type="number" id="patrimonioAtualInput" placeholder="Patrimônio Total Atual R$">
+
+    <!-- NOVOS CAMPOS PARA DÓLAR (inicialmente escondidos) -->
+    <input type="number" id="valorAporteInputUSD" placeholder="Aporte $" style="display: none;">
+    <input type="number" id="patrimonioAtualInputUSD" placeholder="Patrimônio Total $" style="display: none;">
+    <!-- FIM NOVOS CAMPOS -->
+
+    <button onclick="adicionarRegistro()" id="btnRegistrar">Registrar Mês</button>
+    <button onclick="salvarEdicao()" style="display:none;" id="btnSalvarEdicao">Salvar Edição</button>
+</div>
+
 
     <table>
         <thead>
@@ -198,7 +205,23 @@
             { periodo: '09/2025', dataFechamento: '2025-09-30', aportes: 95247.89, patrimonio: 95560.94 },
             { periodo: '10/2025', dataFechamento: '2025-10-31', aportes: 0.00, patrimonio: 97955.88 },
             { periodo: '11/2025', dataFechamento: '2025-11-30', aportes: 52450.00, patrimonio: 159456.21 }
+        ],
+        "TastyWorks": [
+            { periodo: '2023', dataFechamento: '2023-12-31', aportes: 177099.40, patrimonio: 168772.64, aportesUSD: 35512.06, patrimonioUSD: 34870.38, isUSD: true },
+            { periodo: '2024', dataFechamento: '2024-12-31', aportes: 54304.74, patrimonio: 272855.20, aportesUSD: 9169.18, patrimonioUSD: 44080.00, isUSD: true },
+            { periodo: '01/25', dataFechamento: '2025-01-31', aportes: 23000.00, patrimonio: 288881.44, aportesUSD: 3775.74, patrimonioUSD: 49466.00, isUSD: true },
+            { periodo: '02/25', dataFechamento: '2025-02-28', aportes: 0.00, patrimonio: 274972.55, aportesUSD: 0.00, patrimonioUSD: 49713.00, isUSD: true },
+            { periodo: '03/25', dataFechamento: '2025-03-31', aportes: -33600.00, patrimonio: 245054.28, aportesUSD: -6400.00, patrimonioUSD: 44304.00, isUSD: true },
+            { periodo: '04/25', dataFechamento: '2025-04-30', aportes: -5386.50, patrimonio: 242120.81, aportesUSD: -1026.00, patrimonioUSD: 43773.65, isUSD: true },
+            { periodo: '05/25', dataFechamento: '2025-05-31', aportes: 8698.59, patrimonio: 245941.49, aportesUSD: 1498.87, patrimonioUSD: 44464.40, isUSD: true },
+            { periodo: '06/25', dataFechamento: '2025-06-30', aportes: -1845.20, patrimonio: 252915.51, aportesUSD: -348.15, patrimonioUSD: 45725.27, isUSD: true },
+            { periodo: '07/25', dataFechamento: '2025-07-31', aportes: 3039.41, patrimonio: 254723.76, aportesUSD: 540.02, patrimonioUSD: 46052.17, isUSD: true },
+            { periodo: '08/25', dataFechamento: '2025-08-31', aportes: -2999.04, patrimonio: 253887.61, aportesUSD: -568.00, patrimonioUSD: 45901.00, isUSD: true },
+            { periodo: '09/25', dataFechamento: '2025-09-30', aportes: 31967.50, patrimonio: 307872.12, aportesUSD: 6000.00, patrimonioUSD: 55661.00, isUSD: true },
+            { periodo: '10/25', dataFechamento: '2025-10-31', aportes: 18006.89, patrimonio: 318317.41, aportesUSD: 3319.87, patrimonioUSD: 57549.43, isUSD: true },
+            { periodo: '11/25', dataFechamento: '2025-11-30', aportes: 35521.37, patrimonio: 353160.54, aportesUSD: 6620.19, patrimonioUSD: 63848.81, isUSD: true }
         ]
+
     };
 
     /* ----------------------- FUNÇÕES DO SISTEMA ------------------------- */
@@ -206,7 +229,12 @@
     let patrimonioChartInstance = null;
     let patrimonioConsolidadoChartInstance = null;
 
-    function formatarMoeda(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+    function formatarMoeda(v, moeda = 'BRL') { 
+        return v.toLocaleString('pt-BR', { 
+            style: 'currency', 
+            currency: moeda 
+        }); 
+    }
     function getBanco() { return document.getElementById('bancoSelector').value; }
     function getDadosAtuais() { return dadosMultiBancos[getBanco()] || []; }
 
@@ -215,6 +243,7 @@
         atualizarTotalGeral();
         atualizarGrafico();
         consolidarPatrimonioHistorico();
+        alternarInputsUSD();
     }
 
     function popularSelectorBancos() {
@@ -245,58 +274,158 @@
         const dataInput = document.getElementById('dataInput').value;
         const aporte = parseFloat(document.getElementById('valorAporteInput').value) || 0;
         const patrimonioFinal = parseFloat(document.getElementById('patrimonioAtualInput').value);
+        
+        // Captura os valores dos novos campos de Dólar
+        const aporteUSD = parseFloat(document.getElementById('valorAporteInputUSD').value) || 0;
+        const patrimonioFinalUSD = parseFloat(document.getElementById('patrimonioAtualInputUSD').value) || 0;
+        
+        // Verifica a flag isUSD da conta atual para manter a consistência, mesmo se for o primeiro registro
+        const isUSDAccount = dadosMultiBancos[banco].length > 0 && dadosMultiBancos[banco][0].isUSD === true;
+
 
         if (!banco) return alert("Selecione um banco antes de registrar!");
         if (!dataInput || isNaN(patrimonioFinal)) return alert("Preencha data e patrimônio!");
 
+        // Validação extra para garantir que campos USD sejam preenchidos se for conta USD
+        if (isUSDAccount && isNaN(patrimonioFinalUSD)) {
+             return alert("Preencha o patrimônio em Dólar ($) para esta conta!");
+        }
+
         const [ano, mes] = dataInput.split('-');
         const periodoLabel = `${mes}/${ano}`;
 
-        dadosMultiBancos[banco].push({
+        const novoRegistro = {
             periodo: periodoLabel,
             dataFechamento: dataInput,
             aportes: aporte,
             patrimonio: patrimonioFinal
-        });
+        };
+
+        if (isUSDAccount) {
+            novoRegistro.aportesUSD = aporteUSD;
+            novoRegistro.patrimonioUSD = patrimonioFinalUSD;
+            novoRegistro.isUSD = true; // Mantém a flag no novo registro
+            
+            // Log do preço médio do dólar no console (extra!)
+            const mediaDolar = aporteUSD > 0 ? (aporte / aporteUSD).toFixed(2) : 'N/A';
+            console.log(`Preço médio do dólar no aporte: R$ ${mediaDolar}`);
+        }
+
+        dadosMultiBancos[banco].push(novoRegistro);
         
         atualizarTudo();
         limparCampos();
     }
 
+
     function atualizarTabela() {
         const tabelaCorpo = document.getElementById('tabelaCorpo');
+        // Seleciona o elemento thead (cabeçalho)
+        const tabelaHead = tabelaCorpo.parentElement.querySelector('thead tr'); 
         tabelaCorpo.innerHTML = '';
         let dados = getDadosAtuais();
         dados.sort((a,b) => new Date(a.dataFechamento) - new Date(b.dataFechamento));
-        let patrimonioAnterior = 0;
+
+        // Define se a conta atual é USD com base no primeiro registro (ou false se não houver dados ainda)
+        // Isso depende de você ter adicionado 'isUSD: true' nos dados da TastyWorks conforme instrução anterior
+        const isUSDAccount = dados.length > 0 && dados[0].isUSD === true;
+
+        // --- ATUALIZAÇÃO DINÂMICA DO CABEÇALHO (THEAD) ---
+        if (isUSDAccount) {
+            tabelaHead.innerHTML = `
+                <th>Mês/Ano</th>
+                <th>Aportes (R$)</th>
+                <th>Patrimônio (R$)</th>
+                <th>Aportes ($)</th>
+                <th>Patrimônio ($)</th>
+                <th>Crescimento % ($)</th>
+                <th>Ações</th>
+            `;
+        } else {
+            // Layout Padrão BRL
+            tabelaHead.innerHTML = `
+                <th>Mês/Ano</th>
+                <th>Aportes (Soma)</th>
+                <th>Patrimônio Final</th>
+                <th>Saldo do Período</th>
+                <th>Crescimento %</th>
+                <th>Ações</th>
+            `;
+        }
+        // --------------------------------------------------
+
+        let patrimonioAnteriorBRL = 0;
+        let patrimonioAnteriorUSD = 0;
+
         dados.forEach((registro, index) => {
-            if (index === 0) patrimonioAnterior = registro.patrimonio - registro.aportes;
-const dataAporte = new Date(registro.dataFechamento);
-const diasNoMes = new Date(dataAporte.getFullYear(), dataAporte.getMonth() + 1, 0).getDate();
-const diaAporte = dataAporte.getDate();
-const proporcaoTempo = (diasNoMes - diaAporte + 1) / diasNoMes;
+            // Se for o primeiro registro, define o patrimônio anterior (base para o cálculo do período)
+            if (index === 0) {
+                patrimonioAnteriorBRL = registro.patrimonio - registro.aportes;
+                if (isUSDAccount) patrimonioAnteriorUSD = registro.patrimonioUSD - registro.aportesUSD;
+            }
 
-const baseInvestida = patrimonioAnterior + (registro.aportes * proporcaoTempo);
-const saldoPeriodo = registro.patrimonio - patrimonioAnterior - registro.aportes;
-const crescimentoPercentual = baseInvestida > 0 ? (saldoPeriodo / baseInvestida) * 100 : 0;
+            // Lógica de cálculo BRL (A sua lógica pró-rata original)
+            const dataAporte = new Date(registro.dataFechamento);
+            // Patch para getDaysInMonth() que não existe nativamente no JS
+            Date.prototype.getDaysInMonth = function() {
+                return new Date(this.getFullYear(), this.getMonth() + 1, 0).getDate();
+            };
+            const diasNoMes = dataAporte.getDaysInMonth();
+            const diaAporte = dataAporte.getDate();
+            const proporcaoTempo = (diasNoMes - diaAporte + 1) / diasNoMes;
 
-            patrimonioAnterior = registro.patrimonio;
+            const baseInvestidaBRL = patrimonioAnteriorBRL + (registro.aportes * proporcaoTempo);
+            const saldoPeriodoBRL = registro.patrimonio - patrimonioAnteriorBRL - registro.aportes;
+            const crescimentoPercentualBRL = baseInvestidaBRL > 0 ? (saldoPeriodoBRL / baseInvestidaBRL) * 100 : 0;
+            
+            // Lógica de cálculo USD
+            let crescimentoPercentualUSD = 0;
+            if (isUSDAccount) {
+                const baseInvestidaUSD = patrimonioAnteriorUSD + (registro.aportesUSD * proporcaoTempo);
+                const saldoPeriodoUSD = registro.patrimonioUSD - patrimonioAnteriorUSD - registro.aportesUSD;
+                crescimentoPercentualUSD = baseInvestidaUSD > 0 ? (saldoPeriodoUSD / baseInvestidaUSD) * 100 : 0;
+            }
+
+            // Atualiza o patrimônio anterior para o próximo loop
+            patrimonioAnteriorBRL = registro.patrimonio;
+            if (isUSDAccount) patrimonioAnteriorUSD = registro.patrimonioUSD;
+
+
             const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${registro.periodo}</td>
-                <td>${formatarMoeda(registro.aportes)}</td>
-                <td>${formatarMoeda(registro.patrimonio)}</td>
-                <td class="${saldoPeriodo >= 0 ? 'pos' : 'neg'}">${formatarMoeda(saldoPeriodo)}</td>
-                <td class="${crescimentoPercentual >= 0 ? 'pos' : 'neg'}">${crescimentoPercentual.toFixed(2)}%</td>
-                <td>
-                    <button onclick="editarRegistro(${index})" class="btn-edit">Editar</button>
-                    <button onclick="deletarRegistro(${index})" class="btn-delete">Excluir</button>
-                </td>`;
+            if (isUSDAccount) {
+                // Conteúdo para corretoras USD (como na imagem TastyWorks)
+                tr.innerHTML = `
+                    <td>${registro.periodo}</td>
+                    <td>${formatarMoeda(registro.aportes || 0, 'BRL')}</td>
+                    <td>${formatarMoeda(registro.patrimonio || 0, 'BRL')}</td>
+                    <td>${formatarMoeda(registro.aportesUSD, 'USD')}</td>
+                    <td>${formatarMoeda(registro.patrimonioUSD, 'USD')}</td>
+                    <td class="${crescimentoPercentualUSD >= 0 ? 'pos' : 'neg'}">${crescimentoPercentualUSD.toFixed(2)}%</td>
+                    <td>
+                        <button onclick="editarRegistro(${index})" class="btn-edit">Editar</button>
+                        <button onclick="deletarRegistro(${index})" class="btn-delete">Excluir</button>
+                    </td>`;
+            } else {
+                // Conteúdo para corretoras BRL (seu layout original)
+                tr.innerHTML = `
+                    <td>${registro.periodo}</td>
+                    <td>${formatarMoeda(registro.aportes || 0, 'BRL')}</td>
+                    <td>${formatarMoeda(registro.patrimonio || 0, 'BRL')}</td>
+                    <td class="${saldoPeriodoBRL >= 0 ? 'pos' : 'neg'}">${formatarMoeda(saldoPeriodoBRL, 'BRL')}</td>
+                    <td class="${crescimentoPercentualBRL >= 0 ? 'pos' : 'neg'}">${crescimentoPercentualBRL.toFixed(2)}%</td>
+                    <td>
+                        <button onclick="editarRegistro(${index})" class="btn-edit">Editar</button>
+                        <button onclick="deletarRegistro(${index})" class="btn-delete">Excluir</button>
+                    </td>`;
+            }
             tabelaCorpo.appendChild(tr);
         });
+        
+        // Inverte a ordem para mostrar os mais recentes primeiro
         const rows = Array.from(tabelaCorpo.rows);
         rows.reverse().forEach(row => tabelaCorpo.appendChild(row));
     }
+
 
     function editarRegistro(index) {
         const registro = getDadosAtuais()[index];
@@ -349,6 +478,31 @@ function atualizarTotalGeral() {
     }
     document.getElementById('patrimonioTotalGeral').innerText = formatarMoeda(total);
 }
+
+    function alternarInputsUSD() {
+        const bancoSelecionado = getBanco();
+        // Acesso ao primeiro registro da conta para verificar a flag isUSD.
+        // Usamos dadosMultiBancos para acessar a fonte original dos dados.
+        const dadosBanco = dadosMultiBancos[bancoSelecionado];
+        // isUSD será true se a conta for da TastyWorks, por exemplo
+        const isUSD = dadosBanco && dadosBanco.length > 0 && dadosBanco[0].isUSD === true;
+
+        const aporteUSDInput = document.getElementById('valorAporteInputUSD');
+        const patrimonioUSDInput = document.getElementById('patrimonioAtualInputUSD');
+
+        if (isUSD) {
+            aporteUSDInput.style.display = 'inline';
+            patrimonioUSDInput.style.display = 'inline';
+            document.getElementById('valorAporteInput').placeholder = 'Aporte R$ (Opcional)';
+            document.getElementById('patrimonioAtualInput').placeholder = 'Patrimônio R$ (Opcional)';
+        } else {
+            aporteUSDInput.style.display = 'none';
+            patrimonioUSDInput.style.display = 'none';
+            document.getElementById('valorAporteInput').placeholder = 'Valor do Aporte R$';
+            document.getElementById('patrimonioAtualInput').placeholder = 'Patrimônio Total Atual R$';
+        }
+    }
+
 
     /* ---------- GRÁFICOS MELHORADOS ---------- */
     function atualizarGrafico() {
@@ -425,6 +579,9 @@ function atualizarTotalGeral() {
         document.getElementById('dataInput').value = '';
         document.getElementById('valorAporteInput').value = '';
         document.getElementById('patrimonioAtualInput').value = '';
+        // Adicione estas duas linhas abaixo:
+        document.getElementById('valorAporteInputUSD').value = ''; 
+        document.getElementById('patrimonioAtualInputUSD').value = ''; 
         document.getElementById('btnRegistrar').style.display = 'inline';
         document.getElementById('btnSalvarEdicao').style.display = 'none';
     }
