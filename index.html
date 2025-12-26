@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizador de Investimentos (Consolidado Final)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h2 { color: #333; border-bottom: 2px solid #ff5700; padding-bottom: 10px; }
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        .inputs { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        input, select, button { padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        button { background-color: #ff5700; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #e04d00; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background-color: #f8f9fa; color: #555; }
+        .pos { color: #28a745; font-weight: bold; }
+        .neg { color: #dc3545; font-weight: bold; }
+        .btn-edit, .btn-delete { margin-right: 5px; padding: 5px 10px; font-size: 12px; border: none; color: white; cursor: pointer; border-radius: 4px; }
+        .btn-edit { background-color: #007bff; }
+        .btn-delete { background-color: #dc3545; }
+        .total-card {
+            background-color: #ff5700;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .total-card p { margin: 0; font-size: 24px; font-weight: bold; }
+        .btn-backup { background-color: #28a745; margin-left: 10px; }
+        .btn-add-bank { background-color: #007bff; margin-left: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Performance da Carteira</h2>
+    
+    <div class="total-card">
+        <h3>Patrimônio Total Consolidado Atual:</h3>
+        <p id="patrimonioTotalGeral">R$ 0,00</p>
+    </div>
+
+    <div class="controls">
+        <label for="bancoSelector">Selecionar Banco:</label>
+        <select id="bancoSelector" onchange="atualizarTudo()"></select>
+        <button onclick="adicionarNovoBanco()" class="btn-add-bank">Novo Banco</button>
+        <button onclick="exportarDados()" class="btn-backup">Backup (Exportar)</button>
+    </div>
+
+    <input type="hidden" id="registroIndex">
+
+    <div class="inputs">
+        <input type="date" id="dataInput">
+        <input type="number" id="valorAporteInput" placeholder="Valor do Aporte R$">
+        <input type="number" id="patrimonioAtualInput" placeholder="Patrimônio Total Atual R$">
+        <button onclick="adicionarRegistro()" id="btnRegistrar">Registrar Mês</button>
+        <button onclick="salvarEdicao()" style="display:none;" id="btnSalvarEdicao">Salvar Edição</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Mês/Ano</th>
+                <th>Aportes (Soma)</th>
+                <th>Patrimônio Final</th>
+                <th>Saldo do Período</th>
+                <th>Crescimento %</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="tabelaCorpo"></tbody>
+    </table>
+    
+    <canvas id="patrimonioChart" style="margin-top: 30px;"></canvas>
+    <hr>
+    <h3>Gráfico Consolidado Geral (Todos os Bancos)</h3>
+    <canvas id="patrimonioConsolidadoChart"></canvas>
+</div>
+
+<script>
+    /* ----------------------- DADOS COMPLETOS ------------------------- */
+    const dadosIniciais = {
+        "C6 Bruno": [
+            { periodo: '12/2023', dataFechamento: '2023-12-31', aportes: 36000.00, patrimonio: 36406.99 },
+            { periodo: '12/2024', dataFechamento: '2024-12-31', aportes: 1472025.03, patrimonio: 1690454.01 },
+            { periodo: '01/2025', dataFechamento: '2025-01-31', aportes: 994314.09, patrimonio: 2699459.76 },
+            { periodo: '02/2025', dataFechamento: '2025-02-28', aportes: -953600.40, patrimonio: 1764237.70 },
+            { periodo: '03/2025', dataFechamento: '2025-03-31', aportes: -9563.00, patrimonio: 1777725.03 },
+            { periodo: '04/2025', dataFechamento: '2025-04-30', aportes: -21800.00, patrimonio: 1769873.87 },
+            { periodo: '05/2025', dataFechamento: '2025-05-31', aportes: -220308.92, patrimonio: 1564434.58 },
+            { periodo: '06/2025', dataFechamento: '2025-06-30', aportes: 0.00, patrimonio: 1573921.88 },
+            { periodo: '07/2025', dataFechamento: '2025-07-31', aportes: -17760.00, patrimonio: 1572288.24 },
+            { periodo: '08/2025', dataFechamento: '2025-08-31', aportes: 451238.40, patrimonio: 2044457.83 },
+            { periodo: '09/2025', dataFechamento: '2025-09-30', aportes: 108326.88, patrimonio: 2171081.03 },
+            { periodo: '10/2025', dataFechamento: '2025-10-31', aportes: -380520.89, patrimonio: 1861813.32 },
+            { periodo: '11/2025', dataFechamento: '2025-11-30', aportes: -52450.00, patrimonio: 1822355.25 }
+        ],
+        "XP Bruno": [
+            { periodo: '12/2017', dataFechamento: '2017-12-31', aportes: 82078.26, patrimonio: 85129.81 },
+            { periodo: '12/2018', dataFechamento: '2018-12-31', aportes: 72873.60, patrimonio: 170431.28 },
+            { periodo: '12/2019', dataFechamento: '2019-12-31', aportes: 0.00, patrimonio: 187146.84 },
+            { periodo: '12/2020', dataFechamento: '2020-12-31', aportes: 15000.00, patrimonio: 200802.02 },
+            { periodo: '12/2021', dataFechamento: '2021-12-31', aportes: 1486946.36, patrimonio: 1563639.02 },
+            { periodo: '12/2022', dataFechamento: '2022-12-31', aportes: -46641.53, patrimonio: 1598746.74 },
+            { periodo: '12/2023', dataFechamento: '2023-12-31', aportes: 438390.90, patrimonio: 2304405.83 },
+            { periodo: '12/2024', dataFechamento: '2024-12-31', aportes: -155008.08, patrimonio: 2292545.94 },
+            { periodo: '01/2025', dataFechamento: '2025-01-31', aportes: -1002074.82, patrimonio: 1308479.98 },
+            { periodo: '02/2025', dataFechamento: '2025-02-28', aportes: 953574.36, patrimonio: 2254449.36 },
+            { periodo: '03/2025', dataFechamento: '2025-03-31', aportes: 44886.81, patrimonio: 2314515.62 },
+            { periodo: '04/2025', dataFechamento: '2025-04-30', aportes: -18188.84, patrimonio: 2307756.72 },
+            { periodo: '05/2025', dataFechamento: '2025-05-31', aportes: -198802.34, patrimonio: 2138943.55 },
+            { periodo: '06/2025', dataFechamento: '2025-06-30', aportes: 65000.08, patrimonio: 2238273.24 },
+            { periodo: '07/2025', dataFechamento: '2025-07-31', aportes: 48000.00, patrimonio: 2299720.07 },
+            { periodo: '08/2025', dataFechamento: '2025-08-31', aportes: 58656.94, patrimonio: 2393568.92 },
+            { periodo: '09/2025', dataFechamento: '2025-09-30', aportes: 100774.47, patrimonio: 2512403.16 },
+            { periodo: '10/2025', dataFechamento: '2025-10-31', aportes: -13320.11, patrimonio: 2476665.94 },
+            { periodo: '11/2025', dataFechamento: '2025-11-30', aportes: -7589.67, patrimonio: 2496467.91 }
+        ],
+        "Inter": [
+            { periodo: '12/2023', dataFechamento: '2023-12-31', aportes: 29743.34, patrimonio: 30114.55 },
+            { periodo: '12/2024', dataFechamento: '2024-12-31', aportes: -13615.55, patrimonio: 23414.80 },
+            { periodo: '01/2025', dataFechamento: '2025-01-31', aportes: 0.00, patrimonio: 23621.74 },
+            { periodo: '02/2025', dataFechamento: '2025-02-28', aportes: 0.00, patrimonio: 23773.00 },
+            { periodo: '03/2025', dataFechamento: '2025-03-31', aportes: 0.00, patrimonio: 24248.70 },
+            { periodo: '04/2025', dataFechamento: '2025-04-30', aportes: 0.00, patrimonio: 24723.46 },
+            { periodo: '05/2025', dataFechamento: '2025-05-31', aportes: 0.00, patrimonio: 24951.66 },
+            { periodo: '06/2025', dataFechamento: '2025-06-30', aportes: 0.00, patrimonio: 25133.07 },
+            { periodo: '07/2025', dataFechamento: '2025-07-31', aportes: 0.00, patrimonio: 25391.56 },
+            { periodo: '08/2025', dataFechamento: '2025-08-31', aportes: 0.00, patrimonio: 25560.69 },
+            { periodo: '09/2025', dataFechamento: '2025-09-30', aportes: 0.00, patrimonio: 25797.40 },
+            { periodo: '10/2025', dataFechamento: '2025-10-31', aportes: -820.40, patrimonio: 25213.39 },
+            { periodo: '11/2025', dataFechamento: '2025-11-30', aportes: 0.00, patrimonio: 25350.22 }
+        ],
+        "XP MARIA CLARA": [
+            { periodo: '12/2023', dataFechamento: '2023-12-31', aportes: 85000.00, patrimonio: 85160.51 },
+            { periodo: '12/2024', dataFechamento: '2024-12-31', aportes: 78454.77, patrimonio: 171066.26 },
+            { periodo: '01/2025', dataFechamento: '2025-01-31', aportes: 0.00, patrimonio: 173172.38 },
+            { periodo: '02/2025', dataFechamento: '2025-02-28', aportes: 0.00, patrimonio: 175051.84 },
+            { periodo: '03/2025', dataFechamento: '2025-03-31', aportes: 0.00, patrimonio: 177568.75 },
+            { periodo: '04/2025', dataFechamento: '2025-04-30', aportes: 0.00, patrimonio: 179547.33 },
+            { periodo: '05/2025', dataFechamento: '2025-05-31', aportes: 0.00, patrimonio: 181333.97 },
+            { periodo: '06/2025', dataFechamento: '2025-06-30', aportes: 0.00, patrimonio: 183232.95 },
+            { periodo: '07/2025', dataFechamento: '2025-07-31', aportes: 0.00, patrimonio: 185373.61 },
+            { periodo: '08/2025', dataFechamento: '2025-08-31', aportes: 0.00, patrimonio: 187461.25 },
+            { periodo: '09/2025', dataFechamento: '2025-09-30', aportes: 0.00, patrimonio: 189234.17 },
+            { periodo: '10/2025', dataFechamento: '2025-10-31', aportes: 0.00, patrimonio: 191516.40 },
+            { periodo: '11/2025', dataFechamento: '2025-11-30', aportes: 12113.10, patrimonio: 212039.50 }
+        ],
+        "XP BHR": [
+            { periodo: '2023', dataFechamento: '2023-12-31', aportes: 40000.00, patrimonio: 40000.00 },
+            { periodo: '2024', dataFechamento: '2024-12-31', aportes: 1236153.12, patrimonio: 1321860.38 },
+            { periodo: '01/2025', dataFechamento: '2025-01-31', aportes: 127118.37, patrimonio: 1462610.58 },
+            { periodo: '02/2025', dataFechamento: '2025-02-28', aportes: 0.00, patrimonio: 1476123.72 },
+            { periodo: '03/2025', dataFechamento: '2025-03-31', aportes: 60250.00, patrimonio: 1550610.16 },
+            { periodo: '04/2025', dataFechamento: '2025-04-30', aportes: 57242.31, patrimonio: 1622980.03 },
+            { periodo: '05/2025', dataFechamento: '2025-05-31', aportes: -103647.05, patrimonio: 1532837.22 },
+            { periodo: '06/2025', dataFechamento: '2025-06-30', aportes: -37945.53, patrimonio: 1508315.52 },
+            { periodo: '07/2025', dataFechamento: '2025-07-31', aportes: -34666.12, patrimonio: 1487967.21 },
+            { periodo: '08/2025', dataFechamento: '2025-08-31', aportes: -82445.41, patrimonio: 1418399.06 },
+            { periodo: '09/2025', dataFechamento: '2025-09-30', aportes: -48797.17, patrimonio: 1381533.51 },
+            { periodo: '10/2025', dataFechamento: '2025-10-31', aportes: -150588.21, patrimonio: 1243460.22 },
+            { periodo: '11/2025', dataFechamento: '2025-11-30', aportes: -16290.02, patrimonio: 1240959.84 }
+        ],
+        "C6 ELLEN": [
+    { periodo: '2021', dataFechamento: '2021-12-31', aportes: 100000.00, patrimonio: 104442.13 },
+    { periodo: '2022', dataFechamento: '2022-12-31', aportes: 192000.00, patrimonio: 282658.72 },
+    { periodo: '2023', dataFechamento: '2023-12-31', aportes: -144875.89, patrimonio: 156795.06 },
+    { periodo: '2024', dataFechamento: '2024-12-31', aportes: 334198.43, patrimonio: 530997.48 },
+    { periodo: '01/2025', dataFechamento: '2025-01-31', aportes: 0.00, patrimonio: 536174.35 },
+    { periodo: '02/2025', dataFechamento: '2025-02-28', aportes: -5000.00, patrimonio: 536430.02 },
+    { periodo: '03/2025', dataFechamento: '2025-03-31', aportes: 0.00, patrimonio: 541722.55 },
+    { periodo: '04/2025', dataFechamento: '2025-04-30', aportes: 0.00, patrimonio: 547355.19 },
+    { periodo: '05/2025', dataFechamento: '2025-05-31', aportes: 64462.12, patrimonio: 620947.96 },
+    { periodo: '06/2025', dataFechamento: '2025-06-30', aportes: 166404.00, patrimonio: 795953.06 },
+    { periodo: '07/2025', dataFechamento: '2025-07-31', aportes: 198426.15, patrimonio: 1001963.14 },
+    { periodo: '08/2025', dataFechamento: '2025-08-31', aportes: 0.00, patrimonio: 1012000.00 },
+    { periodo: '09/2025', dataFechamento: '2025-09-30', aportes: -23337.06, patrimonio: 1006000.00 },
+    { periodo: '10/2025', dataFechamento: '2025-10-31', aportes: 0.00, patrimonio: 1016291.00 },
+    { periodo: '11/2025', dataFechamento: '2025-11-30', aportes: -3779.28, patrimonio: 1020455.53 }
+],
+        "XP ADRIANO": [
+            { periodo: '09/2025', dataFechamento: '2025-09-30', aportes: 95247.89, patrimonio: 95560.94 },
+            { periodo: '10/2025', dataFechamento: '2025-10-31', aportes: 0.00, patrimonio: 97955.88 },
+            { periodo: '11/2025', dataFechamento: '2025-11-30', aportes: 52450.00, patrimonio: 159456.21 }
+        ]
+    };
+
+    /* ----------------------- FUNÇÕES DO SISTEMA ------------------------- */
+    let dadosMultiBancos = JSON.parse(JSON.stringify(dadosIniciais));
+    let patrimonioChartInstance = null;
+    let patrimonioConsolidadoChartInstance = null;
+
+    function formatarMoeda(v) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+    function getBanco() { return document.getElementById('bancoSelector').value; }
+    function getDadosAtuais() { return dadosMultiBancos[getBanco()] || []; }
+
+    function atualizarTudo() {
+        atualizarTabela();
+        atualizarTotalGeral();
+        atualizarGrafico();
+        consolidarPatrimonioHistorico();
+    }
+
+    function popularSelectorBancos() {
+        const selector = document.getElementById('bancoSelector');
+        const bancoAtual = selector.value;
+        selector.innerHTML = '';
+        for (const banco in dadosMultiBancos) {
+            const option = document.createElement('option');
+            option.value = banco;
+            option.textContent = banco;
+            selector.appendChild(option);
+        }
+        if (bancoAtual && dadosMultiBancos[bancoAtual]) selector.value = bancoAtual;
+    }
+
+    function adicionarNovoBanco() {
+        const nomeBanco = prompt("Digite o nome do novo banco:");
+        if (nomeBanco && nomeBanco.trim() !== "" && !dadosMultiBancos[nomeBanco]) {
+            dadosMultiBancos[nomeBanco] = [];
+            popularSelectorBancos();
+            document.getElementById('bancoSelector').value = nomeBanco;
+            atualizarTudo();
+        }
+    }
+
+    function adicionarRegistro() {
+        let banco = getBanco();
+        const dataInput = document.getElementById('dataInput').value;
+        const aporte = parseFloat(document.getElementById('valorAporteInput').value) || 0;
+        const patrimonioFinal = parseFloat(document.getElementById('patrimonioAtualInput').value);
+
+        if (!banco) return alert("Selecione um banco antes de registrar!");
+        if (!dataInput || isNaN(patrimonioFinal)) return alert("Preencha data e patrimônio!");
+
+        const [ano, mes] = dataInput.split('-');
+        const periodoLabel = `${mes}/${ano}`;
+
+        dadosMultiBancos[banco].push({
+            periodo: periodoLabel,
+            dataFechamento: dataInput,
+            aportes: aporte,
+            patrimonio: patrimonioFinal
+        });
+        
+        atualizarTudo();
+        limparCampos();
+    }
+
+    function atualizarTabela() {
+        const tabelaCorpo = document.getElementById('tabelaCorpo');
+        tabelaCorpo.innerHTML = '';
+        let dados = getDadosAtuais();
+        dados.sort((a,b) => new Date(a.dataFechamento) - new Date(b.dataFechamento));
+        let patrimonioAnterior = 0;
+        dados.forEach((registro, index) => {
+            if (index === 0) patrimonioAnterior = registro.patrimonio - registro.aportes;
+            const saldoPeriodo = registro.patrimonio - patrimonioAnterior - registro.aportes;
+            const crescimentoPercentual = (patrimonioAnterior + registro.aportes) > 0 ?
+                (saldoPeriodo / (patrimonioAnterior + registro.aportes)) * 100 : 0;
+            patrimonioAnterior = registro.patrimonio;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${registro.periodo}</td>
+                <td>${formatarMoeda(registro.aportes)}</td>
+                <td>${formatarMoeda(registro.patrimonio)}</td>
+                <td class="${saldoPeriodo >= 0 ? 'pos' : 'neg'}">${formatarMoeda(saldoPeriodo)}</td>
+                <td class="${crescimentoPercentual >= 0 ? 'pos' : 'neg'}">${crescimentoPercentual.toFixed(2)}%</td>
+                <td>
+                    <button onclick="editarRegistro(${index})" class="btn-edit">Editar</button>
+                    <button onclick="deletarRegistro(${index})" class="btn-delete">Excluir</button>
+                </td>`;
+            tabelaCorpo.appendChild(tr);
+        });
+        const rows = Array.from(tabelaCorpo.rows);
+        rows.reverse().forEach(row => tabelaCorpo.appendChild(row));
+    }
+
+    function editarRegistro(index) {
+        const registro = getDadosAtuais()[index];
+        document.getElementById('dataInput').value = registro.dataFechamento;
+        document.getElementById('valorAporteInput').value = registro.aportes;
+        document.getElementById('patrimonioAtualInput').value = registro.patrimonio;
+        document.getElementById('registroIndex').value = index;
+        document.getElementById('btnRegistrar').style.display = 'none';
+        document.getElementById('btnSalvarEdicao').style.display = 'inline';
+    }
+
+    function salvarEdicao() {
+        const index = document.getElementById('registroIndex').value;
+        const banco = getBanco();
+        const dataInput = document.getElementById('dataInput').value;
+        const aporte = parseFloat(document.getElementById('valorAporteInput').value) || 0;
+        const patrimonioFinal = parseFloat(document.getElementById('patrimonioAtualInput').value);
+
+        if (!dataInput || isNaN(patrimonioFinal)) return alert("Preencha data e patrimônio!");
+
+        const [ano, mes] = dataInput.split('-');
+        const periodoLabel = `${mes}/${ano}`;
+
+        dadosMultiBancos[banco][index] = {
+            periodo: periodoLabel,
+            dataFechamento: dataInput,
+            aportes: aporte,
+            patrimonio: patrimonioFinal
+        };
+
+        atualizarTudo();
+        limparCampos();
+    }
+
+    function deletarRegistro(index) {
+        if (confirm("Tem certeza que deseja excluir este registro?")) {
+            const banco = getBanco();
+            dadosMultiBancos[banco].splice(index, 1);
+            atualizarTudo();
+        }
+    }
+
+function atualizarTotalGeral() {
+    let total = 0;
+    for (const banco in dadosMultiBancos) {
+        const dadosBanco = [...dadosMultiBancos[banco]].sort((a,b) => new Date(a.dataFechamento) - new Date(b.dataFechamento));
+        if (dadosBanco.length > 0) {
+            total += dadosBanco[dadosBanco.length - 1].patrimonio;
+        }
+    }
+    document.getElementById('patrimonioTotalGeral').innerText = formatarMoeda(total);
+}
+
+    /* ---------- GRÁFICOS MELHORADOS ---------- */
+    function atualizarGrafico() {
+        if (patrimonioChartInstance) patrimonioChartInstance.destroy();
+        let dados = [...getDadosAtuais()].sort((a,b) => new Date(a.dataFechamento) - new Date(b.dataFechamento));
+        const ctx = document.getElementById('patrimonioChart').getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(255,87,0,0.4)');
+        gradient.addColorStop(1, 'rgba(255,87,0,0.05)');
+        patrimonioChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dados.map(d => d.periodo),
+                datasets: [{
+                    label: 'Patrimônio (R$)',
+                    data: dados.map(d => d.patrimonio),
+                    borderColor: '#ff5700',
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#fff',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true },
+                    tooltip: { callbacks: { label: ctx => ` ${formatarMoeda(ctx.parsed.y)}` } }
+                }
+            }
+        });
+    }
+
+    function consolidarPatrimonioHistorico() {
+        if (patrimonioConsolidadoChartInstance) patrimonioConsolidadoChartInstance.destroy();
+        const consolidado = {};
+        for (const banco in dadosMultiBancos) {
+            dadosMultiBancos[banco].forEach(reg => {
+                const key = reg.dataFechamento; 
+                if (!consolidado[key]) consolidado[key] = { total: 0, periodoLabel: reg.periodo };
+                consolidado[key].total += reg.patrimonio;
+            });
+        }
+        const hist = Object.keys(consolidado).sort((a,b) => new Date(a) - new Date(b)).map(key => ({
+            periodo: consolidado[key].periodoLabel, 
+            patrimonio: consolidado[key].total
+        }));
+        const ctx = document.getElementById('patrimonioConsolidadoChart').getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(0,123,255,0.4)');
+        gradient.addColorStop(1, 'rgba(0,123,255,0.05)');
+        patrimonioConsolidadoChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: hist.map(h => h.periodo),
+                datasets: [{
+                    label: 'Total Consolidado (R$)',
+                    data: hist.map(h => h.patrimonio),
+                    borderColor: '#007bff',
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#fff',
+                    tension: 0.3,
+                    fill: true
+                }]
+            }
+        });
+    }
+
+    function limparCampos() {
+        document.getElementById('dataInput').value = '';
+        document.getElementById('valorAporteInput').value = '';
+        document.getElementById('patrimonioAtualInput').value = '';
+        document.getElementById('btnRegistrar').style.display = 'inline';
+        document.getElementById('btnSalvarEdicao').style.display = 'none';
+    }
+
+    function exportarDados() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosMultiBancos));
+        const link = document.createElement('a');
+        link.setAttribute("href", dataStr);
+        link.setAttribute("download", "backup_investimentos.json");
+        link.click();
+    }
+
+    window.onload = () => { popularSelectorBancos(); atualizarTudo(); };
+</script>
+</body>
+</html>
