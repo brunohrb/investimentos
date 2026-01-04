@@ -13,10 +13,12 @@
         * { box-sizing: border-box; transition: background-color 0.3s, color 0.3s; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); padding: 0; color: var(--text-color); margin: 0; overflow-x: hidden; }
         
-        /* Tela de Login */
-        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 5000; display: flex; justify-content: center; align-items: center; }
-        .login-box { background: var(--card-bg); padding: 40px; border-radius: 15px; box-shadow: var(--card-shadow); text-align: center; width: 90%; max-width: 350px; }
-        .login-box h2 { color: var(--primary-color); margin-bottom: 20px; }
+        /* Tela de Login - VISUAL NOVO PARA CONFIRMAR ATUALIZAÇÃO */
+        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #ff5700, #ff8c00); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        .login-box { background: var(--card-bg); padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 90%; max-width: 350px; }
+        .login-box h1 { color: var(--primary-color); margin-bottom: 10px; font-size: 24px; }
+        .login-box p { color: #666; margin-bottom: 25px; font-size: 14px; }
+        .login-box input { margin-bottom: 15px; text-align: center; border: 2px solid #eee; }
         
         .container { max-width: 1200px; margin: auto; background: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: var(--card-shadow); display: none; margin-top: 10px; margin-bottom: 10px; }
         header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 20px; }
@@ -64,12 +66,12 @@
         .chart-container { padding: 15px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); height: 300px; }
         .chart-container h3 { margin: 0 0 10px 0; font-size: 14px; text-align: center; }
 
-        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 6000; }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 9000; }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* Ocultar valores */
-        .hidden-value { filter: blur(5px); pointer-events: none; user-select: none; }
+        .hidden-value { filter: blur(8px); pointer-events: none; user-select: none; }
 
         @media (min-width: 768px) {
             body { padding: 10px; } .container { padding: 30px; }
@@ -84,12 +86,13 @@
 <body>
 <div id="loading" class="loading-overlay"><div class="spinner"></div></div>
 
-<!-- Tela de Login -->
+<!-- Tela de Login - NOVO VISUAL -->
 <div id="loginScreen">
     <div class="login-box">
-        <h2>InvestFlow</h2>
+        <h1>InvestFlow Pro</h1>
+        <p>Acesse seu painel financeiro</p>
         <input type="password" id="mainPassword" placeholder="Digite sua senha">
-        <button onclick="login()" style="margin-top:15px">Entrar</button>
+        <button onclick="login()" style="width:100%">Entrar no Sistema</button>
     </div>
 </div>
 
@@ -186,8 +189,9 @@
     // PRIVACIDADE
     function togglePrivacy() {
         privacidadeAtiva = !privacidadeAtiva;
-        const els = document.querySelectorAll('#patrimonioTotalGeral, #rendimentoMedio, #totalAportado, #tabelaCorpo td:not(:first-child):not(:last-child)');
-        els.forEach(el => {
+        atualizarTabela(); // Redesenha a tabela para aplicar/remover o blur
+        const dashboardEls = document.querySelectorAll('#patrimonioTotalGeral, #rendimentoMedio, #totalAportado');
+        dashboardEls.forEach(el => {
             if (privacidadeAtiva) el.classList.add('hidden-value');
             else el.classList.remove('hidden-value');
         });
@@ -197,6 +201,7 @@
     // MÁSCARA DE MOEDA
     function mascaraMoeda(i, moeda) {
         let v = i.value.replace(/\D/g,'');
+        if (v === '') return;
         v = (v/100).toFixed(2) + '';
         v = v.replace(".", ",");
         v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
@@ -205,7 +210,8 @@
 
     function desformatarMoeda(v) {
         if (!v) return 0;
-        return parseFloat(v.replace(/[^\d,]/g, '').replace(',', '.'));
+        let num = v.replace(/[^\d,]/g, '').replace(',', '.');
+        return parseFloat(num) || 0;
     }
 
     // CONFIGURAÇÕES
