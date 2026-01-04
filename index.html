@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>InvestFlow V10 - Corrigido</title>
+    <title>InvestFlow V11</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -43,6 +43,7 @@
         button { background-color: #0056b3; color: white; border: none; cursor: pointer; font-weight: bold; }
         .btn-secondary { background-color: #6c757d; }
         .btn-success { background-color: #28a745; }
+        .btn-cancel { background-color: #dc3545; display: none; }
 
         .table-wrapper { overflow-x: auto; margin-top: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
@@ -86,7 +87,7 @@
 
 <div id="loginScreen">
     <div class="login-box">
-        <h1>InvestFlow V10</h1>
+        <h1>InvestFlow V11</h1>
         <p>Acesse seu painel financeiro</p>
         <input type="password" id="mainPassword" placeholder="Senha (Padrão: 1234)">
         <button onclick="login()">Entrar Agora</button>
@@ -139,6 +140,7 @@
         <input type="text" id="valorAporteInputUSD" placeholder="Aporte $" style="display: none;" oninput="mascaraMoeda(this, 'USD')">
         <input type="text" id="patrimonioAtualInputUSD" placeholder="Patrimônio $" style="display: none;" oninput="mascaraMoeda(this, 'USD')">
         <button onclick="salvarRegistro()" id="btnSalvar">Registrar</button>
+        <button onclick="limparCampos()" id="btnCancelar" class="btn-cancel">X</button>
     </div>
 
     <div class="table-wrapper">
@@ -413,6 +415,7 @@
             patrUSD.value = reg.patrimonio_usd.toFixed(2); mascaraMoeda(patrUSD, 'USD');
         }
         document.getElementById('btnSalvar').textContent = 'Atualizar';
+        document.getElementById('btnCancelar').style.display = 'inline-block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -427,6 +430,7 @@
         document.getElementById('valorAporteInput').value = ''; document.getElementById('patrimonioAtualInput').value = '';
         document.getElementById('valorAporteInputUSD').value = ''; document.getElementById('patrimonioAtualInputUSD').value = '';
         document.getElementById('btnSalvar').textContent = 'Registrar';
+        document.getElementById('btnCancelar').style.display = 'none';
     }
 
     function exportarExcel() {
