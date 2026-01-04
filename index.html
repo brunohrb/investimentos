@@ -72,12 +72,14 @@
         <input type="date" id="dataInput">
         <input type="number" id="valorAporteInput" placeholder="Aporte R$" step="0.01">
         <input type="number" id="patrimonioAtualInput" placeholder="Patrimônio R$" step="0.01">
+        <input type="number" id="valorAporteInputUSD" placeholder="Aporte $" step="0.01" style="display: none;">
+        <input type="number" id="patrimonioAtualInputUSD" placeholder="Patrimônio $" step="0.01" style="display: none;">
         <button onclick="salvarRegistro()" id="btnSalvar">Registrar Mês</button>
         <button onclick="cancelarEdicao()" id="btnCancelar" style="display:none; background-color: #6c757d;">Cancelar</button>
     </div>
     <div class="table-wrapper">
         <table>
-            <thead><tr id="tabelaHead"><th>Mês/Ano</th><th>Aportes</th><th>Patrimônio</th><th>Saldo</th><th>%</th><th>Ações</th></tr></thead>
+            <thead><tr id="tabelaHead"><th>Mês/Ano</th><th>Aportes R$</th><th>Patr. R$</th><th>Aporte $</th><th>Patr. $</th><th>% $</th><th>Ações</th></tr></thead>
             <tbody id="tabelaCorpo"></tbody>
         </table>
     </div>
@@ -131,7 +133,15 @@
         const bancoId = document.getElementById('bancoSelector').value; if (!bancoId) return;
         showLoading(true); const { data, error } = await sb.from('registros').select('*').eq('banco_id', bancoId).order('data_fechamento', { ascending: true }); showLoading(false);
         if (error) return; registrosAtuais = data;
-        atualizarTabela(); atualizarGrafico(); calcularRendimentoMedio();
+        alternarInputsUSD(); atualizarTabela(); atualizarGrafico(); calcularRendimentoMedio();
+    }
+
+    function alternarInputsUSD() {
+        const bancoNome = bancos.find(b => b.id === document.getElementById('bancoSelector').value)?.nome || "";
+        const isUSD = bancoNome.toLowerCase().includes('tasty') || (registrosAtuais.length > 0 && registrosAtuais[0].is_usd);
+        const display = isUSD ? 'inline-block' : 'none';
+        document.getElementById('valorAporteInputUSD').style.display = display;
+        document.getElementById('patrimonioAtualInputUSD').style.display = display;
     }
 
     function atualizarFiltroAnos() {
@@ -146,9 +156,13 @@
         const bancoId = document.getElementById('bancoSelector').value; const registroId = document.getElementById('registroId').value;
         const dataInput = document.getElementById('dataInput').value; const aporte = parseFloat(document.getElementById('valorAporteInput').value) || 0;
         const patrimonio = parseFloat(document.getElementById('patrimonioAtualInput').value);
+        const bancoNome = bancos.find(b => b.id === bancoId)?.nome || "";
+        const isUSD = bancoNome.toLowerCase().includes('tasty') || (registrosAtuais.length > 0 && registrosAtuais[0].is_usd);
+        const aporteUSD = parseFloat(document.getElementById('valorAporteInputUSD').value) || 0;
+        const patrimonioUSD = parseFloat(document.getElementById('patrimonioAtualInputUSD').value) || 0;
         if (!bancoId || !dataInput || isNaN(patrimonio)) { alert("Preencha os campos!"); return; }
         const [ano, mes] = dataInput.split('-');
-        const payload = { banco_id: bancoId, periodo: `${mes}/${ano}`, data_fechamento: dataInput, aportes: aporte, patrimonio: patrimonio };
+        const payload = { banco_id: bancoId, periodo: `${mes}/${ano}`, data_fechamento: dataInput, aportes: aporte, patrimonio: patrimonio, aportes_usd: aporteUSD, patrimonio_usd: patrimonioUSD, is_usd: isUSD };
         showLoading(true); let error;
         if (registroId) { const { error: err } = await sb.from('registros').update(payload).eq('id', registroId); error = err; }
         else { const { error: err } = await sb.from('registros').insert([payload]); error = err; }
@@ -156,23 +170,43 @@
         if (error) alert('Erro ao salvar'); else { limparCampos(); await carregarDadosBanco(); await carregarTodosRegistros(); }
     }
 
-    function formatarMoeda(v) {
-        return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    function formatarMoeda(v, moeda = 'BRL') {
+        return v.toLocaleString('pt-BR', { style: 'currency', currency: moeda, minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     function atualizarTabela() {
-        const corpo = document.getElementById('tabelaCorpo'); const anoSelecionado = document.getElementById('anoFilter').value;
-        corpo.innerHTML = ''; let patAnteriorBRL = 0; let linhasCalculadas = [];
+        const corpo = document.getElementById('tabelaCorpo'); const head = document.getElementById('tabelaHead');
+        const anoSelecionado = document.getElementById('anoFilter').value;
+        corpo.innerHTML = '';
+        const bancoNome = bancos.find(b => b.id === document.getElementById('bancoSelector').value)?.nome || "";
+        const isUSD = bancoNome.toLowerCase().includes('tasty') || (registrosAtuais.length > 0 && registrosAtuais[0].is_usd);
+        
+        if (isUSD) head.innerHTML = `<th>Mês/Ano</th><th>Aporte R$</th><th>Patr. R$</th><th>Aporte $</th><th>Patr. $</th><th>% $</th><th>Ações</th>`;
+        else head.innerHTML = `<th>Mês/Ano</th><th>Aportes</th><th>Patrimônio</th><th>Saldo</th><th>%</th><th>Ações</th>`;
+        
+        let patAnteriorBRL = 0; let patAnteriorUSD = 0; let linhasCalculadas = [];
         registrosAtuais.forEach((reg, index) => {
-            if (index === 0) patAnteriorBRL = reg.patrimonio - reg.aportes;
+            if (index === 0) { patAnteriorBRL = reg.patrimonio - reg.aportes; patAnteriorUSD = reg.patrimonio_usd - reg.aportes_usd; }
             const data = new Date(reg.data_fechamento + 'T00:00:00'); const anoReg = reg.data_fechamento.split('-')[0];
             const diasNoMes = new Date(data.getFullYear(), data.getMonth() + 1, 0).getDate();
             const diaAporte = data.getDate(); const proporcao = (diasNoMes - diaAporte + 1) / diasNoMes;
+            
             const baseBRL = patAnteriorBRL + (reg.aportes * proporcao);
             const saldoBRL = reg.patrimonio - patAnteriorBRL - reg.aportes;
             const crescBRL = baseBRL > 0 ? (saldoBRL / baseBRL) * 100 : 0;
+            
             if (anoSelecionado === 'todos' || anoSelecionado === anoReg) {
-                let rowHTML = `<td>${reg.periodo}</td><td>${formatarMoeda(reg.aportes)}</td><td>${formatarMoeda(reg.patrimonio)}</td><td class="${saldoBRL >= 0 ? 'pos' : 'neg'}">${formatarMoeda(saldoBRL)}</td><td class="${crescBRL >= 0 ? 'pos' : 'neg'}">${crescBRL.toFixed(2)}%</td><td class="actions-cell"><button class="btn-edit" onclick="editarRegistro('${reg.id}')">✎</button><button class="btn-delete" onclick="excluirRegistro('${reg.id}')">✕</button></td>`;
+                let rowHTML = `<td>${reg.periodo}</td>`;
+                if (isUSD) {
+                    const baseUSD = patAnteriorUSD + (reg.aportes_usd * proporcao);
+                    const saldoUSD = reg.patrimonio_usd - patAnteriorUSD - reg.aportes_usd;
+                    const crescUSD = baseUSD > 0 ? (saldoUSD / baseUSD) * 100 : 0;
+                    rowHTML += `<td>${formatarMoeda(reg.aportes)}</td><td>${formatarMoeda(reg.patrimonio)}</td><td>${formatarMoeda(reg.aportes_usd, 'USD')}</td><td>${formatarMoeda(reg.patrimonio_usd, 'USD')}</td><td class="${crescUSD >= 0 ? 'pos' : 'neg'}">${crescUSD.toFixed(2)}%</td>`;
+                    patAnteriorUSD = reg.patrimonio_usd;
+                } else {
+                    rowHTML += `<td>${formatarMoeda(reg.aportes)}</td><td>${formatarMoeda(reg.patrimonio)}</td><td class="${saldoBRL >= 0 ? 'pos' : 'neg'}">${formatarMoeda(saldoBRL)}</td><td class="${crescBRL >= 0 ? 'pos' : 'neg'}">${crescBRL.toFixed(2)}%</td>`;
+                }
+                rowHTML += `<td class="actions-cell"><button class="btn-edit" onclick="editarRegistro('${reg.id}')">✎</button><button class="btn-delete" onclick="excluirRegistro('${reg.id}')">✕</button></td>`;
                 linhasCalculadas.push(rowHTML);
             }
             patAnteriorBRL = reg.patrimonio;
@@ -194,10 +228,17 @@
 
     function calcularRendimentoMedio() {
         if (registrosAtuais.length < 2) { document.getElementById('rendimentoMedio').textContent = '0,00%'; return; }
-        let crescimentos = []; let patAnterior = registrosAtuais[0].patrimonio - registrosAtuais[0].aportes;
+        const bancoNome = bancos.find(b => b.id === document.getElementById('bancoSelector').value)?.nome || "";
+        const isUSD = bancoNome.toLowerCase().includes('tasty') || (registrosAtuais.length > 0 && registrosAtuais[0].is_usd);
+        
+        let crescimentos = []; 
+        let patAnterior = isUSD ? (registrosAtuais[0].patrimonio_usd - registrosAtuais[0].aportes_usd) : (registrosAtuais[0].patrimonio - registrosAtuais[0].aportes);
+        
         registrosAtuais.forEach(reg => {
-            const saldo = reg.patrimonio - patAnterior - reg.aportes; const base = patAnterior + reg.aportes;
-            if (base > 0) crescimentos.push((saldo / base) * 100); patAnterior = reg.patrimonio;
+            const p = isUSD ? reg.patrimonio_usd : reg.patrimonio;
+            const a = isUSD ? reg.aportes_usd : reg.aportes;
+            const saldo = p - patAnterior - a; const base = patAnterior + a;
+            if (base > 0) crescimentos.push((saldo / base) * 100); patAnterior = p;
         });
         const ultimos6 = crescimentos.slice(-6); const media = ultimos6.reduce((a, b) => a + b, 0) / ultimos6.length;
         document.getElementById('rendimentoMedio').textContent = media.toFixed(2) + '%';
@@ -210,7 +251,7 @@
         const ctx = document.getElementById('patrimonioChart').getContext('2d');
         charts.patrimonio = new Chart(ctx, {
             type: 'line',
-            data: { labels: registrosAtuais.map(r => r.periodo), datasets: [{ label: 'Patrimônio', data: registrosAtuais.map(r => r.patrimonio), borderColor: '#ff5700', backgroundColor: 'rgba(255,87,0,0.1)', fill: true, tension: 0.3 }] },
+            data: { labels: registrosAtuais.map(r => r.periodo), datasets: [{ label: 'Patrimônio (R$)', data: registrosAtuais.map(r => r.patrimonio), borderColor: '#ff5700', backgroundColor: 'rgba(255,87,0,0.1)', fill: true, tension: 0.3 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => formatarMoeda(c.raw) } } }, scales: { x: { ticks: { color: textColor } }, y: { ticks: { color: textColor, callback: (v) => 'R$ ' + v.toLocaleString('pt-BR') } } } }
         });
     }
@@ -250,6 +291,7 @@
         const reg = registrosAtuais.find(r => r.id === id); if (!reg) return;
         document.getElementById('registroId').value = reg.id; document.getElementById('dataInput').value = reg.data_fechamento;
         document.getElementById('valorAporteInput').value = reg.aportes; document.getElementById('patrimonioAtualInput').value = reg.patrimonio;
+        document.getElementById('valorAporteInputUSD').value = reg.aportes_usd; document.getElementById('patrimonioAtualInputUSD').value = reg.patrimonio_usd;
         document.getElementById('btnSalvar').textContent = 'Atualizar'; document.getElementById('btnCancelar').style.display = 'inline-block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -263,6 +305,7 @@
     function limparCampos() {
         document.getElementById('registroId').value = ''; document.getElementById('dataInput').value = '';
         document.getElementById('valorAporteInput').value = ''; document.getElementById('patrimonioAtualInput').value = '';
+        document.getElementById('valorAporteInputUSD').value = ''; document.getElementById('patrimonioAtualInputUSD').value = '';
         document.getElementById('btnSalvar').textContent = 'Registrar Mês'; document.getElementById('btnCancelar').style.display = 'none';
     }
 
