@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>InvestFlow V13 - Fechamento Mensal</title>
+    <title>Investimento - Fechamento Mensal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -85,9 +85,9 @@
 <body>
 <div id="loading" class="loading-overlay"><div class="spinner"></div></div>
 
-<div id="logineen">
+<div id="loginScreen">
     <div class="login-box">
-        <h1>InvestFlow V13</h1>
+        <h1>Investimentos</h1>
         <p>Sistema de Fechamento Mensal</p>
         <input type="password" id="mainPassword" placeholder="Senha (Padrão: 1234)">
         <button onclick="login()">Entrar Agora</button>
@@ -157,7 +157,7 @@
     </div>
 </div>
 
-<ipt>
+<script>
     const SUPABASE_URL = 'https://fwhsjzkmnfxnlrvspkyr.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_9pRTCRjY673snoOMAz1O_g_QNSAx3AB';
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -168,7 +168,7 @@
 
     function login() {
         if (document.getElementById('mainPassword').value === senhaMestra) {
-            document.getElementById('logineen').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainContainer').style.display = 'block';
             inicializarSistema();
         } else { alert('Senha incorreta!'); }
@@ -529,85 +529,6 @@
         };
         reader.readAsArrayBuffer(file);
     }
-
-   /* =========================
-   XIRR - FUNÇÃO ISOLADA (TESTE)
-   NÃO USADA PELO SISTEMA AINDA
-========================= */
-function calcularXIRRTeste(fluxos, guess = 0.1) {
-    if (!fluxos || fluxos.length < 2) return null;
-
-    const maxIter = 500;
-    const tol = 1e-7;
-
-    function npv(rate) {
-        const t0 = new Date(fluxos[0].date);
-        return fluxos.reduce((acc, f) => {
-            const ti = new Date(f.date);
-            const dias = (ti - t0) / (1000 * 60 * 60 * 24);
-            return acc + f.value / Math.pow(1 + rate, dias / 365);
-        }, 0);
-    }
-
-    let rate = guess;
-
-    for (let i = 0; i < maxIter; i++) {
-        const f = npv(rate);
-        const df = (npv(rate + tol) - f) / tol;
-        const newRate = rate - f / df;
-
-        if (!isFinite(newRate)) return null;
-        if (Math.abs(newRate - rate) < tol) return newRate;
-
-        rate = newRate;
-    }
-    return null;
-}
-
-/* =========================
-   XIRR - MONTAGEM DE FLUXOS
-   (AINDA NÃO USADA)
-========================= */
-function montarFluxosXIRRTeste() {
-    const bancoId = document.getElementById('bancoSelector').value;
-    const anoSelecionado = document.getElementById('anoFilter').value;
-
-    let regs = bancoId === 'consolidado'
-        ? [...todosRegistros]
-        : [...registrosAtuais];
-
-    if (anoSelecionado !== 'todos') {
-        regs = regs.filter(r => r.data_fechamento.startsWith(anoSelecionado));
-    }
-
-    if (regs.length < 2) return [];
-
-    regs.sort((a, b) => new Date(a.data_fechamento) - new Date(b.data_fechamento));
-
-    const fluxos = [];
-
-    regs.forEach(r => {
-        if (r.aportes && r.aportes !== 0) {
-            fluxos.push({
-                date: r.data_fechamento,
-                value: -r.aportes
-            });
-        }
-    });
-
-    const ultimo = regs[regs.length - 1];
-    fluxos.push({
-        date: ultimo.data_fechamento,
-        value: ultimo.patrimonio
-    });
-
-    return fluxos;
-}
-
-
 </script>
 </body>
 </html>
-
-
-
