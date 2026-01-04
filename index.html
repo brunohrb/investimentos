@@ -604,33 +604,10 @@ function montarFluxosXIRRTeste() {
     return fluxos;
 }
 
-        /* =========================
-   XIRR - CÁLCULO DE TESTE
-   (SOMENTE CONSOLE)
-========================= */
-function testarXIRRConsole() {
-    const fluxos = montarFluxosXIRRTeste();
 
-    if (!fluxos || fluxos.length < 2) {
-        console.log('XIRR: dados insuficientes');
-        return null;
-    }
-
-    const xirr = calcularXIRRTeste(fluxos);
-
-    if (xirr === null) {
-        console.log('XIRR: não convergiu');
-        return null;
-    }
-
-    console.log('XIRR anual (teste):', (xirr * 100).toFixed(2) + '%');
-    return xirr;
-}
-
-        
-   
 </script>
 </body>
 </html>
+
 
 
