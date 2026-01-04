@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>InvestFlow Pro</title>
+    <title>InvestFlow V9 - FORÇADO</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
-        :root { --primary-color: #ff5700; --secondary-color: #007bff; --bg-color: #f0f2f5; --card-bg: #ffffff; --text-color: #333; --border-color: #ddd; --card-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        :root { --primary-color: #007bff; --secondary-color: #6c757d; --bg-color: #f0f2f5; --card-bg: #ffffff; --text-color: #333; --border-color: #ddd; --card-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         [data-theme="dark"] { --bg-color: #121212; --card-bg: #1e1e1e; --text-color: #e0e0e0; --border-color: #333; --card-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         * { box-sizing: border-box; transition: background-color 0.3s, color 0.3s; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); padding: 0; color: var(--text-color); margin: 0; overflow-x: hidden; }
         
-        /* Tela de Login - VISUAL NOVO PARA CONFIRMAR ATUALIZAÇÃO */
-        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #ff5700, #ff8c00); z-index: 9999; display: flex; justify-content: center; align-items: center; }
-        .login-box { background: var(--card-bg); padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; width: 90%; max-width: 350px; }
-        .login-box h1 { color: var(--primary-color); margin-bottom: 10px; font-size: 24px; }
+        /* TELA DE LOGIN AZUL - PARA CONFIRMAR QUE ATUALIZOU */
+        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0056b3, #00bfff); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        .login-box { background: #ffffff; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; width: 90%; max-width: 350px; }
+        .login-box h1 { color: #0056b3; margin-bottom: 10px; font-size: 24px; }
         .login-box p { color: #666; margin-bottom: 25px; font-size: 14px; }
-        .login-box input { margin-bottom: 15px; text-align: center; border: 2px solid #eee; }
+        .login-box input { padding: 12px; border: 2px solid #eee; border-radius: 8px; width: 100%; margin-bottom: 15px; text-align: center; font-size: 18px; }
+        .login-box button { background: #0056b3; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
         
         .container { max-width: 1200px; margin: auto; background: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: var(--card-shadow); display: none; margin-top: 10px; margin-bottom: 10px; }
         header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 20px; }
@@ -27,12 +28,12 @@
         .btn-icon { background: none; border: 1px solid var(--border-color); color: var(--text-color); padding: 8px; cursor: pointer; border-radius: 50%; font-size: 18px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
         
         .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 20px; }
-        .total-card { background: linear-gradient(135deg, var(--primary-color), #ff8c00); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(255,87,0,0.3); text-align: center; }
+        .total-card { background: linear-gradient(135deg, #0056b3, #00bfff); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,86,179,0.3); text-align: center; }
         .total-card h3 { margin: 0 0 5px 0; font-size: 14px; opacity: 0.9; }
         .total-card p { margin: 0; font-size: 24px; font-weight: 800; }
         .stats-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; text-align: center; }
         .stats-card h4 { margin: 0 0 5px 0; font-size: 12px; color: #888; text-transform: uppercase; }
-        .stats-card p { margin: 0; font-size: 20px; font-weight: bold; color: var(--secondary-color); }
+        .stats-card p { margin: 0; font-size: 20px; font-weight: bold; color: var(--primary-color); }
 
         .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; background: rgba(0,0,0,0.03); padding: 15px; border-radius: 8px; }
         .controls-row { display: flex; align-items: center; gap: 10px; width: 100%; }
@@ -40,9 +41,8 @@
         .inputs { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
         input, select, button { padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; width: 100%; background: var(--card-bg); color: var(--text-color); }
         
-        button { background-color: var(--primary-color); color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:active { transform: scale(0.98); }
-        .btn-secondary { background-color: var(--secondary-color); }
+        button { background-color: #0056b3; color: white; border: none; cursor: pointer; font-weight: bold; }
+        .btn-secondary { background-color: #6c757d; }
         .btn-success { background-color: #28a745; }
 
         .table-wrapper { overflow-x: auto; margin-top: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
@@ -54,7 +54,7 @@
         .neg { color: #dc3545; font-weight: bold; }
         .actions-cell { display: flex; gap: 5px; }
         .btn-edit, .btn-delete { padding: 8px; font-size: 11px; border: none; color: white; cursor: pointer; border-radius: 4px; width: auto; flex: 1; }
-        .btn-edit { background-color: var(--secondary-color); }
+        .btn-edit { background-color: #007bff; }
         .btn-delete { background-color: #dc3545; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
@@ -71,7 +71,7 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* Ocultar valores */
-        .hidden-value { filter: blur(8px); pointer-events: none; user-select: none; }
+        .hidden-value { filter: blur(10px); pointer-events: none; user-select: none; }
 
         @media (min-width: 768px) {
             body { padding: 10px; } .container { padding: 30px; }
@@ -86,13 +86,13 @@
 <body>
 <div id="loading" class="loading-overlay"><div class="spinner"></div></div>
 
-<!-- Tela de Login - NOVO VISUAL -->
+<!-- TELA DE LOGIN AZUL -->
 <div id="loginScreen">
     <div class="login-box">
-        <h1>InvestFlow Pro</h1>
-        <p>Acesse seu painel financeiro</p>
-        <input type="password" id="mainPassword" placeholder="Digite sua senha">
-        <button onclick="login()" style="width:100%">Entrar no Sistema</button>
+        <h1>InvestFlow V9</h1>
+        <p>Versão com Login e Privacidade</p>
+        <input type="password" id="mainPassword" placeholder="Senha (Padrão: 1234)">
+        <button onclick="login()">Entrar Agora</button>
     </div>
 </div>
 
@@ -169,10 +169,6 @@
     let senhaMestra = localStorage.getItem('investflow_pass') || '1234';
     let privacidadeAtiva = true;
 
-    window.onload = async () => {
-        if (localStorage.getItem('theme') === 'dark') toggleTheme(true);
-    };
-
     // LOGIN
     function login() {
         if (document.getElementById('mainPassword').value === senhaMestra) {
@@ -189,7 +185,7 @@
     // PRIVACIDADE
     function togglePrivacy() {
         privacidadeAtiva = !privacidadeAtiva;
-        atualizarTabela(); // Redesenha a tabela para aplicar/remover o blur
+        atualizarTabela();
         const dashboardEls = document.querySelectorAll('#patrimonioTotalGeral, #rendimentoMedio, #totalAportado');
         dashboardEls.forEach(el => {
             if (privacidadeAtiva) el.classList.add('hidden-value');
@@ -366,7 +362,7 @@
         const ctx = document.getElementById('patrimonioChart').getContext('2d');
         charts.patrimonio = new Chart(ctx, {
             type: 'line',
-            data: { labels: registrosAtuais.map(r => r.periodo), datasets: [{ label: 'Patrimônio (R$)', data: registrosAtuais.map(r => r.patrimonio), borderColor: '#ff5700', backgroundColor: 'rgba(255,87,0,0.1)', fill: true, tension: 0.3 }] },
+            data: { labels: registrosAtuais.map(r => r.periodo), datasets: [{ label: 'Patrimônio (R$)', data: registrosAtuais.map(r => r.patrimonio), borderColor: '#0056b3', backgroundColor: 'rgba(0,86,179,0.1)', fill: true, tension: 0.3 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => formatarMoeda(c.raw) } } }, scales: { x: { ticks: { color: textColor } }, y: { ticks: { color: textColor, callback: (v) => 'R$ ' + v.toLocaleString('pt-BR') } } } }
         });
     }
@@ -379,7 +375,7 @@
         const valores = Object.values(ultimosPorBanco).map(r => r.patrimonio);
         charts.pizza = new Chart(ctx, {
             type: 'doughnut',
-            data: { labels: labels, datasets: [{ data: valores, backgroundColor: ['#ff5700', '#007bff', '#28a745', '#ffc107', '#6f42c1', '#e83e8c'] }] },
+            data: { labels: labels, datasets: [{ data: valores, backgroundColor: ['#0056b3', '#00bfff', '#28a745', '#ffc107', '#6f42c1', '#e83e8c'] }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: document.body.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#666' } }, tooltip: { callbacks: { label: (c) => ' ' + formatarMoeda(c.raw) } } } }
         });
     }
@@ -392,7 +388,7 @@
         const ctx = document.getElementById('patrimonioConsolidadoChart').getContext('2d');
         charts.consolidado = new Chart(ctx, {
             type: 'line',
-            data: { labels: sortedKeys.map(k => consolidado[k].periodo), datasets: [{ label: 'Total Consolidado', data: sortedKeys.map(k => consolidado[k].total), borderColor: '#007bff', backgroundColor: 'rgba(0,123,255,0.1)', fill: true, tension: 0.3 }] },
+            data: { labels: sortedKeys.map(k => consolidado[k].periodo), datasets: [{ label: 'Total Consolidado', data: sortedKeys.map(k => consolidado[k].total), borderColor: '#00bfff', backgroundColor: 'rgba(0,191,255,0.1)', fill: true, tension: 0.3 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { callbacks: { label: (c) => formatarMoeda(c.raw) } } }, scales: { x: { ticks: { color: document.body.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#666' } }, y: { ticks: { color: document.body.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#666', callback: (v) => 'R$ ' + v.toLocaleString('pt-BR') } } } }
         });
     }
