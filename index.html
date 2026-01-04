@@ -6,15 +6,18 @@
     <title>InvestFlow Pro - Dashboard de Investimentos</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <style>
         :root { --primary-color: #ff5700; --secondary-color: #007bff; --bg-color: #f0f2f5; --card-bg: #ffffff; --text-color: #333; --border-color: #ddd; --card-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         [data-theme="dark"] { --bg-color: #121212; --card-bg: #1e1e1e; --text-color: #e0e0e0; --border-color: #333; --card-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         * { box-sizing: border-box; transition: background-color 0.3s, color 0.3s; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); padding: 10px; color: var(--text-color); margin: 0; }
-        .container { max-width: 1200px; margin: auto; background: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: var(--card-shadow); }
+        .container { max-width: 1200px; margin: auto; background: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: var(--card-shadow); position: relative; }
         header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 20px; }
         h2 { margin: 0; font-size: 1.5rem; }
-        .theme-toggle { background: none; border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 12px; width: auto; cursor: pointer; border-radius: 20px; font-size: 14px; }
+        
+        .btn-config { background: none; border: 1px solid var(--border-color); color: var(--text-color); padding: 8px; cursor: pointer; border-radius: 50%; font-size: 20px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+        
         .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 20px; }
         .total-card { background: linear-gradient(135deg, var(--primary-color), #ff8c00); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(255,87,0,0.3); text-align: center; }
         .total-card h3 { margin: 0 0 5px 0; font-size: 14px; opacity: 0.9; }
@@ -22,51 +25,99 @@
         .stats-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; text-align: center; }
         .stats-card h4 { margin: 0 0 5px 0; font-size: 12px; color: #888; text-transform: uppercase; }
         .stats-card p { margin: 0; font-size: 20px; font-weight: bold; color: var(--secondary-color); }
+
         .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; background: rgba(0,0,0,0.03); padding: 15px; border-radius: 8px; }
         .controls-row { display: flex; align-items: center; gap: 10px; width: 100%; }
+        
         .inputs { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
         input, select, button { padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; width: 100%; background: var(--card-bg); color: var(--text-color); }
+        
         button { background-color: var(--primary-color); color: white; border: none; cursor: pointer; font-weight: bold; }
         button:active { transform: scale(0.98); }
         .btn-secondary { background-color: var(--secondary-color); }
         .btn-success { background-color: #28a745; }
+
         .table-wrapper { overflow-x: auto; margin-top: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th, td { padding: 12px 10px; border-bottom: 1px solid var(--border-color); text-align: left; font-size: 13px; }
         th { background-color: rgba(0,0,0,0.05); color: #888; font-weight: 600; }
+
         .pos { color: #28a745; font-weight: bold; }
         .neg { color: #dc3545; font-weight: bold; }
         .actions-cell { display: flex; gap: 5px; }
         .btn-edit, .btn-delete { padding: 8px; font-size: 11px; border: none; color: white; cursor: pointer; border-radius: 4px; width: auto; flex: 1; }
         .btn-edit { background-color: var(--secondary-color); }
         .btn-delete { background-color: #dc3545; }
+
+        /* Modal Configurações */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; position: relative; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .close-modal { cursor: pointer; font-size: 24px; }
+
         .charts-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 30px; }
         .chart-container { padding: 15px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); height: 300px; }
         .chart-container h3 { margin: 0 0 10px 0; font-size: 14px; text-align: center; }
-        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 3000; }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         @media (min-width: 768px) {
-            body { padding: 20px; } .container { padding: 30px; } .dashboard-grid { grid-template-columns: 2fr 1fr 1fr; }
-            .total-card { text-align: left; } .total-card p { font-size: 32px; } .controls { flex-direction: row; }
-            .inputs { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } button { width: auto; }
-            .charts-grid { grid-template-columns: 1fr 1fr; } .chart-container { height: 350px; } th, td { font-size: 14px; padding: 14px; }
+            body { padding: 20px; } .container { padding: 30px; }
+            .dashboard-grid { grid-template-columns: 2fr 1fr 1fr; }
+            .total-card { text-align: left; } .total-card p { font-size: 32px; }
+            .controls { flex-direction: row; } .inputs { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+            button { width: auto; } .charts-grid { grid-template-columns: 1fr 1fr; }
+            .chart-container { height: 350px; } th, td { font-size: 14px; padding: 14px; }
         }
     </style>
 </head>
 <body>
 <div id="loading" class="loading-overlay"><div class="spinner"></div></div>
+
+<!-- Modal Configurações -->
+<div id="configModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>Configurações</h3><span class="close-modal" onclick="fecharConfig()">&times;</span></div>
+        <div id="configAuth">
+            <input type="password" id="senhaConfig" placeholder="Digite a senha">
+            <button onclick="autenticarConfig()" style="margin-top:10px">Entrar</button>
+        </div>
+        <div id="configFields" style="display:none">
+            <button onclick="toggleTheme()" id="themeBtn" style="margin-bottom:10px">🌙 Modo Escuro</button>
+            <button onclick="mudarSenha()" class="btn-secondary" style="margin-bottom:10px">Alterar Senha</button>
+            <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0">
+            <p style="font-size:12px; color:#888">Backup & Restauração (Excel)</p>
+            <button onclick="exportarExcel()" class="btn-success" style="margin-bottom:10px">Exportar Excel</button>
+            <input type="file" id="importExcel" style="display:none" onchange="importarExcel(event)">
+            <button onclick="document.getElementById('importExcel').click()" class="btn-secondary">Importar Excel</button>
+        </div>
+    </div>
+</div>
+
 <div class="container">
-    <header><h2>InvestFlow Pro</h2><button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙 Modo Escuro</button></header>
+    <header>
+        <h2>InvestFlow Pro</h2>
+        <button class="btn-config" onclick="abrirConfig()">⚙️</button>
+    </header>
+    
     <div class="dashboard-grid">
         <div class="total-card"><h3>Patrimônio Total Consolidado</h3><p id="patrimonioTotalGeral">R$ 0,00</p></div>
         <div class="stats-card"><h4>Rendimento Médio (6m)</h4><p id="rendimentoMedio">0,00%</p></div>
         <div class="stats-card"><h4>Total Aportado</h4><p id="totalAportado">R$ 0,00</p></div>
     </div>
+
     <div class="controls">
-        <div class="controls-row"><select id="bancoSelector" onchange="carregarDadosBanco()"></select><button onclick="adicionarNovoBanco()" class="btn-secondary" style="width: auto;">+ Banco</button></div>
-        <div class="controls-row"><select id="anoFilter" onchange="atualizarTabela()"><option value="todos">Todos os Anos</option></select><button onclick="exportarDados()" class="btn-success" style="width: auto;">Backup</button></div>
+        <div class="controls-row">
+            <select id="bancoSelector" onchange="carregarDadosBanco()"></select>
+            <button onclick="adicionarNovoBanco()" class="btn-secondary" style="width: auto;">+ Banco</button>
+        </div>
+        <div class="controls-row">
+            <select id="anoFilter" onchange="atualizarTabela()"><option value="todos">Todos os Anos</option></select>
+        </div>
     </div>
+
     <input type="hidden" id="registroId">
     <div class="inputs">
         <input type="date" id="dataInput">
@@ -74,32 +125,55 @@
         <input type="number" id="patrimonioAtualInput" placeholder="Patrimônio R$" step="0.01">
         <input type="number" id="valorAporteInputUSD" placeholder="Aporte $" step="0.01" style="display: none;">
         <input type="number" id="patrimonioAtualInputUSD" placeholder="Patrimônio $" step="0.01" style="display: none;">
-        <button onclick="salvarRegistro()" id="btnSalvar">Registrar Mês</button>
-        <button onclick="cancelarEdicao()" id="btnCancelar" style="display:none; background-color: #6c757d;">Cancelar</button>
+        <button onclick="salvarRegistro()" id="btnSalvar">Registrar</button>
+        <button onclick="cancelarEdicao()" id="btnCancelar" style="display:none; background-color: #6c757d;">X</button>
     </div>
+
     <div class="table-wrapper">
         <table>
             <thead><tr id="tabelaHead"><th>Mês/Ano</th><th>Aportes R$</th><th>Patr. R$</th><th>Aporte $</th><th>Patr. $</th><th>% $</th><th>Ações</th></tr></thead>
             <tbody id="tabelaCorpo"></tbody>
         </table>
     </div>
+
     <div class="charts-grid">
         <div class="chart-container"><h3>Evolução do Banco</h3><canvas id="patrimonioChart"></canvas></div>
         <div class="chart-container"><h3>Distribuição por Banco</h3><canvas id="pizzaChart"></canvas></div>
         <div class="chart-container" style="grid-column: 1 / -1;"><h3>Patrimônio Total Consolidado</h3><canvas id="patrimonioConsolidadoChart"></canvas></div>
     </div>
 </div>
+
 <script>
     const SUPABASE_URL = 'https://fwhsjzkmnfxnlrvspkyr.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_9pRTCRjY673snoOMAz1O_g_QNSAx3AB';
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let bancos = []; let registrosAtuais = []; let todosRegistros = []; let charts = {};
+    let senhaMestra = localStorage.getItem('investflow_pass') || '1234';
 
     window.onload = async () => {
         if (localStorage.getItem('theme') === 'dark') toggleTheme(true);
         await carregarBancos(); await carregarTodosRegistros();
     };
+
+    // CONFIGURAÇÕES E SENHA
+    function abrirConfig() { document.getElementById('configModal').style.display = 'flex'; }
+    function fecharConfig() { 
+        document.getElementById('configModal').style.display = 'none';
+        document.getElementById('configAuth').style.display = 'block';
+        document.getElementById('configFields').style.display = 'none';
+        document.getElementById('senhaConfig').value = '';
+    }
+    function autenticarConfig() {
+        if (document.getElementById('senhaConfig').value === senhaMestra) {
+            document.getElementById('configAuth').style.display = 'none';
+            document.getElementById('configFields').style.display = 'block';
+        } else { alert('Senha incorreta!'); }
+    }
+    function mudarSenha() {
+        const nova = prompt('Digite a nova senha:');
+        if (nova) { senhaMestra = nova; localStorage.setItem('investflow_pass', nova); alert('Senha alterada!'); }
+    }
 
     function toggleTheme(init = false) {
         const body = document.body; const btn = document.getElementById('themeBtn');
@@ -137,27 +211,19 @@
     }
 
     function alternarInputsUSD() {
-        const bancoNome = bancos.find(b => b.id === document.getElementById('bancoSelector').value)?.nome || "";
-        const isUSD = bancoNome.toLowerCase().includes('tasty') || (registrosAtuais.length > 0 && registrosAtuais[0].is_usd);
+        const banco = bancos.find(b => b.id === document.getElementById('bancoSelector').value);
+        const isUSD = banco?.is_usd || banco?.nome.toLowerCase().includes('tasty');
         const display = isUSD ? 'inline-block' : 'none';
         document.getElementById('valorAporteInputUSD').style.display = display;
         document.getElementById('patrimonioAtualInputUSD').style.display = display;
-    }
-
-    function atualizarFiltroAnos() {
-        const anos = [...new Set(todosRegistros.map(r => r.data_fechamento.split('-')[0]))].sort((a, b) => b - a);
-        const filter = document.getElementById('anoFilter'); const val = filter.value;
-        filter.innerHTML = '<option value="todos">Todos os Anos</option>';
-        anos.forEach(ano => { const opt = document.createElement('option'); opt.value = ano; opt.textContent = ano; filter.appendChild(opt); });
-        filter.value = val;
     }
 
     async function salvarRegistro() {
         const bancoId = document.getElementById('bancoSelector').value; const registroId = document.getElementById('registroId').value;
         const dataInput = document.getElementById('dataInput').value; const aporte = parseFloat(document.getElementById('valorAporteInput').value) || 0;
         const patrimonio = parseFloat(document.getElementById('patrimonioAtualInput').value);
-        const bancoNome = bancos.find(b => b.id === bancoId)?.nome || "";
-        const isUSD = bancoNome.toLowerCase().includes('tasty') || (registrosAtuais.length > 0 && registrosAtuais[0].is_usd);
+        const banco = bancos.find(b => b.id === bancoId);
+        const isUSD = banco?.is_usd || banco?.nome.toLowerCase().includes('tasty');
         const aporteUSD = parseFloat(document.getElementById('valorAporteInputUSD').value) || 0;
         const patrimonioUSD = parseFloat(document.getElementById('patrimonioAtualInputUSD').value) || 0;
         if (!bancoId || !dataInput || isNaN(patrimonio)) { alert("Preencha os campos!"); return; }
@@ -178,8 +244,8 @@
         const corpo = document.getElementById('tabelaCorpo'); const head = document.getElementById('tabelaHead');
         const anoSelecionado = document.getElementById('anoFilter').value;
         corpo.innerHTML = '';
-        const bancoNome = bancos.find(b => b.id === document.getElementById('bancoSelector').value)?.nome || "";
-        const isUSD = bancoNome.toLowerCase().includes('tasty') || (registrosAtuais.length > 0 && registrosAtuais[0].is_usd);
+        const banco = bancos.find(b => b.id === document.getElementById('bancoSelector').value);
+        const isUSD = banco?.is_usd || banco?.nome.toLowerCase().includes('tasty');
         
         if (isUSD) head.innerHTML = `<th>Mês/Ano</th><th>Aporte R$</th><th>Patr. R$</th><th>Aporte $</th><th>Patr. $</th><th>% $</th><th>Ações</th>`;
         else head.innerHTML = `<th>Mês/Ano</th><th>Aportes</th><th>Patrimônio</th><th>Saldo</th><th>%</th><th>Ações</th>`;
@@ -228,16 +294,14 @@
 
     function calcularRendimentoMedio() {
         if (registrosAtuais.length < 2) { document.getElementById('rendimentoMedio').textContent = '0,00%'; return; }
-        const bancoNome = bancos.find(b => b.id === document.getElementById('bancoSelector').value)?.nome || "";
-        const isUSD = bancoNome.toLowerCase().includes('tasty') || (registrosAtuais.length > 0 && registrosAtuais[0].is_usd);
-        
-        let crescimentos = []; 
-        let patAnterior = isUSD ? (registrosAtuais[0].patrimonio_usd - registrosAtuais[0].aportes_usd) : (registrosAtuais[0].patrimonio - registrosAtuais[0].aportes);
-        
+        const banco = bancos.find(b => b.id === document.getElementById('bancoSelector').value);
+        const isUSD = banco?.is_usd || banco?.nome.toLowerCase().includes('tasty');
+        let crescimentos = []; let patAnterior = isUSD ? (registrosAtuais[0].patrimonio_usd - registrosAtuais[0].aportes_usd) : (registrosAtuais[0].patrimonio - registrosAtuais[0].aportes);
         registrosAtuais.forEach(reg => {
-            const p = isUSD ? reg.patrimonio_usd : reg.patrimonio;
-            const a = isUSD ? reg.aportes_usd : reg.aportes;
-            const saldo = p - patAnterior - a; const base = patAnterior + a;
+            const p = isUSD ? reg.patrimonio_usd : reg.patrimonio; const a = isUSD ? reg.aportes_usd : reg.aportes;
+            const data = new Date(reg.data_fechamento + 'T00:00:00'); const diasNoMes = new Date(data.getFullYear(), data.getMonth() + 1, 0).getDate();
+            const diaAporte = data.getDate(); const proporcao = (diasNoMes - diaAporte + 1) / diasNoMes;
+            const base = patAnterior + (a * proporcao); const saldo = p - patAnterior - a;
             if (base > 0) crescimentos.push((saldo / base) * 100); patAnterior = p;
         });
         const ultimos6 = crescimentos.slice(-6); const media = ultimos6.reduce((a, b) => a + b, 0) / ultimos6.length;
@@ -284,7 +348,8 @@
 
     async function adicionarNovoBanco() {
         const nome = prompt("Nome do novo banco:"); if (!nome) return;
-        showLoading(true); await sb.from('bancos').insert([{ nome }]); showLoading(false); await carregarBancos();
+        const tipo = confirm("Este banco é Internacional (USD)?\nClique em OK para SIM ou Cancelar para NÃO (R$).");
+        showLoading(true); await sb.from('bancos').insert([{ nome, is_usd: tipo }]); showLoading(false); await carregarBancos();
     }
 
     async function editarRegistro(id) {
@@ -306,12 +371,47 @@
         document.getElementById('registroId').value = ''; document.getElementById('dataInput').value = '';
         document.getElementById('valorAporteInput').value = ''; document.getElementById('patrimonioAtualInput').value = '';
         document.getElementById('valorAporteInputUSD').value = ''; document.getElementById('patrimonioAtualInputUSD').value = '';
-        document.getElementById('btnSalvar').textContent = 'Registrar Mês'; document.getElementById('btnCancelar').style.display = 'none';
+        document.getElementById('btnSalvar').textContent = 'Registrar'; document.getElementById('btnCancelar').style.display = 'none';
     }
 
-    function exportarDados() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({bancos, registros: todosRegistros}));
-        const link = document.createElement('a'); link.setAttribute("href", dataStr); link.setAttribute("download", "backup_investflow.json"); link.click();
+    // EXCEL BACKUP & RESTORE
+    function exportarExcel() {
+        const wsBancos = XLSX.utils.json_to_sheet(bancos);
+        const wsRegistros = XLSX.utils.json_to_sheet(todosRegistros);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, wsBancos, "Bancos");
+        XLSX.utils.book_append_sheet(wb, wsRegistros, "Registros");
+        XLSX.writeFile(wb, "InvestFlow_Backup.xlsx");
+    }
+
+    async function importarExcel(event) {
+        const file = event.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const jsonBancos = XLSX.utils.sheet_to_json(workbook.Sheets["Bancos"]);
+            const jsonRegistros = XLSX.utils.sheet_to_json(workbook.Sheets["Registros"]);
+            
+            if (confirm("Isso irá apagar seus dados atuais e restaurar do Excel. Continuar?")) {
+                showLoading(true);
+                await sb.from('registros').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                await sb.from('bancos').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                
+                // Importar Bancos (sem ID para o Supabase gerar novos)
+                for (let b of jsonBancos) {
+                    const { data: newB } = await sb.from('bancos').insert([{ nome: b.nome, is_usd: b.is_usd }]).select();
+                    const oldId = b.id; const newId = newB[0].id;
+                    const regsDoBanco = jsonRegistros.filter(r => r.banco_id === oldId);
+                    for (let r of regsDoBanco) {
+                        delete r.id; r.banco_id = newId;
+                        await sb.from('registros').insert([r]);
+                    }
+                }
+                showLoading(false); alert('Restauração concluída!'); location.reload();
+            }
+        };
+        reader.readAsArrayBuffer(file);
     }
 </script>
 </body>
