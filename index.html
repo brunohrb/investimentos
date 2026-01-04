@@ -85,7 +85,7 @@
 <body>
 <div id="loading" class="loading-overlay"><div class="spinner"></div></div>
 
-<div id="loginScreen">
+<div id="logineen">
     <div class="login-box">
         <h1>InvestFlow V13</h1>
         <p>Sistema de Fechamento Mensal</p>
@@ -157,7 +157,7 @@
     </div>
 </div>
 
-<script>
+<ipt>
     const SUPABASE_URL = 'https://fwhsjzkmnfxnlrvspkyr.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_9pRTCRjY673snoOMAz1O_g_QNSAx3AB';
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -168,7 +168,7 @@
 
     function login() {
         if (document.getElementById('mainPassword').value === senhaMestra) {
-            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('logineen').style.display = 'none';
             document.getElementById('mainContainer').style.display = 'block';
             inicializarSistema();
         } else { alert('Senha incorreta!'); }
@@ -603,9 +603,34 @@ function montarFluxosXIRRTeste() {
 
     return fluxos;
 }
-    
+
+        /* =========================
+   XIRR - CÁLCULO DE TESTE
+   (SOMENTE CONSOLE)
+========================= */
+function testarXIRRConsole() {
+    const fluxos = montarFluxosXIRRTeste();
+
+    if (!fluxos || fluxos.length < 2) {
+        console.log('XIRR: dados insuficientes');
+        return null;
+    }
+
+    const xirr = calcularXIRRTeste(fluxos);
+
+    if (xirr === null) {
+        console.log('XIRR: não convergiu');
+        return null;
+    }
+
+    console.log('XIRR anual (teste):', (xirr * 100).toFixed(2) + '%');
+    return xirr;
+}
+
+        
    
 </script>
 </body>
 </html>
+
 
