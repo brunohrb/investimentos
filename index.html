@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>InvestFlow V11</title>
+    <title>InvestFlow V13 - Fechamento Mensal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -43,7 +43,7 @@
         button { background-color: #0056b3; color: white; border: none; cursor: pointer; font-weight: bold; }
         .btn-secondary { background-color: #6c757d; }
         .btn-success { background-color: #28a745; }
-        .btn-cancel { background-color: #dc3545; display: none; }
+        .btn-cancel { background-color: #333; display: none; }
 
         .table-wrapper { overflow-x: auto; margin-top: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
@@ -87,8 +87,8 @@
 
 <div id="loginScreen">
     <div class="login-box">
-        <h1>InvestFlow V11</h1>
-        <p>Acesse seu painel financeiro</p>
+        <h1>InvestFlow V13</h1>
+        <p>Sistema de Fechamento Mensal</p>
         <input type="password" id="mainPassword" placeholder="Senha (Padrão: 1234)">
         <button onclick="login()">Entrar Agora</button>
     </div>
@@ -109,7 +109,7 @@
 
 <div class="container" id="mainContainer">
     <header>
-        <h2>InvestFlow Pro</h2>
+        <h2 id="tituloSistema">InvestFlow Pro</h2>
         <div class="header-actions">
             <button class="btn-icon" onclick="togglePrivacy()" id="privacyBtn">👁️</button>
             <button class="btn-icon" onclick="abrirConfig()">⚙️</button>
@@ -117,9 +117,9 @@
     </header>
     
     <div class="dashboard-grid">
-        <div class="total-card"><h3>Patrimônio Total Consolidado</h3><p id="patrimonioTotalGeral" class="hidden-value">R$ 0,00</p></div>
-        <div class="stats-card"><h4>Rendimento Médio (6m)</h4><p id="rendimentoMedio" class="hidden-value">0,00%</p></div>
-        <div class="stats-card"><h4>Total Aportado</h4><p id="totalAportado" class="hidden-value">R$ 0,00</p></div>
+        <div class="total-card"><h3>Patrimônio do Banco</h3><p id="patrimonioTotalGeral" class="hidden-value">R$ 0,00</p></div>
+        <div class="stats-card"><h4>Rentabilidade Acumulada</h4><p id="rendimentoMedio" class="hidden-value">0,00%</p></div>
+        <div class="stats-card"><h4>Total Aportado (Banco)</h4><p id="totalAportado" class="hidden-value">R$ 0,00</p></div>
     </div>
 
     <div class="controls">
@@ -135,10 +135,10 @@
     <input type="hidden" id="registroId">
     <div class="inputs">
         <input type="date" id="dataInput">
-        <input type="text" id="valorAporteInput" placeholder="Aporte R$" oninput="mascaraMoeda(this, 'BRL')">
-        <input type="text" id="patrimonioAtualInput" placeholder="Patrimônio R$" oninput="mascaraMoeda(this, 'BRL')">
-        <input type="text" id="valorAporteInputUSD" placeholder="Aporte $" style="display: none;" oninput="mascaraMoeda(this, 'USD')">
-        <input type="text" id="patrimonioAtualInputUSD" placeholder="Patrimônio $" style="display: none;" oninput="mascaraMoeda(this, 'USD')">
+        <input type="text" id="valorAporteInput" placeholder="Aporte R$ (ou - para retirada)" oninput="mascaraMoeda(this, 'BRL')">
+        <input type="text" id="patrimonioAtualInput" placeholder="Patr. Final do Mês R$" oninput="mascaraMoeda(this, 'BRL')">
+        <input type="text" id="valorAporteInputUSD" placeholder="Aporte $ (ou -)" style="display: none;" oninput="mascaraMoeda(this, 'USD')">
+        <input type="text" id="patrimonioAtualInputUSD" placeholder="Patr. Final $ " style="display: none;" oninput="mascaraMoeda(this, 'USD')">
         <button onclick="salvarRegistro()" id="btnSalvar">Registrar</button>
         <button onclick="limparCampos()" id="btnCancelar" class="btn-cancel">X</button>
     </div>
@@ -190,18 +190,21 @@
     }
 
     function mascaraMoeda(i, moeda) {
-        let v = i.value.replace(/\D/g,'');
-        if (v === '') return;
-        v = (v/100).toFixed(2) + '';
+        let v = i.value.replace(/[^\d-]/g,'');
+        if (v === '' || v === '-') return;
+        let isNeg = v.startsWith('-');
+        v = v.replace('-', '');
+        v = (parseFloat(v)/100).toFixed(2) + '';
         v = v.replace(".", ",");
         v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
-        i.value = moeda === 'BRL' ? 'R$ ' + v : 'US$ ' + v;
+        i.value = (isNeg ? '-' : '') + (moeda === 'BRL' ? 'R$ ' + v : 'US$ ' + v);
     }
 
     function desformatarMoeda(v) {
         if (!v) return 0;
+        let isNeg = v.includes('-');
         let num = v.replace(/[^\d,]/g, '').replace(',', '.');
-        return parseFloat(num) || 0;
+        return (isNeg ? -1 : 1) * (parseFloat(num) || 0);
     }
 
     function abrirConfig() { document.getElementById('configModal').style.display = 'flex'; }
@@ -228,7 +231,7 @@
     async function carregarBancos() {
         showLoading(true); const { data, error } = await sb.from('bancos').select('*').order('nome'); showLoading(false);
         if (error) return; bancos = data;
-        const selector = document.getElementById('bancoSelector'); selector.innerHTML = '';
+        const selector = document.getElementById('bancoSelector'); selector.innerHTML = '<option value="consolidado">Patrimônio Consolidado (Total)</option>';
         bancos.forEach(banco => { const option = document.createElement('option'); option.value = banco.id; option.textContent = banco.nome; selector.appendChild(option); });
         if (selector.value) carregarDadosBanco();
     }
@@ -236,7 +239,8 @@
     async function carregarTodosRegistros() {
         const { data, error } = await sb.from('registros').select('*').order('data_fechamento', { ascending: true });
         if (error) return; todosRegistros = data;
-        atualizarDashboardGeral(); atualizarFiltroAnos();
+        atualizarFiltroAnos();
+        if (document.getElementById('bancoSelector').value === 'consolidado') carregarDadosBanco();
     }
 
     function atualizarFiltroAnos() {
@@ -249,10 +253,34 @@
     }
 
     async function carregarDadosBanco() {
-        const bancoId = document.getElementById('bancoSelector').value; if (!bancoId) return;
-        showLoading(true); const { data, error } = await sb.from('registros').select('*').eq('banco_id', bancoId).order('data_fechamento', { ascending: true }); showLoading(false);
-        if (error) return; registrosAtuais = data;
-        alternarInputsUSD(); atualizarTabela(); atualizarGrafico(); calcularRendimentoMedio();
+        const bancoId = document.getElementById('bancoSelector').value;
+        if (bancoId === 'consolidado') {
+            document.getElementById('tituloSistema').textContent = 'Consolidado Total';
+            registrosAtuais = consolidarRegistrosPorMes(todosRegistros);
+            document.getElementById('valorAporteInput').parentElement.style.display = 'none';
+        } else {
+            document.getElementById('tituloSistema').textContent = 'InvestFlow Pro';
+            document.getElementById('valorAporteInput').parentElement.style.display = 'grid';
+            showLoading(true); const { data, error } = await sb.from('registros').select('*').eq('banco_id', bancoId).order('data_fechamento', { ascending: true }); showLoading(false);
+            if (error) return; registrosAtuais = data;
+        }
+        alternarInputsUSD(); atualizarTabela(); atualizarGrafico(); atualizarDashboardBanco();
+    }
+
+    function consolidarRegistrosPorMes(regs) {
+        const meses = {};
+        regs.forEach(r => {
+            const mesAno = r.periodo;
+            if (!meses[mesAno]) {
+                meses[mesAno] = { periodo: mesAno, data_fechamento: r.data_fechamento, aportes: 0, patrimonio: 0, aportes_usd: 0, patrimonio_usd: 0, is_usd: false };
+            }
+            meses[mesAno].aportes += r.aportes;
+            meses[mesAno].patrimonio += r.patrimonio;
+            meses[mesAno].aportes_usd += r.aportes_usd;
+            meses[mesAno].patrimonio_usd += r.patrimonio_usd;
+            if (new Date(r.data_fechamento) > new Date(meses[mesAno].data_fechamento)) meses[mesAno].data_fechamento = r.data_fechamento;
+        });
+        return Object.values(meses).sort((a, b) => new Date(a.data_fechamento) - new Date(b.data_fechamento));
     }
 
     function alternarInputsUSD() {
@@ -264,7 +292,8 @@
     }
 
     async function salvarRegistro() {
-        const bancoId = document.getElementById('bancoSelector').value; const registroId = document.getElementById('registroId').value;
+        const bancoId = document.getElementById('bancoSelector').value; if (bancoId === 'consolidado') return;
+        const registroId = document.getElementById('registroId').value;
         const dataInput = document.getElementById('dataInput').value;
         const aporte = desformatarMoeda(document.getElementById('valorAporteInput').value);
         const patrimonio = desformatarMoeda(document.getElementById('patrimonioAtualInput').value);
@@ -273,7 +302,7 @@
         const aporteUSD = desformatarMoeda(document.getElementById('valorAporteInputUSD').value);
         const patrimonioUSD = desformatarMoeda(document.getElementById('patrimonioAtualInputUSD').value);
         
-        if (!bancoId || !dataInput || isNaN(patrimonio)) { alert("Preencha os campos!"); return; }
+        if (!bancoId || !dataInput) { alert("Preencha os campos!"); return; }
         const [ano, mes] = dataInput.split('-');
         const payload = { banco_id: bancoId, periodo: `${mes}/${ano}`, data_fechamento: dataInput, aportes: aporte, patrimonio: patrimonio, aportes_usd: aporteUSD, patrimonio_usd: patrimonioUSD, is_usd: isUSD };
         
@@ -281,7 +310,7 @@
         if (registroId) { const { error: err } = await sb.from('registros').update(payload).eq('id', registroId); error = err; }
         else { const { error: err } = await sb.from('registros').insert([payload]); error = err; }
         showLoading(false);
-        if (error) alert('Erro ao salvar'); else { limparCampos(); await carregarDadosBanco(); await carregarTodosRegistros(); }
+        if (error) alert('Erro ao salvar'); else { limparCampos(); await carregarTodosRegistros(); await carregarDadosBanco(); }
     }
 
     function formatarMoeda(v, moeda = 'BRL') {
@@ -292,70 +321,104 @@
         const corpo = document.getElementById('tabelaCorpo'); const head = document.getElementById('tabelaHead');
         const anoSelecionado = document.getElementById('anoFilter').value;
         corpo.innerHTML = '';
-        const banco = bancos.find(b => b.id === document.getElementById('bancoSelector').value);
-        const isUSD = banco?.is_usd || banco?.nome.toLowerCase().includes('tasty');
+        const bancoId = document.getElementById('bancoSelector').value;
+        const banco = bancos.find(b => b.id === bancoId);
+        const isUSD = bancoId === 'consolidado' ? false : (banco?.is_usd || banco?.nome.toLowerCase().includes('tasty'));
         
         if (isUSD) head.innerHTML = `<th>Mês/Ano</th><th>Aporte R$</th><th>Patr. R$</th><th>Aporte $</th><th>Patr. $</th><th>% $</th><th>Ações</th>`;
         else head.innerHTML = `<th>Mês/Ano</th><th>Aportes</th><th>Patrimônio</th><th>Saldo</th><th>%</th><th>Ações</th>`;
         
+        // Agrupar por mês para cálculo consolidado
+        const mesesAgrupados = {};
+        registrosAtuais.forEach(r => {
+            if (!mesesAgrupados[r.periodo]) mesesAgrupados[r.periodo] = { regs: [], patrimonioFinal: 0, patrimonioFinalUSD: 0 };
+            mesesAgrupados[r.periodo].regs.push(r);
+            if (r.patrimonio > 0) mesesAgrupados[r.periodo].patrimonioFinal = r.patrimonio;
+            if (r.patrimonio_usd > 0) mesesAgrupados[r.periodo].patrimonioFinalUSD = r.patrimonio_usd;
+        });
+
         let patAnteriorBRL = 0; let patAnteriorUSD = 0; let linhasCalculadas = [];
-        registrosAtuais.forEach((reg, index) => {
-            if (index === 0) { patAnteriorBRL = reg.patrimonio - reg.aportes; patAnteriorUSD = reg.patrimonio_usd - reg.aportes_usd; }
-            const data = new Date(reg.data_fechamento + 'T00:00:00'); const anoReg = reg.data_fechamento.split('-')[0];
-            const diasNoMes = new Date(data.getFullYear(), data.getMonth() + 1, 0).getDate();
-            const diaAporte = data.getDate(); const proporcao = (diasNoMes - diaAporte + 1) / diasNoMes;
+        const sortedMeses = Object.keys(mesesAgrupados).sort((a, b) => {
+            const [m1, a1] = a.split('/'); const [m2, a2] = b.split('/');
+            return new Date(a1, m1-1) - new Date(a2, m2-1);
+        });
+
+        sortedMeses.forEach((mesAno, index) => {
+            const dadosMes = mesesAgrupados[mesAno];
+            const anoReg = mesAno.split('/')[1];
             
-            const baseBRL = patAnteriorBRL + (reg.aportes * proporcao);
-            const saldoBRL = reg.patrimonio - patAnteriorBRL - reg.aportes;
-            const crescBRL = baseBRL > 0 ? (saldoBRL / baseBRL) * 100 : 0;
+            let totalAporteBRL = 0; let basePonderadaBRL = patAnteriorBRL;
+            let totalAporteUSD = 0; let basePonderadaUSD = patAnteriorUSD;
+
+            dadosMes.regs.forEach(reg => {
+                const data = new Date(reg.data_fechamento + 'T00:00:00');
+                const diasNoMes = new Date(data.getFullYear(), data.getMonth() + 1, 0).getDate();
+                const diaAporte = data.getDate();
+                const proporcao = (diasNoMes - diaAporte + 1) / diasNoMes;
+                
+                totalAporteBRL += reg.aportes;
+                basePonderadaBRL += (reg.aportes * proporcao);
+                
+                totalAporteUSD += reg.aportes_usd;
+                basePonderadaUSD += (reg.aportes_usd * proporcao);
+            });
+
+            const saldoBRL = dadosMes.patrimonioFinal - patAnteriorBRL - totalAporteBRL;
+            const crescBRL = basePonderadaBRL > 0 ? (saldoBRL / basePonderadaBRL) * 100 : 0;
             
             if (anoSelecionado === 'todos' || anoSelecionado === anoReg) {
-                let rowHTML = `<td>${reg.periodo}</td>`;
+                let rowHTML = `<td>${mesAno}</td>`;
                 const hideClass = privacidadeAtiva ? 'hidden-value' : '';
                 if (isUSD) {
-                    const baseUSD = patAnteriorUSD + (reg.aportes_usd * proporcao);
-                    const saldoUSD = reg.patrimonio_usd - patAnteriorUSD - reg.aportes_usd;
-                    const crescUSD = baseUSD > 0 ? (saldoUSD / baseUSD) * 100 : 0;
-                    rowHTML += `<td class="${hideClass}">${formatarMoeda(reg.aportes)}</td><td class="${hideClass}">${formatarMoeda(reg.patrimonio)}</td><td class="${hideClass}">${formatarMoeda(reg.aportes_usd, 'USD')}</td><td class="${hideClass}">${formatarMoeda(reg.patrimonio_usd, 'USD')}</td><td class="${crescUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescUSD.toFixed(2)}%</td>`;
-                    patAnteriorUSD = reg.patrimonio_usd;
+                    const saldoUSD = dadosMes.patrimonioFinalUSD - patAnteriorUSD - totalAporteUSD;
+                    const crescUSD = basePonderadaUSD > 0 ? (saldoUSD / basePonderadaUSD) * 100 : 0;
+                    rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinal)}</td><td class="${hideClass}">${formatarMoeda(totalAporteUSD, 'USD')}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinalUSD, 'USD')}</td><td class="${crescUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescUSD.toFixed(2)}%</td>`;
+                    patAnteriorUSD = dadosMes.patrimonioFinalUSD;
                 } else {
-                    rowHTML += `<td class="${hideClass}">${formatarMoeda(reg.aportes)}</td><td class="${hideClass}">${formatarMoeda(reg.patrimonio)}</td><td class="${saldoBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoBRL)}</td><td class="${crescBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescBRL.toFixed(2)}%</td>`;
+                    rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinal)}</td><td class="${saldoBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoBRL)}</td><td class="${crescBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescBRL.toFixed(2)}%</td>`;
                 }
-                rowHTML += `<td class="actions-cell"><button class="btn-edit" onclick="editarRegistro('${reg.id}')">✎</button><button class="btn-delete" onclick="excluirRegistro('${reg.id}')">✕</button></td>`;
+                
+                if (bancoId !== 'consolidado') {
+                    rowHTML += `<td class="actions-cell">`;
+                    dadosMes.regs.forEach(r => {
+                        rowHTML += `<div style="font-size:10px; margin-bottom:2px">Aporte ${r.data_fechamento.split('-')[2]}: ${formatarMoeda(r.aportes)} <button class="btn-edit" style="padding:2px 5px" onclick="editarRegistro('${r.id}')">✎</button><button class="btn-delete" style="padding:2px 5px" onclick="excluirRegistro('${r.id}')">✕</button></div>`;
+                    });
+                    rowHTML += `</td>`;
+                } else { rowHTML += `<td>-</td>`; }
+                
                 linhasCalculadas.push(rowHTML);
             }
-            patAnteriorBRL = reg.patrimonio;
+            patAnteriorBRL = dadosMes.patrimonioFinal;
         });
         linhasCalculadas.reverse().forEach(html => { const tr = document.createElement('tr'); tr.innerHTML = html; corpo.appendChild(tr); });
     }
 
-    function atualizarDashboardGeral() {
-        const ultimosPorBanco = {}; let totalAportado = 0;
-        todosRegistros.forEach(reg => {
-            totalAportado += reg.aportes;
-            if (!ultimosPorBanco[reg.banco_id] || new Date(reg.data_fechamento) > new Date(ultimosPorBanco[reg.banco_id].data_fechamento)) { ultimosPorBanco[reg.banco_id] = reg; }
-        });
-        const totalPatrimonio = Object.values(ultimosPorBanco).reduce((acc, reg) => acc + reg.patrimonio, 0);
-        document.getElementById('patrimonioTotalGeral').textContent = formatarMoeda(totalPatrimonio);
-        document.getElementById('totalAportado').textContent = formatarMoeda(totalAportado);
-        atualizarGraficoPizza(ultimosPorBanco); consolidarPatrimonioHistorico();
-    }
+    function atualizarDashboardBanco() {
+        const bancoId = document.getElementById('bancoSelector').value;
+        let totalAportado = 0; let patrimonioAtual = 0;
+        
+        const regs = bancoId === 'consolidado' ? todosRegistros : registrosAtuais;
+        regs.forEach(r => totalAportado += r.aportes);
+        
+        if (regs.length > 0) {
+            if (bancoId === 'consolidado') {
+                const ultimos = {};
+                todosRegistros.forEach(r => { if (!ultimos[r.banco_id] || new Date(r.data_fechamento) > new Date(ultimos[r.banco_id].data_fechamento)) ultimos[r.banco_id] = r; });
+                patrimonioAtual = Object.values(ultimos).reduce((acc, r) => acc + r.patrimonio, 0);
+            } else {
+                patrimonioAtual = regs[regs.length - 1].patrimonio;
+            }
+        }
 
-    function calcularRendimentoMedio() {
-        if (registrosAtuais.length < 2) { document.getElementById('rendimentoMedio').textContent = '0,00%'; return; }
-        const banco = bancos.find(b => b.id === document.getElementById('bancoSelector').value);
-        const isUSD = banco?.is_usd || banco?.nome.toLowerCase().includes('tasty');
-        let crescimentos = []; let patAnterior = isUSD ? (registrosAtuais[0].patrimonio_usd - registrosAtuais[0].aportes_usd) : (registrosAtuais[0].patrimonio - registrosAtuais[0].aportes);
-        registrosAtuais.forEach(reg => {
-            const p = isUSD ? reg.patrimonio_usd : reg.patrimonio; const a = isUSD ? reg.aportes_usd : reg.aportes;
-            const data = new Date(reg.data_fechamento + 'T00:00:00'); const diasNoMes = new Date(data.getFullYear(), data.getMonth() + 1, 0).getDate();
-            const diaAporte = data.getDate(); const proporcao = (diasNoMes - diaAporte + 1) / diasNoMes;
-            const base = patAnterior + (a * proporcao); const saldo = p - patAnterior - a;
-            if (base > 0) crescimentos.push((saldo / base) * 100); patAnterior = p;
-        });
-        const ultimos6 = crescimentos.slice(-6); const media = ultimos6.reduce((a, b) => a + b, 0) / ultimos6.length;
-        document.getElementById('rendimentoMedio').textContent = media.toFixed(2) + '%';
-        document.getElementById('rendimentoMedio').className = media >= 0 ? 'pos' : 'neg';
+        document.getElementById('patrimonioTotalGeral').textContent = formatarMoeda(patrimonioAtual);
+        document.getElementById('totalAportado').textContent = formatarMoeda(totalAportado);
+        
+        // Rentabilidade Acumulada Simples
+        const rentAcum = totalAportado > 0 ? ((patrimonioAtual - totalAportado) / totalAportado) * 100 : 0;
+        document.getElementById('rendimentoMedio').textContent = rentAcum.toFixed(2) + '%';
+        document.getElementById('rendimentoMedio').className = rentAcum >= 0 ? 'pos' : 'neg';
+        
+        atualizarGraficoPizza(); consolidarPatrimonioHistorico();
     }
 
     function atualizarGrafico() {
@@ -369,12 +432,13 @@
         });
     }
 
-    function atualizarGraficoPizza(ultimosPorBanco) {
-        if (!ultimosPorBanco) return;
+    function atualizarGraficoPizza() {
         if (charts.pizza) charts.pizza.destroy();
+        const ultimos = {};
+        todosRegistros.forEach(r => { if (!ultimos[r.banco_id] || new Date(r.data_fechamento) > new Date(ultimos[r.banco_id].data_fechamento)) ultimos[r.banco_id] = r; });
         const ctx = document.getElementById('pizzaChart').getContext('2d');
-        const labels = Object.values(ultimosPorBanco).map(r => bancos.find(b => b.id === r.banco_id)?.nome || 'Desconhecido');
-        const valores = Object.values(ultimosPorBanco).map(r => r.patrimonio);
+        const labels = Object.values(ultimos).map(r => bancos.find(b => b.id === r.banco_id)?.nome || 'Desconhecido');
+        const valores = Object.values(ultimos).map(r => r.patrimonio);
         charts.pizza = new Chart(ctx, {
             type: 'doughnut',
             data: { labels: labels, datasets: [{ data: valores, backgroundColor: ['#0056b3', '#00bfff', '#28a745', '#ffc107', '#6f42c1', '#e83e8c'] }] },
@@ -402,7 +466,7 @@
     }
 
     async function editarRegistro(id) {
-        const reg = registrosAtuais.find(r => r.id === id); if (!reg) return;
+        const reg = todosRegistros.find(r => r.id === id); if (!reg) return;
         document.getElementById('registroId').value = reg.id; document.getElementById('dataInput').value = reg.data_fechamento;
         const aporteInput = document.getElementById('valorAporteInput');
         const patrInput = document.getElementById('patrimonioAtualInput');
@@ -422,7 +486,7 @@
     async function excluirRegistro(id) {
         if (!confirm('Excluir registro?')) return;
         showLoading(true); await sb.from('registros').delete().eq('id', id); showLoading(false);
-        await carregarDadosBanco(); await carregarTodosRegistros();
+        await carregarTodosRegistros(); await carregarDadosBanco();
     }
 
     function limparCampos() {
