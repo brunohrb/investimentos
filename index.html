@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>InvestFlow V9 - FORÇADO</title>
+    <title>InvestFlow V10 - Corrigido</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -13,7 +13,6 @@
         * { box-sizing: border-box; transition: background-color 0.3s, color 0.3s; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); padding: 0; color: var(--text-color); margin: 0; overflow-x: hidden; }
         
-        /* TELA DE LOGIN AZUL - PARA CONFIRMAR QUE ATUALIZOU */
         #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0056b3, #00bfff); z-index: 9999; display: flex; justify-content: center; align-items: center; }
         .login-box { background: #ffffff; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; width: 90%; max-width: 350px; }
         .login-box h1 { color: #0056b3; margin-bottom: 10px; font-size: 24px; }
@@ -70,7 +69,6 @@
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Ocultar valores */
         .hidden-value { filter: blur(10px); pointer-events: none; user-select: none; }
 
         @media (min-width: 768px) {
@@ -86,17 +84,15 @@
 <body>
 <div id="loading" class="loading-overlay"><div class="spinner"></div></div>
 
-<!-- TELA DE LOGIN AZUL -->
 <div id="loginScreen">
     <div class="login-box">
-        <h1>InvestFlow V9</h1>
-        <p>Versão com Login e Privacidade</p>
+        <h1>InvestFlow V10</h1>
+        <p>Acesse seu painel financeiro</p>
         <input type="password" id="mainPassword" placeholder="Senha (Padrão: 1234)">
         <button onclick="login()">Entrar Agora</button>
     </div>
 </div>
 
-<!-- Modal Configurações -->
 <div id="configModal" class="modal">
     <div class="modal-content">
         <div class="modal-header"><h3>Configurações</h3><span class="close-modal" onclick="fecharConfig()">&times;</span></div>
@@ -143,7 +139,6 @@
         <input type="text" id="valorAporteInputUSD" placeholder="Aporte $" style="display: none;" oninput="mascaraMoeda(this, 'USD')">
         <input type="text" id="patrimonioAtualInputUSD" placeholder="Patrimônio $" style="display: none;" oninput="mascaraMoeda(this, 'USD')">
         <button onclick="salvarRegistro()" id="btnSalvar">Registrar</button>
-        <button onclick="cancelarEdicao()" id="btnCancelar" style="display:none; background-color: #6c757d;">X</button>
     </div>
 
     <div class="table-wrapper">
@@ -169,7 +164,6 @@
     let senhaMestra = localStorage.getItem('investflow_pass') || '1234';
     let privacidadeAtiva = true;
 
-    // LOGIN
     function login() {
         if (document.getElementById('mainPassword').value === senhaMestra) {
             document.getElementById('loginScreen').style.display = 'none';
@@ -182,7 +176,6 @@
         await carregarBancos(); await carregarTodosRegistros();
     }
 
-    // PRIVACIDADE
     function togglePrivacy() {
         privacidadeAtiva = !privacidadeAtiva;
         atualizarTabela();
@@ -194,7 +187,6 @@
         document.getElementById('privacyBtn').innerHTML = privacidadeAtiva ? '👁️' : '🙈';
     }
 
-    // MÁSCARA DE MOEDA
     function mascaraMoeda(i, moeda) {
         let v = i.value.replace(/\D/g,'');
         if (v === '') return;
@@ -210,7 +202,6 @@
         return parseFloat(num) || 0;
     }
 
-    // CONFIGURAÇÕES
     function abrirConfig() { document.getElementById('configModal').style.display = 'flex'; }
     function fecharConfig() { document.getElementById('configModal').style.display = 'none'; }
     function mudarSenha() {
@@ -244,6 +235,15 @@
         const { data, error } = await sb.from('registros').select('*').order('data_fechamento', { ascending: true });
         if (error) return; todosRegistros = data;
         atualizarDashboardGeral(); atualizarFiltroAnos();
+    }
+
+    function atualizarFiltroAnos() {
+        const anos = [...new Set(todosRegistros.map(r => r.data_fechamento.split('-')[0]))].sort((a, b) => b - a);
+        const filter = document.getElementById('anoFilter');
+        const valorAtual = filter.value;
+        filter.innerHTML = '<option value="todos">Todos os Anos</option>';
+        anos.forEach(ano => { const opt = document.createElement('option'); opt.value = ano; opt.textContent = ano; filter.appendChild(opt); });
+        filter.value = valorAtual;
     }
 
     async function carregarDadosBanco() {
@@ -402,20 +402,17 @@
     async function editarRegistro(id) {
         const reg = registrosAtuais.find(r => r.id === id); if (!reg) return;
         document.getElementById('registroId').value = reg.id; document.getElementById('dataInput').value = reg.data_fechamento;
-        
         const aporteInput = document.getElementById('valorAporteInput');
         const patrInput = document.getElementById('patrimonioAtualInput');
         aporteInput.value = reg.aportes.toFixed(2); mascaraMoeda(aporteInput, 'BRL');
         patrInput.value = reg.patrimonio.toFixed(2); mascaraMoeda(patrInput, 'BRL');
-
         if (reg.is_usd) {
             const aporteUSD = document.getElementById('valorAporteInputUSD');
             const patrUSD = document.getElementById('patrimonioAtualInputUSD');
             aporteUSD.value = reg.aportes_usd.toFixed(2); mascaraMoeda(aporteUSD, 'USD');
             patrUSD.value = reg.patrimonio_usd.toFixed(2); mascaraMoeda(patrUSD, 'USD');
         }
-
-        document.getElementById('btnSalvar').textContent = 'Atualizar'; document.getElementById('btnCancelar').style.display = 'inline-block';
+        document.getElementById('btnSalvar').textContent = 'Atualizar';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -429,7 +426,7 @@
         document.getElementById('registroId').value = ''; document.getElementById('dataInput').value = '';
         document.getElementById('valorAporteInput').value = ''; document.getElementById('patrimonioAtualInput').value = '';
         document.getElementById('valorAporteInputUSD').value = ''; document.getElementById('patrimonioAtualInputUSD').value = '';
-        document.getElementById('btnSalvar').textContent = 'Registrar'; document.getElementById('btnCancelar').style.display = 'none';
+        document.getElementById('btnSalvar').textContent = 'Registrar';
     }
 
     function exportarExcel() {
