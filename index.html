@@ -7,168 +7,41 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { 
-            --primary-color: #ff5700; 
-            --secondary-color: #007bff; 
-            --bg-color: #f0f2f5; 
-            --card-bg: #ffffff; 
-            --text-color: #333; 
-        }
-        
+        :root { --primary-color: #ff5700; --secondary-color: #007bff; --bg-color: #f0f2f5; --card-bg: #ffffff; --text-color: #333; }
         * { box-sizing: border-box; }
-
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: var(--bg-color); 
-            padding: 10px; 
-            color: var(--text-color); 
-            margin: 0;
-        }
-
-        .container { 
-            max-width: 1200px; 
-            margin: auto; 
-            background: var(--card-bg); 
-            padding: 15px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
-        }
-
-        h2 { 
-            color: var(--text-color); 
-            border-bottom: 3px solid var(--primary-color); 
-            padding-bottom: 10px; 
-            margin-top: 0; 
-            font-size: 1.5rem;
-        }
-
-        .total-card { 
-            background: linear-gradient(135deg, var(--primary-color), #ff8c00); 
-            color: white; 
-            padding: 20px; 
-            border-radius: 12px; 
-            margin-bottom: 20px; 
-            box-shadow: 0 4px 15px rgba(255,87,0,0.3); 
-            text-align: center;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); padding: 10px; color: var(--text-color); margin: 0; }
+        .container { max-width: 1200px; margin: auto; background: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2 { color: var(--text-color); border-bottom: 3px solid var(--primary-color); padding-bottom: 10px; margin-top: 0; font-size: 1.5rem; }
+        .total-card { background: linear-gradient(135deg, var(--primary-color), #ff8c00); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(255,87,0,0.3); text-align: center; }
         .total-card h3 { margin: 0 0 5px 0; font-size: 14px; opacity: 0.9; }
         .total-card p { margin: 0; font-size: 24px; font-weight: 800; word-break: break-all; }
-
-        .controls { 
-            display: flex; 
-            flex-direction: column;
-            gap: 10px; 
-            margin-bottom: 20px; 
-            background: #f8f9fa; 
-            padding: 15px; 
-            border-radius: 8px; 
-        }
-        
-        .controls-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-        }
-        
+        .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; }
+        .controls-row { display: flex; align-items: center; gap: 10px; width: 100%; }
         .controls select { flex: 1; }
-
-        .inputs { 
-            display: grid; 
-            grid-template-columns: 1fr; 
-            gap: 10px; 
-            margin-bottom: 20px; 
-        }
-
-        input, select, button { 
-            padding: 12px; 
-            border: 1px solid #ddd; 
-            border-radius: 8px; 
-            font-size: 16px; /* Evita zoom automático no iOS */
-            width: 100%;
-        }
-
-        button { 
-            background-color: var(--primary-color); 
-            color: white; 
-            border: none; 
-            cursor: pointer; 
-            font-weight: bold; 
-            transition: 0.2s;
-        }
+        .inputs { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
+        input, select, button { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; width: 100%; }
+        button { background-color: var(--primary-color); color: white; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
         button:active { transform: scale(0.98); }
-
         .btn-secondary { background-color: var(--secondary-color); }
         .btn-success { background-color: #28a745; }
-
-        /* Tabela Responsiva */
-        .table-wrapper {
-            overflow-x: auto;
-            margin-top: 20px;
-            border-radius: 8px;
-            border: 1px solid #eee;
-        }
-        
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            min-width: 600px; /* Garante que a tabela não esmague no mobile */
-        }
-        
-        th, td { 
-            padding: 12px 10px; 
-            border-bottom: 1px solid #eee; 
-            text-align: left; 
-            font-size: 13px;
-        }
-        
+        .table-wrapper { overflow-x: auto; margin-top: 20px; border-radius: 8px; border: 1px solid #eee; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 12px 10px; border-bottom: 1px solid #eee; text-align: left; font-size: 13px; }
         th { background-color: #f8f9fa; color: #666; font-weight: 600; text-transform: uppercase; }
-
         .pos { color: #28a745; font-weight: bold; }
         .neg { color: #dc3545; font-weight: bold; }
-
-        .actions-cell {
-            display: flex;
-            gap: 5px;
-        }
-
-        .btn-edit, .btn-delete { 
-            padding: 8px; 
-            font-size: 11px; 
-            border: none; 
-            color: white; 
-            cursor: pointer; 
-            border-radius: 4px; 
-            width: auto;
-            flex: 1;
-        }
+        .actions-cell { display: flex; gap: 5px; }
+        .btn-edit, .btn-delete { padding: 8px; font-size: 11px; border: none; color: white; cursor: pointer; border-radius: 4px; width: auto; flex: 1; }
         .btn-edit { background-color: var(--secondary-color); }
         .btn-delete { background-color: #dc3545; }
-
-        .chart-container { 
-            margin-top: 30px; 
-            padding: 10px; 
-            background: #fff; 
-            border-radius: 12px; 
-            border: 1px solid #eee; 
-            height: 300px; /* Altura fixa para gráficos no mobile */
-        }
-
+        .chart-container { margin-top: 30px; padding: 10px; background: #fff; border-radius: 12px; border: 1px solid #eee; height: 300px; }
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Ajustes para Desktop */
         @media (min-width: 768px) {
-            body { padding: 20px; }
-            .container { padding: 30px; }
-            .total-card { text-align: left; padding: 25px; }
-            .total-card p { font-size: 32px; }
-            .controls { flex-direction: row; }
-            .inputs { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
-            button { width: auto; }
-            .chart-container { height: 400px; padding: 20px; }
-            th, td { font-size: 14px; padding: 14px; }
+            body { padding: 20px; } .container { padding: 30px; } .total-card { text-align: left; padding: 25px; } .total-card p { font-size: 32px; }
+            .controls { flex-direction: row; } .inputs { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+            button { width: auto; } .chart-container { height: 400px; padding: 20px; } th, td { font-size: 14px; padding: 14px; }
         }
     </style>
 </head>
@@ -176,22 +49,12 @@
 <div id="loading" class="loading-overlay"><div class="spinner"></div></div>
 <div class="container">
     <h2>InvestFlow</h2>
-    
-    <div class="total-card">
-        <h3>Patrimônio Total Consolidado:</h3>
-        <p id="patrimonioTotalGeral">R$ 0,00</p>
-    </div>
-
+    <div class="total-card"><h3>Patrimônio Total Consolidado:</h3><p id="patrimonioTotalGeral">R$ 0,00</p></div>
     <div class="controls">
-        <div class="controls-row">
-            <select id="bancoSelector" onchange="carregarDadosBanco()"></select>
-            <button onclick="adicionarNovoBanco()" class="btn-secondary" style="width: auto;">+ Banco</button>
-        </div>
+        <div class="controls-row"><select id="bancoSelector" onchange="carregarDadosBanco()"></select><button onclick="adicionarNovoBanco()" class="btn-secondary" style="width: auto;">+ Banco</button></div>
         <button onclick="exportarDados()" class="btn-success">Backup JSON</button>
     </div>
-
     <input type="hidden" id="registroId">
-    
     <div class="inputs">
         <input type="date" id="dataInput">
         <input type="number" id="valorAporteInput" placeholder="Aporte R$" step="0.01">
@@ -201,23 +64,15 @@
         <button onclick="salvarRegistro()" id="btnSalvar">Registrar Mês</button>
         <button onclick="cancelarEdicao()" id="btnCancelar" style="display:none; background-color: #6c757d;">Cancelar</button>
     </div>
-
     <div class="table-wrapper">
         <table>
             <thead><tr id="tabelaHead"><th>Mês/Ano</th><th>Aportes</th><th>Patrimônio</th><th>Saldo</th><th>%</th><th>Ações</th></tr></thead>
             <tbody id="tabelaCorpo"></tbody>
         </table>
     </div>
-
-    <div class="chart-container">
-        <canvas id="patrimonioChart"></canvas>
-    </div>
-    
-    <div class="chart-container">
-        <canvas id="patrimonioConsolidadoChart"></canvas>
-    </div>
+    <div class="chart-container"><canvas id="patrimonioChart"></canvas></div>
+    <div class="chart-container"><canvas id="patrimonioConsolidadoChart"></canvas></div>
 </div>
-
 <script>
     const SUPABASE_URL = 'https://fwhsjzkmnfxnlrvspkyr.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_9pRTCRjY673snoOMAz1O_g_QNSAx3AB';
@@ -229,10 +84,7 @@
     let patrimonioChartInstance = null;
     let patrimonioConsolidadoChartInstance = null;
 
-    window.onload = async () => {
-        await carregarBancos();
-        await carregarTodosRegistros();
-    };
+    window.onload = async () => { await carregarBancos(); await carregarTodosRegistros(); };
 
     function showLoading(show) { document.getElementById('loading').style.display = show ? 'flex' : 'none'; }
 
@@ -341,34 +193,26 @@
 
     function cancelarEdicao() { limparCampos(); }
     function limparCampos() {
-        document.getElementById('registroId').value = '';
-        document.getElementById('dataInput').value = '';
-        document.getElementById('valorAporteInput').value = '';
-        document.getElementById('patrimonioAtualInput').value = '';
-        document.getElementById('valorAporteInputUSD').value = '';
-        document.getElementById('patrimonioAtualInputUSD').value = '';
-        document.getElementById('btnSalvar').textContent = 'Registrar Mês';
-        document.getElementById('btnCancelar').style.display = 'none';
+        document.getElementById('registroId').value = ''; document.getElementById('dataInput').value = '';
+        document.getElementById('valorAporteInput').value = ''; document.getElementById('patrimonioAtualInput').value = '';
+        document.getElementById('valorAporteInputUSD').value = ''; document.getElementById('patrimonioAtualInputUSD').value = '';
+        document.getElementById('btnSalvar').textContent = 'Registrar Mês'; document.getElementById('btnCancelar').style.display = 'none';
     }
 
-    function formatarMoeda(v, moeda = 'BRL') { 
-        return v.toLocaleString('pt-BR', { 
-            style: 'currency', 
-            currency: moeda,
-            maximumFractionDigits: 0 // Remove centavos para economizar espaço no mobile
-        }); 
-    }
+    function formatarMoeda(v, moeda = 'BRL') { return v.toLocaleString('pt-BR', { style: 'currency', currency: moeda, maximumFractionDigits: 0 }); }
 
     function atualizarTabela() {
         const corpo = document.getElementById('tabelaCorpo');
         const head = document.getElementById('tabelaHead');
         corpo.innerHTML = '';
         const isUSD = registrosAtuais.length > 0 && registrosAtuais[0].is_usd;
-        
         if (isUSD) head.innerHTML = `<th>Mês</th><th>Aporte R$</th><th>Patr. R$</th><th>Aporte $</th><th>Patr. $</th><th>% $</th><th>Ações</th>`;
         else head.innerHTML = `<th>Mês</th><th>Aporte</th><th>Patrimônio</th><th>Saldo</th><th>%</th><th>Ações</th>`;
         
         let patAnteriorBRL = 0; let patAnteriorUSD = 0;
+        let linhas = [];
+
+        // Primeiro calculamos os saldos e crescimentos em ordem cronológica (Crescente)
         registrosAtuais.forEach((reg, index) => {
             if (index === 0) { patAnteriorBRL = reg.patrimonio - reg.aportes; patAnteriorUSD = reg.patrimonio_usd - reg.aportes_usd; }
             const data = new Date(reg.data_fechamento + 'T00:00:00');
@@ -379,18 +223,27 @@
             const saldoBRL = reg.patrimonio - patAnteriorBRL - reg.aportes;
             const crescBRL = baseBRL > 0 ? (saldoBRL / baseBRL) * 100 : 0;
             
-            let row = `<tr><td>${reg.periodo}</td>`;
+            let rowHTML = `<td>${reg.periodo}</td>`;
             if (isUSD) {
                 const baseUSD = patAnteriorUSD + (reg.aportes_usd * proporcao);
                 const saldoUSD = reg.patrimonio_usd - patAnteriorUSD - reg.aportes_usd;
                 const crescUSD = baseUSD > 0 ? (saldoUSD / baseUSD) * 100 : 0;
-                row += `<td>${formatarMoeda(reg.aportes)}</td><td>${formatarMoeda(reg.patrimonio)}</td><td>${formatarMoeda(reg.aportes_usd, 'USD')}</td><td>${formatarMoeda(reg.patrimonio_usd, 'USD')}</td><td class="${crescUSD >= 0 ? 'pos' : 'neg'}">${crescUSD.toFixed(1)}%</td>`;
+                rowHTML += `<td>${formatarMoeda(reg.aportes)}</td><td>${formatarMoeda(reg.patrimonio)}</td><td>${formatarMoeda(reg.aportes_usd, 'USD')}</td><td>${formatarMoeda(reg.patrimonio_usd, 'USD')}</td><td class="${crescUSD >= 0 ? 'pos' : 'neg'}">${crescUSD.toFixed(1)}%</td>`;
                 patAnteriorUSD = reg.patrimonio_usd;
             } else {
-                row += `<td>${formatarMoeda(reg.aportes)}</td><td>${formatarMoeda(reg.patrimonio)}</td><td class="${saldoBRL >= 0 ? 'pos' : 'neg'}">${formatarMoeda(saldoBRL)}</td><td class="${crescBRL >= 0 ? 'pos' : 'neg'}">${crescBRL.toFixed(1)}%</td>`;
+                rowHTML += `<td>${formatarMoeda(reg.aportes)}</td><td>${formatarMoeda(reg.patrimonio)}</td><td class="${saldoBRL >= 0 ? 'pos' : 'neg'}">${formatarMoeda(saldoBRL)}</td><td class="${crescBRL >= 0 ? 'pos' : 'neg'}">${crescBRL.toFixed(1)}%</td>`;
             }
-            row += `<td class="actions-cell"><button class="btn-edit" onclick="editarRegistro('${reg.id}')">✎</button><button class="btn-delete" onclick="excluirRegistro('${reg.id}')">✕</button></td></tr>`;
-            corpo.innerHTML += row; patAnteriorBRL = reg.patrimonio;
+            rowHTML += `<td class="actions-cell"><button class="btn-edit" onclick="editarRegistro('${reg.id}')">✎</button><button class="btn-delete" onclick="excluirRegistro('${reg.id}')">✕</button></td>`;
+            
+            linhas.push(rowHTML);
+            patAnteriorBRL = reg.patrimonio;
+        });
+
+        // Agora invertemos a ordem das linhas para exibir os mais recentes no topo
+        linhas.reverse().forEach(html => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = html;
+            corpo.appendChild(tr);
         });
     }
 
@@ -404,25 +257,7 @@
     function atualizarGrafico() {
         if (patrimonioChartInstance) patrimonioChartInstance.destroy();
         const ctx = document.getElementById('patrimonioChart').getContext('2d');
-        patrimonioChartInstance = new Chart(ctx, { 
-            type: 'line', 
-            data: { 
-                labels: registrosAtuais.map(r => r.periodo), 
-                datasets: [{ 
-                    label: 'Patrimônio (R$)', 
-                    data: registrosAtuais.map(r => r.patrimonio), 
-                    borderColor: '#ff5700', 
-                    backgroundColor: 'rgba(255,87,0,0.1)', 
-                    fill: true, 
-                    tension: 0.3 
-                }] 
-            }, 
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false }, title: { display: true, text: 'Evolução do Banco' } }
-            } 
-        });
+        patrimonioChartInstance = new Chart(ctx, { type: 'line', data: { labels: registrosAtuais.map(r => r.periodo), datasets: [{ label: 'Patrimônio (R$)', data: registrosAtuais.map(r => r.patrimonio), borderColor: '#ff5700', backgroundColor: 'rgba(255,87,0,0.1)', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Evolução do Banco' } } } });
     }
 
     function consolidarPatrimonioHistorico() {
@@ -431,25 +266,7 @@
         todosRegistros.forEach(reg => { const key = reg.data_fechamento; if (!consolidado[key]) consolidado[key] = { total: 0, periodo: reg.periodo }; consolidado[key].total += reg.patrimonio; });
         const sortedKeys = Object.keys(consolidado).sort();
         const ctx = document.getElementById('patrimonioConsolidadoChart').getContext('2d');
-        patrimonioConsolidadoChartInstance = new Chart(ctx, { 
-            type: 'line', 
-            data: { 
-                labels: sortedKeys.map(k => consolidado[k].periodo), 
-                datasets: [{ 
-                    label: 'Total Consolidado (R$)', 
-                    data: sortedKeys.map(k => consolidado[k].total), 
-                    borderColor: '#007bff', 
-                    backgroundColor: 'rgba(0,123,255,0.1)', 
-                    fill: true, 
-                    tension: 0.3 
-                }] 
-            }, 
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false }, title: { display: true, text: 'Patrimônio Total' } }
-            } 
-        });
+        patrimonioConsolidadoChartInstance = new Chart(ctx, { type: 'line', data: { labels: sortedKeys.map(k => consolidado[k].periodo), datasets: [{ label: 'Total Consolidado (R$)', data: sortedKeys.map(k => consolidado[k].total), borderColor: '#007bff', backgroundColor: 'rgba(0,123,255,0.1)', fill: true, tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, title: { display: true, text: 'Patrimônio Total' } } } });
     }
 
     function exportarDados() {
