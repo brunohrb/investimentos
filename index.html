@@ -111,22 +111,38 @@
     <header>
         <h2 id="tituloSistema">InvestFlow Pro</h2>
         <div class="header-actions">
-            <button class="btn-icon" onclick="togglePrivacy()" id="privacyBtn">👁️</button>
-            <button class="btn-icon" onclick="abrirConfig()">⚙️</button>
-        </div>
+    <div id="cotacoesTopo" style="font-size:12px; color:#666; margin-right:10px; white-space:nowrap;">
+        💵 USD: <span id="valorDolar">--</span>
+        &nbsp;&nbsp;
+        💶 EUR: <span id="valorEuro">--</span>
+    </div>
+
+    <button class="btn-icon" onclick="togglePrivacy()" id="privacyBtn">👁️</button>
+    <button class="btn-icon" onclick="abrirConfig()">⚙️</button>
+</div>
+
     </header>
     
     <div class="dashboard-grid">
+
         <div class="total-card"><h3>Patrimônio do Banco</h3><p id="patrimonioTotalGeral" class="hidden-value">R$ 0,00</p></div>
         <div class="stats-card"><h4>Rentabilidade Acumulada</h4><p id="rendimentoMedio" class="hidden-value">0,00%</p></div>
         <div class="stats-card"><h4>Total Aportado (Banco)</h4><p id="totalAportado" class="hidden-value">R$ 0,00</p></div>
     </div>
 
-    <div class="controls">
-        <div class="controls-row">
-            <select id="bancoSelector" onchange="carregarDadosBanco()"></select>
-            <button onclick="adicionarNovoBanco()" class="btn-secondary" style="width: auto;">+ Banco</button>
-        </div>
+<div class="controls">
+    <div class="controls-row">
+        <select id="carteiraSelector" onchange="carteiraMudou()">
+            <option value="br">🇧🇷 Carteira Brasil (R$)</option>
+            <option value="int">🌎 Carteira Internacional (USD)</option>
+        </select>
+    </div>
+
+    <div class="controls-row">
+        <select id="bancoSelector" onchange="carregarDadosBanco()"></select>
+        <button onclick="adicionarNovoBanco()" class="btn-secondary" style="width: auto;">+ Banco</button>
+    </div>
+
         <div class="controls-row">
             <select id="anoFilter" onchange="atualizarTabela()"><option value="todos">Todos os Anos</option></select>
         </div>
@@ -174,9 +190,12 @@
         } else { alert('Senha incorreta!'); }
     }
 
-    async function inicializarSistema() {
-        await carregarBancos(); await carregarTodosRegistros();
-    }
+        async function inicializarSistema() {
+    await carregarBancos();
+    await carregarTodosRegistros();
+    carregarCotacoesHoje();
+}
+
 
     function togglePrivacy() {
         privacidadeAtiva = !privacidadeAtiva;
@@ -232,7 +251,16 @@
         showLoading(true); const { data, error } = await sb.from('bancos').select('*').order('nome'); showLoading(false);
         if (error) return; bancos = data;
         const selector = document.getElementById('bancoSelector'); selector.innerHTML = '<option value="consolidado">Patrimônio Consolidado (Total)</option>';
-        bancos.forEach(banco => { const option = document.createElement('option'); option.value = banco.id; option.textContent = banco.nome; selector.appendChild(option); });
+const carteira = document.getElementById('carteiraSelector')?.value || 'br';
+
+bancos
+    .filter(b => carteira === 'br' ? !b.is_usd : b.is_usd)
+    .forEach(banco => {
+        const option = document.createElement('option');
+        option.value = banco.id;
+        option.textContent = banco.nome;
+        selector.appendChild(option);
+    });
         if (selector.value) carregarDadosBanco();
     }
 
@@ -393,7 +421,7 @@
         linhasCalculadas.reverse().forEach(html => { const tr = document.createElement('tr'); tr.innerHTML = html; corpo.appendChild(tr); });
     }
 
-    function atualizarDashboardBanco() {
+    async function atualizarDashboardBanco() {
         const bancoId = document.getElementById('bancoSelector').value;
         let totalAportado = 0; let patrimonioAtual = 0;
         
@@ -401,13 +429,28 @@
         regs.forEach(r => totalAportado += r.aportes);
         
         if (regs.length > 0) {
-            if (bancoId === 'consolidado') {
-                const ultimos = {};
-                todosRegistros.forEach(r => { if (!ultimos[r.banco_id] || new Date(r.data_fechamento) > new Date(ultimos[r.banco_id].data_fechamento)) ultimos[r.banco_id] = r; });
-                patrimonioAtual = Object.values(ultimos).reduce((acc, r) => acc + r.patrimonio, 0);
-            } else {
-                patrimonioAtual = regs[regs.length - 1].patrimonio;
-            }
+          if (bancoId === 'consolidado') {
+    const ultimos = {};
+
+    todosRegistros.forEach(r => {
+        if (!ultimos[r.banco_id] || new Date(r.data_fechamento) > new Date(ultimos[r.banco_id].data_fechamento)) {
+            ultimos[r.banco_id] = r;
+        }
+    });
+
+    patrimonioAtual = 0;
+
+    for (const r of Object.values(ultimos)) {
+        const [mes, ano] = r.periodo.split('/');
+        if (r.is_usd) {
+            const convertido = await converterUSDParaBRL(r.patrimonio_usd, ano, mes);
+            patrimonioAtual += convertido;
+        } else {
+            patrimonioAtual += r.patrimonio;
+        }
+    }
+}
+
         }
 
         document.getElementById('patrimonioTotalGeral').textContent = formatarMoeda(patrimonioAtual);
@@ -529,6 +572,59 @@
         };
         reader.readAsArrayBuffer(file);
     }
+
+function carteiraMudou() {
+    carregarBancos();
+}
+
+async function carregarCotacoesHoje() {
+    try {
+        const res = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL');
+        const data = await res.json();
+
+        const dolar = parseFloat(data.USDBRL.bid);
+        const euro = parseFloat(data.EURBRL.bid);
+
+        document.getElementById('valorDolar').textContent =
+            dolar.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        document.getElementById('valorEuro').textContent =
+            euro.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    } catch (e) {
+        document.getElementById('valorDolar').textContent = 'Erro';
+        document.getElementById('valorEuro').textContent = 'Erro';
+    }
+}
+
+async function buscarDolarFimDoMes(ano, mes) {
+    // mes: 1 a 12
+    const ultimoDia = new Date(ano, mes, 0).toISOString().split('T')[0];
+
+    const url = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/` +
+                `CotacaoDolarDia(dataCotacao=@dataCotacao)?@dataCotacao='${ultimoDia}'&$top=1&$format=json`;
+
+    try {
+        const res = await fetch(url);
+        const json = await res.json();
+
+        if (!json.value || json.value.length === 0) return null;
+
+        return parseFloat(json.value[0].cotacaoVenda);
+    } catch (e) {
+        return null;
+    }
+}
+
+
+async function converterUSDParaBRL(valorUSD, ano, mes) {
+    const dolar = await buscarDolarFimDoMes(ano, mes);
+    if (!dolar) return 0;
+    return valorUSD * dolar;
+}
+
+
+
 </script>
 </body>
 </html>
