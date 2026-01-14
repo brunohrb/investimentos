@@ -80,6 +80,40 @@
             button { width: auto; } .charts-grid { grid-template-columns: 1fr 1fr; }
             .chart-container { height: 350px; } th, td { font-size: 14px; padding: 14px; }
         }
+
+.btn-excluir-banco {
+    all: unset;                /* reset total */
+    cursor: pointer;
+
+    width: 34px;
+    height: 34px;
+
+    background: #dc3545;
+    color: white;
+
+    border-radius: 8px;
+    border: 1px solid #c82333;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 16px;
+    font-weight: bold;
+
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: background 0.2s, transform 0.1s, box-shadow 0.1s;
+}
+
+.btn-excluir-banco:hover {
+    background: #c82333;
+}
+
+.btn-excluir-banco:active {
+    transform: scale(0.95);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
     </style>
 </head>
 <body>
@@ -106,6 +140,10 @@
 
 <button onclick="adicionarNovoBanco()" class="btn-success" style="margin-bottom:10px">
     ➕ Adicionar Banco
+</button>
+
+<button onclick="toggleModoExcluirBanco()" class="btn-secondary" style="margin-bottom:10px">
+    🗑️ Excluir Banco
 </button>
 
 <div id="listaBancosConfig" style="font-size:14px"></div>
@@ -191,6 +229,7 @@
     let bancos = []; let registrosAtuais = []; let todosRegistros = []; let charts = {};
     let senhaMestra = localStorage.getItem('investflow_pass') || '1234';
     let privacidadeAtiva = true;
+let modoExcluirBanco = false;
 
     function login() {
         if (document.getElementById('mainPassword').value === senhaMestra) {
@@ -263,7 +302,9 @@
 
     async function carregarBancos() {
         showLoading(true); const { data, error } = await sb.from('bancos').select('*').order('nome'); showLoading(false);
-        if (error) return; bancos = data;
+        if (error) return; 
+    todosBancos = data;   // 👈 GUARDA TODOS
+    bancos = data;
         const selector = document.getElementById('bancoSelector'); selector.innerHTML = '<option value="consolidado">Patrimônio Consolidado (Total)</option>';
 const carteira = document.getElementById('carteiraSelector')?.value || 'br';
 
@@ -435,48 +476,102 @@ bancos
         linhasCalculadas.reverse().forEach(html => { const tr = document.createElement('tr'); tr.innerHTML = html; corpo.appendChild(tr); });
     }
 
-    async function atualizarDashboardBanco() {
-        const bancoId = document.getElementById('bancoSelector').value;
-        let totalAportado = 0; let patrimonioAtual = 0;
-        
-        const regs = bancoId === 'consolidado' ? todosRegistros : registrosAtuais;
-        regs.forEach(r => totalAportado += r.aportes);
-        
-        if (regs.length > 0) {
-          if (bancoId === 'consolidado') {
-    const ultimos = {};
+async function atualizarDashboardBanco() {
+    console.clear();
 
-    todosRegistros.forEach(r => {
-        if (!ultimos[r.banco_id] || new Date(r.data_fechamento) > new Date(ultimos[r.banco_id].data_fechamento)) {
-            ultimos[r.banco_id] = r;
-        }
-    });
+    const bancoSelecionadoId = document.getElementById('bancoSelector').value;
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth();
+    const anoAtual = hoje.getFullYear();
 
-    patrimonioAtual = 0;
+    let patrimonioAtual = 0;
 
-    for (const r of Object.values(ultimos)) {
-        const [mes, ano] = r.periodo.split('/');
-        if (r.is_usd) {
-            const convertido = await converterUSDParaBRL(r.patrimonio_usd, ano, mes);
-            patrimonioAtual += convertido;
+    console.log('===== DEBUG DASHBOARD =====');
+
+    // 👉 define quais bancos entram no cálculo
+    const bancosParaCalculo =
+        bancoSelecionadoId === 'consolidado'
+            ? todosBancos
+            : todosBancos.filter(b => b.id === bancoSelecionadoId);
+
+    for (const banco of bancosParaCalculo) {
+        const regsBanco = todosRegistros
+            .filter(r => r.banco_id === banco.id)
+            .sort((a, b) => new Date(a.data_fechamento) - new Date(b.data_fechamento));
+
+        if (regsBanco.length === 0) continue;
+
+        const ultimoFechado = [...regsBanco]
+            .reverse()
+            .find(r => banco.is_usd ? r.patrimonio_usd > 0 : r.patrimonio > 0);
+
+        if (!ultimoFechado) continue;
+
+        let base = 0;
+
+        // 🔥 REGRA DO DÓLAR (ver problema 2 abaixo)
+        if (banco.is_usd) {
+            const d = new Date(ultimoFechado.data_fechamento);
+
+            const fechadoNoMesAtual =
+                d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
+
+            if (fechadoNoMesAtual) {
+                // 🔥 patrimônio "em aberto" → dólar de HOJE
+                base = ultimoFechado.patrimonio_usd * (dolarFallbackHoje || 0);
+            } else {
+                // 🔒 mês fechado → PTAX do mês
+                base = await converterUSDParaBRL(
+                    ultimoFechado.patrimonio_usd,
+                    d.getFullYear(),
+                    d.getMonth() + 1
+                );
+            }
         } else {
-            patrimonioAtual += r.patrimonio;
+            base = ultimoFechado.patrimonio;
         }
+
+        console.log(`🏦 ${banco.nome}`);
+        console.log('  Base:', base.toLocaleString('pt-BR'));
+
+        // ajustes do mês atual (aportes)
+        let ajuste = 0;
+
+        const temFechamentoMesAtual = regsBanco.some(r => {
+            const d = new Date(r.data_fechamento);
+            return (
+                d.getMonth() === mesAtual &&
+                d.getFullYear() === anoAtual &&
+                (banco.is_usd ? r.patrimonio_usd > 0 : r.patrimonio > 0)
+            );
+        });
+
+        if (!temFechamentoMesAtual) {
+            for (const r of regsBanco) {
+                const d = new Date(r.data_fechamento);
+                if (d.getMonth() === mesAtual && d.getFullYear() === anoAtual) {
+                    if (banco.is_usd) {
+                        ajuste += (r.aportes_usd || 0) * (dolarFallbackHoje || 0);
+                    } else {
+                        ajuste += r.aportes || 0;
+                    }
+                }
+            }
+        }
+
+        console.log('  Ajuste:', ajuste.toLocaleString('pt-BR'));
+        console.log('  Subtotal:', (base + ajuste).toLocaleString('pt-BR'));
+        console.log('--------------------------');
+
+        patrimonioAtual += base + ajuste;
     }
+
+    console.log('TOTAL DASHBOARD:', patrimonioAtual.toLocaleString('pt-BR'));
+    console.log('===== FIM DEBUG =====');
+
+    document.getElementById('patrimonioTotalGeral').textContent =
+        formatarMoeda(patrimonioAtual);
 }
-
-        }
-
-        document.getElementById('patrimonioTotalGeral').textContent = formatarMoeda(patrimonioAtual);
-        document.getElementById('totalAportado').textContent = formatarMoeda(totalAportado);
-        
-        // Rentabilidade Acumulada Simples
-        const rentAcum = totalAportado > 0 ? ((patrimonioAtual - totalAportado) / totalAportado) * 100 : 0;
-        document.getElementById('rendimentoMedio').textContent = rentAcum.toFixed(2) + '%';
-        document.getElementById('rendimentoMedio').className = rentAcum >= 0 ? 'pos' : 'neg';
-        
-        atualizarGraficoPizza(); consolidarPatrimonioHistorico();
-    }
 
     function atualizarGrafico() {
         const isDark = document.body.getAttribute('data-theme') === 'dark'; const textColor = isDark ? '#e0e0e0' : '#666';
@@ -503,18 +598,90 @@ bancos
         });
     }
 
-    function consolidarPatrimonioHistorico() {
-        if (charts.consolidado) charts.consolidado.destroy();
-        const consolidado = {};
-        todosRegistros.forEach(reg => { const key = reg.data_fechamento; if (!consolidado[key]) consolidado[key] = { total: 0, periodo: reg.periodo }; consolidado[key].total += reg.patrimonio; });
-        const sortedKeys = Object.keys(consolidado).sort();
+function consolidarPatrimonioHistorico() {
+    if (charts.consolidado) charts.consolidado.destroy();
+
+    const consolidado = {};
+
+    todosRegistros.forEach(reg => {
+        const key = reg.data_fechamento;
+
+        if (!consolidado[key]) {
+            consolidado[key] = {
+                total: 0,
+                periodo: reg.periodo
+            };
+        }
+
+        if (reg.is_usd) {
+            // USD será convertido depois
+            consolidado[key].total += 0;
+        } else {
+            consolidado[key].total += reg.patrimonio;
+        }
+    });
+
+    const sortedKeys = Object.keys(consolidado).sort();
+    const labels = [];
+    const valores = [];
+
+    (async () => {
+        for (const key of sortedKeys) {
+            let totalAno = 0;
+
+            const regsAno = todosRegistros.filter(r => r.data_fechamento === key);
+
+            for (const r of regsAno) {
+                if (r.is_usd) {
+                    const [mes, ano] = r.periodo.length === 4
+                        ? ['12', r.periodo]
+                        : r.periodo.split('/');
+
+                    const convertido = await converterUSDParaBRL(
+                        r.patrimonio_usd,
+                        ano,
+                        mes
+                    );
+
+                    totalAno += convertido;
+                } else {
+                    totalAno += r.patrimonio;
+                }
+            }
+
+            labels.push(consolidado[key].periodo);
+            valores.push(totalAno);
+        }
+
         const ctx = document.getElementById('patrimonioConsolidadoChart').getContext('2d');
         charts.consolidado = new Chart(ctx, {
             type: 'line',
-            data: { labels: sortedKeys.map(k => consolidado[k].periodo), datasets: [{ label: 'Total Consolidado', data: sortedKeys.map(k => consolidado[k].total), borderColor: '#00bfff', backgroundColor: 'rgba(0,191,255,0.1)', fill: true, tension: 0.3 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { callbacks: { label: (c) => formatarMoeda(c.raw) } } }, scales: { x: { ticks: { color: document.body.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#666' } }, y: { ticks: { color: document.body.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#666', callback: (v) => 'R$ ' + v.toLocaleString('pt-BR') } } } }
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Total Consolidado',
+                    data: valores,
+                    borderColor: '#00bfff',
+                    backgroundColor: 'rgba(0,191,255,0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (c) => formatarMoeda(c.raw)
+                        }
+                    }
+                }
+            }
         });
-    }
+    })();
+}
+
 
     async function adicionarNovoBanco() {
         const nome = prompt("Nome do novo banco:"); if (!nome) return;
@@ -596,20 +763,19 @@ async function carregarCotacoesHoje() {
         const res = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL');
         const data = await res.json();
 
-        const dolar = parseFloat(data.USDBRL.bid);
-        const euro = parseFloat(data.EURBRL.bid);
+        dolarFallbackHoje = parseFloat(data.USDBRL.bid);
 
         document.getElementById('valorDolar').textContent =
-            dolar.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            dolarFallbackHoje.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
         document.getElementById('valorEuro').textContent =
-            euro.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            parseFloat(data.EURBRL.bid).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-    } catch (e) {
-        document.getElementById('valorDolar').textContent = 'Erro';
-        document.getElementById('valorEuro').textContent = 'Erro';
+    } catch {
+        dolarFallbackHoje = null;
     }
 }
+
 
 async function buscarDolarFimDoMes(ano, mes) {
     // mes: 1 a 12
@@ -632,31 +798,57 @@ async function buscarDolarFimDoMes(ano, mes) {
 
 
 async function converterUSDParaBRL(valorUSD, ano, mes) {
-    const dolar = await buscarDolarFimDoMes(ano, mes);
-    if (!dolar) return 0;
-    return valorUSD * dolar;
+    const dolarPTAX = await buscarDolarFimDoMes(ano, mes);
+
+    if (dolarPTAX && dolarPTAX > 0) {
+        return valorUSD * dolarPTAX;
+    }
+
+    // 🔥 fallback seguro
+    if (dolarFallbackHoje) {
+        console.warn('⚠️ Usando dólar atual como fallback');
+        return valorUSD * dolarFallbackHoje;
+    }
+
+    console.error('❌ Sem cotação de dólar disponível');
+    return 0;
 }
+
 
 function renderizarBancosConfig() {
     const container = document.getElementById('listaBancosConfig');
     container.innerHTML = '';
 
+    // 👉 SE NÃO ESTIVER NO MODO EXCLUIR, NÃO MOSTRA NADA
+    if (!modoExcluirBanco) {
+        container.innerHTML = `
+            <p style="font-size:12px; color:#888; margin-top:5px">
+                Clique em <strong>Excluir Banco</strong> para gerenciar remoções
+            </p>
+        `;
+        return;
+    }
+
+    // 👉 SE ESTIVER NO MODO EXCLUIR, MOSTRA A LISTA COM ❌
     bancos.forEach(b => {
         const div = document.createElement('div');
         div.style.display = 'flex';
         div.style.justifyContent = 'space-between';
         div.style.alignItems = 'center';
-        div.style.marginBottom = '6px';
+        div.style.marginBottom = '8px';
 
         div.innerHTML = `
             <span>${b.nome} ${b.is_usd ? '(USD)' : '(R$)'}</span>
-            <button class="btn-delete" style="padding:4px 8px"
-                onclick="excluirBanco('${b.id}', '${b.nome}')">✕</button>
+            <button class="btn-excluir-banco"
+                onclick="excluirBanco('${b.id}', '${b.nome}')">
+                ❌
+            </button>
         `;
 
         container.appendChild(div);
     });
 }
+ 	
 
 async function excluirBanco(id, nome) {
     if (!confirm(`Excluir o banco "${nome}"?\nTodos os registros dele serão apagados.`)) {
@@ -672,7 +864,47 @@ async function excluirBanco(id, nome) {
 
     await carregarBancos();
     await carregarTodosRegistros();
+modoExcluirBanco = false;
     renderizarBancosConfig();
+}
+
+function toggleModoExcluirBanco() {
+    modoExcluirBanco = !modoExcluirBanco;
+    renderizarBancosConfig();
+}
+
+function calcularPatrimonioEstimado(regs) {
+    if (regs.length === 0) return 0;
+
+    // ordena por data
+    const ordenados = [...regs].sort(
+        (a, b) => new Date(a.data_fechamento) - new Date(b.data_fechamento)
+    );
+
+    // último registro fechado (com patrimônio > 0)
+    const ultimoFechado = [...ordenados]
+        .reverse()
+        .find(r => r.patrimonio > 0);
+
+    if (!ultimoFechado) return 0;
+
+    const dataUltimo = new Date(ultimoFechado.data_fechamento);
+    const mesAtual = new Date().getMonth();
+    const anoAtual = new Date().getFullYear();
+
+    let aportesMesAtual = 0;
+
+    ordenados.forEach(r => {
+        const d = new Date(r.data_fechamento);
+        if (
+            d.getMonth() === mesAtual &&
+            d.getFullYear() === anoAtual
+        ) {
+            aportesMesAtual += r.aportes;
+        }
+    });
+
+    return ultimoFechado.patrimonio + aportesMesAtual;
 }
 
 
