@@ -100,6 +100,18 @@
         <button onclick="toggleTheme()" id="themeBtn" style="margin-bottom:10px">🌙 Modo Escuro</button>
         <button onclick="mudarSenha()" class="btn-secondary" style="margin-bottom:10px">Alterar Senha</button>
         <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0">
+        <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0">
+
+<h4 style="margin-bottom:10px">Gerenciar Bancos</h4>
+
+<button class="btn-success" style="margin-bottom:10px">
+    ➕ Adicionar Banco
+</button>
+
+<div style="font-size:14px; color:#888">
+    (lista de bancos aparecerá aqui)
+</div>
+
         <p style="font-size:12px; color:#888">Backup & Restauração (Excel)</p>
         <button onclick="exportarExcel()" class="btn-success" style="margin-bottom:10px">Exportar Excel</button>
         <input type="file" id="importExcel" style="display:none" onchange="importarExcel(event)">
@@ -140,7 +152,6 @@
 
     <div class="controls-row">
         <select id="bancoSelector" onchange="carregarDadosBanco()"></select>
-        <button onclick="adicionarNovoBanco()" class="btn-secondary" style="width: auto;">+ Banco</button>
     </div>
 
         <div class="controls-row">
@@ -623,8 +634,29 @@ async function converterUSDParaBRL(valorUSD, ano, mes) {
     return valorUSD * dolar;
 }
 
+function renderizarBancosConfig() {
+    const container = document.getElementById('listaBancosConfig');
+    container.innerHTML = '';
+
+    bancos.forEach(b => {
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.style.alignItems = 'center';
+        div.style.marginBottom = '6px';
+
+        div.innerHTML = `
+            <span>${b.nome} ${b.is_usd ? '(USD)' : '(R$)'}</span>
+            <button class="btn-delete" style="padding:4px 8px"
+                onclick="excluirBanco('${b.id}', '${b.nome}')">✕</button>
+        `;
+
+        container.appendChild(div);
+    });
+}
 
 
 </script>
 </body>
 </html>
+
