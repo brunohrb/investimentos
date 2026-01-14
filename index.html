@@ -104,13 +104,12 @@
 
 <h4 style="margin-bottom:10px">Gerenciar Bancos</h4>
 
-<button class="btn-success" style="margin-bottom:10px">
+<button onclick="adicionarNovoBanco()" class="btn-success" style="margin-bottom:10px">
     ➕ Adicionar Banco
 </button>
 
-<div style="font-size:14px; color:#888">
-    (lista de bancos aparecerá aqui)
-</div>
+<div id="listaBancosConfig" style="font-size:14px"></div>
+
 
         <p style="font-size:12px; color:#888">Backup & Restauração (Excel)</p>
         <button onclick="exportarExcel()" class="btn-success" style="margin-bottom:10px">Exportar Excel</button>
@@ -237,7 +236,11 @@
         return (isNeg ? -1 : 1) * (parseFloat(num) || 0);
     }
 
-    function abrirConfig() { document.getElementById('configModal').style.display = 'flex'; }
+    function abrirConfig() {
+    document.getElementById('configModal').style.display = 'flex';
+    renderizarBancosConfig();
+}
+
     function fecharConfig() { document.getElementById('configModal').style.display = 'none'; }
     function mudarSenha() {
         const nova = prompt('Digite a nova senha:');
@@ -655,8 +658,26 @@ function renderizarBancosConfig() {
     });
 }
 
+async function excluirBanco(id, nome) {
+    if (!confirm(`Excluir o banco "${nome}"?\nTodos os registros dele serão apagados.`)) {
+        return;
+    }
+
+    showLoading(true);
+
+    await sb.from('registros').delete().eq('banco_id', id);
+    await sb.from('bancos').delete().eq('id', id);
+
+    showLoading(false);
+
+    await carregarBancos();
+    await carregarTodosRegistros();
+    renderizarBancosConfig();
+}
+
 
 </script>
 </body>
 </html>
+
 
