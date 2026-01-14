@@ -349,21 +349,42 @@ bancos
         filter.value = valorAtual;
     }
 
-    async function carregarDadosBanco() {
-        const bancoId = document.getElementById('bancoSelector').value;
-        if (bancoId.startsWith('consolidado')) {
-    document.getElementById('tituloSistema').textContent = 'Consolidado';
-    document.getElementById('valorAporteInput').parentElement.style.display = 'none';
-    registrosAtuais = []; // 🔥 ESSENCIAL
-}
- else {
-            document.getElementById('tituloSistema').textContent = 'InvestFlow Pro';
-            document.getElementById('valorAporteInput').parentElement.style.display = 'grid';
-            showLoading(true); const { data, error } = await sb.from('registros').select('*').eq('banco_id', bancoId).order('data_fechamento', { ascending: true }); showLoading(false);
-            if (error) return; registrosAtuais = data;
-        }
-        alternarInputsUSD(); atualizarTabela(); atualizarGrafico(); atualizarDashboardBanco();
+  async function carregarDadosBanco() {
+    const bancoId = document.getElementById('bancoSelector').value;
+
+    if (bancoId.startsWith('consolidado')) {
+        document.getElementById('tituloSistema').textContent = 'Consolidado';
+        document.getElementById('valorAporteInput').parentElement.style.display = 'none';
+        registrosAtuais = [];
+    } else {
+        document.getElementById('tituloSistema').textContent = 'InvestFlow Pro';
+        document.getElementById('valorAporteInput').parentElement.style.display = 'grid';
+
+        showLoading(true);
+        const { data, error } = await sb
+            .from('registros')
+            .select('*')
+            .eq('banco_id', bancoId)
+            .order('data_fechamento', { ascending: true });
+        showLoading(false);
+
+        if (error) return;
+        registrosAtuais = data;
     }
+
+   alternarInputsUSD();
+atualizarTabela();
+atualizarDashboardBanco();
+
+if (bancoId.startsWith('consolidado')) {
+    consolidarPatrimonioHistorico();   // 🔥 HISTÓRICO
+    atualizarGraficoPizza();           // 🔥 NECESSÁRIO PARA NÃO QUEBRAR
+} else {
+    atualizarGrafico();
+}
+
+}
+
 
     function consolidarRegistrosPorMes(regs) {
         const meses = {};
@@ -659,10 +680,17 @@ if (bancoSelecionadoId === 'consolidado_usd') {
     }
 
 async function consolidarPatrimonioHistorico() {
+
+    if (charts.patrimonio) {
+        charts.patrimonio.destroy();
+        charts.patrimonio = null;
+    }
+
     if (charts.consolidado) charts.consolidado.destroy();
 
     const tipo = document.getElementById('bancoSelector').value;
     const historico = {};
+
 
     for (const r of todosRegistros) {
 
@@ -964,6 +992,100 @@ function filtrarBancosParaConsolidado(tipo) {
 
     // consolidado_total
     return todosBancos;
+}
+
+function renderizarHistoricoAnualConsolidado() {
+
+    const tipo = document.getElementById('bancoSelector').value;
+
+    // 🔹 container da tabela (vamos reutilizar a tabela principal)
+    const corpo = document.getElementById('tabelaCorpo');
+    const head = document.getElementById('tabelaHead');
+
+    corpo.innerHTML = '';
+
+    // 🔹 define cabeçalho ANUAL
+    head.innerHTML = `
+        <th>Ano</th>
+        <th>Aportes</th>
+        <th>Patrimônio 31/12</th>
+        <th>Saldo</th>
+        <th>Crescimento %</th>
+    `;
+
+    const anos = {};
+
+    // 🔹 percorre TODOS os registros
+    todosRegistros.forEach(r => {
+
+        // filtros por tipo
+        if (tipo === 'consolidado_br' && r.is_usd) return;
+        if (tipo === 'consolidado_usd' && !r.is_usd) return;
+
+        const ano = r.data_fechamento.split('-')[0];
+
+        if (!anos[ano]) {
+            anos[ano] = {
+                aportes: 0,
+                patrimonioFinal: null,
+                dataFinal: null
+            };
+        }
+
+        // aportes
+        anos[ano].aportes += tipo === 'consolidado_usd'
+            ? (r.aportes_usd || 0)
+            : (r.aportes || 0);
+
+        // patrimônio mais recente do ano
+        const data = new Date(r.data_fechamento);
+        if (!anos[ano].dataFinal || data > anos[ano].dataFinal) {
+            anos[ano].dataFinal = data;
+            anos[ano].patrimonioFinal = tipo === 'consolidado_usd'
+                ? r.patrimonio_usd
+                : r.patrimonio;
+        }
+    });
+
+    const anosOrdenados = Object.keys(anos).sort();
+
+    let patrimonioAnterior = 0;
+
+    anosOrdenados.forEach(ano => {
+        const a = anos[ano];
+
+        const saldo = a.patrimonioFinal - patrimonioAnterior - a.aportes;
+        const crescimento = patrimonioAnterior > 0
+            ? (saldo / patrimonioAnterior) * 100
+            : 0;
+
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+            <td><strong>${ano}</strong></td>
+            <td>${tipo === 'consolidado_usd'
+                ? a.aportes.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+                : formatarMoeda(a.aportes)}</td>
+
+            <td>${tipo === 'consolidado_usd'
+                ? a.patrimonioFinal.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+                : formatarMoeda(a.patrimonioFinal)}</td>
+
+            <td class="${saldo >= 0 ? 'pos' : 'neg'}">
+                ${tipo === 'consolidado_usd'
+                    ? saldo.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+                    : formatarMoeda(saldo)}
+            </td>
+
+            <td class="${crescimento >= 0 ? 'pos' : 'neg'}">
+                ${crescimento.toFixed(2)}%
+            </td>
+        `;
+
+        corpo.appendChild(tr);
+
+        patrimonioAnterior = a.patrimonioFinal;
+    });
 }
 
 
