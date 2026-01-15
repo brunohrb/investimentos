@@ -475,6 +475,7 @@ if (bancoId.startsWith('consolidado')) {
         }
         
         if (isUSD) head.innerHTML = `<th>Mês/Ano</th><th>Aporte R$</th><th>Patr. R$</th><th>Aporte $</th><th>Patr. $</th><th>Saldo $</th><th>% $</th><th>Ações</th>`;
+        else if (bancoId === 'consolidado_total') head.innerHTML = `<th>Mês/Ano</th><th>Aporte R$</th><th>Aporte $</th><th>Patr. R$</th><th>Patr. $</th><th>Saldo R$</th><th>Saldo $</th><th>%</th><th>Ações</th>`;
         else head.innerHTML = `<th>Mês/Ano</th><th>Aportes</th><th>Patrimônio</th><th>Saldo</th><th>%</th><th>Ações</th>`;
         
         // Agrupar por mês para cálculo consolidado
@@ -490,7 +491,7 @@ if (bancoId.startsWith('consolidado')) {
 
             mesesAgrupados[r.periodo].regs.push(r);
             
-            if (r.patrimonio > 0) {
+            if (r.patrimonio > 0 && !r.is_usd) {
                 mesesAgrupados[r.periodo].patrimonioFinal += r.patrimonio;
                 if (!mesesAgrupados[r.periodo].dataUltimoFechado || new Date(r.data_fechamento) > new Date(mesesAgrupados[r.periodo].dataUltimoFechado)) {
                     mesesAgrupados[r.periodo].dataUltimoFechado = r.data_fechamento;
@@ -498,10 +499,9 @@ if (bancoId.startsWith('consolidado')) {
             }
 
             if (r.patrimonio_usd > 0) {
+                mesesAgrupados[r.periodo].patrimonioFinalUSD += r.patrimonio_usd;
                 if (bancoId === 'consolidado_total') {
                     mesesAgrupados[r.periodo].patrimonioFinalUSDconvertido += r.patrimonio_usd;
-                } else {
-                    mesesAgrupados[r.periodo].patrimonioFinalUSD += r.patrimonio_usd;
                 }
                 if (!mesesAgrupados[r.periodo].dataUltimoFechadoUSD || new Date(r.data_fechamento) > new Date(mesesAgrupados[r.periodo].dataUltimoFechadoUSD)) {
                     mesesAgrupados[r.periodo].dataUltimoFechadoUSD = r.data_fechamento;
@@ -554,10 +554,12 @@ if (bancoId.startsWith('consolidado')) {
                     patAnteriorUSD = dadosMes.patrimonioFinalUSD;
                 } else if (bancoId === 'consolidado_total') {
                     const patrimonioTotal = dadosMes.patrimonioFinal + (dadosMes.patrimonioFinalUSDconvertido || 0);
-                    const saldoTotal = patrimonioTotal - (patAnteriorBRL + patAnteriorUSD) - totalAporteBRL;
-                    const crescTotal = (patAnteriorBRL + patAnteriorUSD) > 0 ? (saldoTotal / (patAnteriorBRL + patAnteriorUSD)) * 100 : 0;
-                    rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(patrimonioTotal)}</td><td class="${saldoTotal >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoTotal)}</td><td class="${crescTotal >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescTotal.toFixed(2)}%</td>`;
+                    const saldoTotalBRL = patrimonioTotal - (patAnteriorBRL + patAnteriorUSD) - totalAporteBRL;
+                    const saldoTotalUSD = dadosMes.patrimonioFinalUSD - patAnteriorUSD - totalAporteUSD;
+                    const crescTotal = (patAnteriorBRL + patAnteriorUSD) > 0 ? (saldoTotalBRL / (patAnteriorBRL + patAnteriorUSD)) * 100 : 0;
+                    rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(totalAporteUSD, 'USD')}</td><td class="${hideClass}">${formatarMoeda(patrimonioTotal)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinalUSD, 'USD')}</td><td class="${saldoTotalBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoTotalBRL)}</td><td class="${saldoTotalUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoTotalUSD, 'USD')}</td><td class="${crescTotal >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescTotal.toFixed(2)}%</td>`;
                     patAnteriorBRL = patrimonioTotal;
+                    patAnteriorUSD = dadosMes.patrimonioFinalUSD;
                 } else {
                     rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinal)}</td><td class="${saldoBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoBRL)}</td><td class="${crescBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescBRL.toFixed(2)}%</td>`;
                 }
