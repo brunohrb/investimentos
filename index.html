@@ -156,6 +156,80 @@
     </div>
 </div>
 
+<div id="portabilidadeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>Portabilidade entre Contas</h3><span class="close-modal" onclick="fecharModalPortabilidade()">&times;</span></div>
+        <div style="display: grid; gap: 10px;">
+            <label style="font-size:12px; color:#888">Banco de Origem</label>
+            <select id="portabilidadeBancoOrigem"></select>
+            <label style="font-size:12px; color:#888">Banco de Destino</label>
+            <select id="portabilidadeBancoDestino"></select>
+            <label style="font-size:12px; color:#888">Data</label>
+            <input type="date" id="portabilidadeData">
+            <label style="font-size:12px; color:#888">Valor</label>
+            <input type="text" id="portabilidadeValor" placeholder="R$ 0,00" oninput="mascaraMoeda(this, 'BRL')">
+            <button onclick="executarPortabilidade()" class="btn-success">Registrar Portabilidade</button>
+        </div>
+    </div>
+</div>
+
+<div id="portabilidadeUSDModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>Portabilidade USD</h3><span class="close-modal" onclick="fecharModalPortabilidadeUSD()">&times;</span></div>
+        <div style="display: grid; gap: 10px;">
+            <label style="font-size:12px; color:#888">Banco Origem (USD)</label>
+            <select id="portabilidadeUSDOrigem"></select>
+            <label style="font-size:12px; color:#888">Banco Destino (USD)</label>
+            <select id="portabilidadeUSDDestino"></select>
+            <label style="font-size:12px; color:#888">Data</label>
+            <input type="date" id="portabilidadeUSDData">
+            <label style="font-size:12px; color:#888">Valor em US$</label>
+            <input type="text" id="portabilidadeUSDValor" placeholder="US$ 0,00" oninput="mascaraMoeda(this, 'USD')">
+            <label style="font-size:12px; color:#888">Valor em R$ (manual)</label>
+            <input type="text" id="portabilidadeUSDValorBRL" placeholder="R$ 0,00" oninput="mascaraMoeda(this, 'BRL')">
+            <button onclick="executarPortabilidadeUSD()" class="btn-success">Registrar</button>
+        </div>
+    </div>
+</div>
+
+<div id="portabilidadeBrlUsdModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>Portabilidade BRL → USD</h3><span class="close-modal" onclick="fecharModalPortabilidadeBrlUsd()">&times;</span></div>
+        <div style="display: grid; gap: 10px;">
+            <label style="font-size:12px; color:#888">Banco Brasil (origem)</label>
+            <select id="portabilidadeBrlUsdOrigem"></select>
+            <label style="font-size:12px; color:#888">Banco EUA (destino)</label>
+            <select id="portabilidadeBrlUsdDestino"></select>
+            <label style="font-size:12px; color:#888">Data</label>
+            <input type="date" id="portabilidadeBrlUsdData">
+            <label style="font-size:12px; color:#888">Valor em R$ (retirada)</label>
+            <input type="text" id="portabilidadeBrlUsdValorBRL" placeholder="R$ 0,00" oninput="mascaraMoeda(this, 'BRL')">
+            <label style="font-size:12px; color:#888">Valor em US$ (entrada)</label>
+            <input type="text" id="portabilidadeBrlUsdValorUSD" placeholder="US$ 0,00" oninput="mascaraMoeda(this, 'USD')">
+            <button onclick="executarPortabilidadeBrlUsd()" class="btn-success">Registrar BRL → USD</button>
+        </div>
+    </div>
+</div>
+
+<div id="portabilidadeUsdBrlModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>Portabilidade USD → BRL</h3><span class="close-modal" onclick="fecharModalPortabilidadeUsdBrl()">&times;</span></div>
+        <div style="display: grid; gap: 10px;">
+            <label style="font-size:12px; color:#888">Banco EUA (origem)</label>
+            <select id="portabilidadeUsdBrlOrigem"></select>
+            <label style="font-size:12px; color:#888">Banco Brasil (destino)</label>
+            <select id="portabilidadeUsdBrlDestino"></select>
+            <label style="font-size:12px; color:#888">Data</label>
+            <input type="date" id="portabilidadeUsdBrlData">
+            <label style="font-size:12px; color:#888">Valor em US$ (retirada)</label>
+            <input type="text" id="portabilidadeUsdBrlValorUSD" placeholder="US$ 0,00" oninput="mascaraMoeda(this, 'USD')">
+            <label style="font-size:12px; color:#888">Valor em R$ (entrada - manual)</label>
+            <input type="text" id="portabilidadeUsdBrlValorBRL" placeholder="R$ 0,00" oninput="mascaraMoeda(this, 'BRL')">
+            <button onclick="executarPortabilidadeUsdBrl()" class="btn-success">Registrar USD → BRL</button>
+        </div>
+    </div>
+</div>
+
 <div class="container" id="mainContainer">
     <header>
         <h2 id="tituloSistema"> </h2>
@@ -167,6 +241,10 @@
     </div>
 
     <button class="btn-icon" onclick="togglePrivacy()" id="privacyBtn">👁️</button>
+    <button class="btn-icon" onclick="abrirModalPortabilidade()" title="Portabilidade BRL">🔄</button>
+    <button class="btn-icon" onclick="abrirModalPortabilidadeUSD()" title="Portabilidade USD">💱</button>
+    <button class="btn-icon" onclick="abrirModalPortabilidadeBrlUsd()" title="Portabilidade BRL→USD">🌐</button>
+    <button class="btn-icon" onclick="abrirModalPortabilidadeUsdBrl()" title="Portabilidade USD→BRL">🔙</button>
     <button class="btn-icon" onclick="abrirConfig()">⚙️</button>
 </div>
 
@@ -1150,10 +1228,368 @@ function renderizarHistoricoAnualConsolidado() {
     });
 }
 
+function abrirModalPortabilidade() {
+    document.getElementById('portabilidadeModal').style.display = 'flex';
+    preencherSelectsPortabilidade();
+    document.getElementById('portabilidadeData').valueAsDate = new Date();
+}
+
+function fecharModalPortabilidade() {
+    document.getElementById('portabilidadeModal').style.display = 'none';
+    document.getElementById('portabilidadeValor').value = '';
+}
+
+function preencherSelectsPortabilidade() {
+    const selectOrigem = document.getElementById('portabilidadeBancoOrigem');
+    const selectDestino = document.getElementById('portabilidadeBancoDestino');
+    selectOrigem.innerHTML = '';
+    selectDestino.innerHTML = '';
+    bancos.forEach(b => {
+        const option1 = document.createElement('option');
+        option1.value = b.id;
+        option1.textContent = b.nome;
+        selectOrigem.appendChild(option1);
+        const option2 = document.createElement('option');
+        option2.value = b.id;
+        option2.textContent = b.nome;
+        selectDestino.appendChild(option2);
+    });
+}
+
+async function executarPortabilidade() {
+    const bancoOrigemId = document.getElementById('portabilidadeBancoOrigem').value;
+    const bancoDestinoId = document.getElementById('portabilidadeBancoDestino').value;
+    const data = document.getElementById('portabilidadeData').value;
+    const valor = desformatarMoeda(document.getElementById('portabilidadeValor').value);
+    if (!bancoOrigemId || !bancoDestinoId || !data || !valor) {
+        alert('Preencha todos os campos!');
+        return;
+    }
+    if (bancoOrigemId === bancoDestinoId) {
+        alert('Selecione bancos diferentes!');
+        return;
+    }
+    if (valor <= 0) {
+        alert('Valor deve ser maior que zero!');
+        return;
+    }
+    const [ano, mes] = data.split('-');
+    const periodo = `${ano}/${mes}`;
+    const bancoOrigem = bancos.find(b => b.id === bancoOrigemId);
+    const bancoDestino = bancos.find(b => b.id === bancoDestinoId);
+    showLoading(true);
+    try {
+        const registroOrigem = {
+            banco_id: bancoOrigemId,
+            periodo: periodo,
+            data_fechamento: data,
+            aportes: -valor,
+            patrimonio: 0,
+            aportes_usd: 0,
+            patrimonio_usd: 0,
+            is_usd: false,
+            tipo: 'portabilidade'
+        };
+        const { error: err1 } = await sb.from('registros').insert([registroOrigem]);
+        if (err1) throw err1;
+        const registroDestino = {
+            banco_id: bancoDestinoId,
+            periodo: periodo,
+            data_fechamento: data,
+            aportes: valor,
+            patrimonio: 0,
+            aportes_usd: 0,
+            patrimonio_usd: 0,
+            is_usd: false,
+            tipo: 'portabilidade'
+        };
+        const { error: err2 } = await sb.from('registros').insert([registroDestino]);
+        if (err2) throw err2;
+        alert(`Portabilidade registrada com sucesso!\n-R$ ${valor.toFixed(2)} em ${bancoOrigem.nome}\n+R$ ${valor.toFixed(2)} em ${bancoDestino.nome}`);
+        fecharModalPortabilidade();
+        await carregarTodosRegistros();
+        await carregarDadosBanco();
+    } catch (error) {
+        alert('Erro ao registrar portabilidade: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+function abrirModalPortabilidadeUSD() {
+    document.getElementById('portabilidadeUSDModal').style.display = 'flex';
+    preencherSelectsPortabilidadeUSD();
+    document.getElementById('portabilidadeUSDData').valueAsDate = new Date();
+}
+
+function fecharModalPortabilidadeUSD() {
+    document.getElementById('portabilidadeUSDModal').style.display = 'none';
+    document.getElementById('portabilidadeUSDValor').value = '';
+    document.getElementById('portabilidadeUSDValorBRL').value = '';
+}
+
+function preencherSelectsPortabilidadeUSD() {
+    const selectOrigem = document.getElementById('portabilidadeUSDOrigem');
+    const selectDestino = document.getElementById('portabilidadeUSDDestino');
+    selectOrigem.innerHTML = '';
+    selectDestino.innerHTML = '';
+    const bancosUSD = bancos.filter(b => b.is_usd || b.nome.toLowerCase().includes('tasty'));
+    bancosUSD.forEach(b => {
+        const option1 = document.createElement('option');
+        option1.value = b.id;
+        option1.textContent = b.nome;
+        selectOrigem.appendChild(option1);
+        const option2 = document.createElement('option');
+        option2.value = b.id;
+        option2.textContent = b.nome;
+        selectDestino.appendChild(option2);
+    });
+}
+
+async function executarPortabilidadeUSD() {
+    const bancoOrigemId = document.getElementById('portabilidadeUSDOrigem').value;
+    const bancoDestinoId = document.getElementById('portabilidadeUSDDestino').value;
+    const data = document.getElementById('portabilidadeUSDData').value;
+    const valorUSD = desformatarMoeda(document.getElementById('portabilidadeUSDValor').value);
+    const valorBRL = desformatarMoeda(document.getElementById('portabilidadeUSDValorBRL').value);
+    if (!bancoOrigemId || !bancoDestinoId || !data || !valorUSD || !valorBRL) {
+        alert('Preencha todos os campos!');
+        return;
+    }
+    if (bancoOrigemId === bancoDestinoId) {
+        alert('Selecione bancos diferentes!');
+        return;
+    }
+    if (valorUSD <= 0 || valorBRL <= 0) {
+        alert('Valores devem ser maiores que zero!');
+        return;
+    }
+    const [ano, mes] = data.split('-');
+    const periodo = `${ano}/${mes}`;
+    const bancoOrigem = bancos.find(b => b.id === bancoOrigemId);
+    const bancoDestino = bancos.find(b => b.id === bancoDestinoId);
+    showLoading(true);
+    try {
+        const registroOrigem = {
+            banco_id: bancoOrigemId,
+            periodo: periodo,
+            data_fechamento: data,
+            aportes: -valorBRL,
+            patrimonio: 0,
+            aportes_usd: -valorUSD,
+            patrimonio_usd: 0,
+            is_usd: true,
+            tipo: 'portabilidade'
+        };
+        const { error: err1 } = await sb.from('registros').insert([registroOrigem]);
+        if (err1) throw err1;
+        const registroDestino = {
+            banco_id: bancoDestinoId,
+            periodo: periodo,
+            data_fechamento: data,
+            aportes: valorBRL,
+            patrimonio: 0,
+            aportes_usd: valorUSD,
+            patrimonio_usd: 0,
+            is_usd: true,
+            tipo: 'portabilidade'
+        };
+        const { error: err2 } = await sb.from('registros').insert([registroDestino]);
+        if (err2) throw err2;
+        alert(`Portabilidade USD OK!\n-US$ ${valorUSD.toFixed(2)} / -R$ ${valorBRL.toFixed(2)} em ${bancoOrigem.nome}\n+US$ ${valorUSD.toFixed(2)} / +R$ ${valorBRL.toFixed(2)} em ${bancoDestino.nome}`);
+        fecharModalPortabilidadeUSD();
+        await carregarTodosRegistros();
+        await carregarDadosBanco();
+    } catch (error) {
+        alert('Erro: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+
+function abrirModalPortabilidadeBrlUsd() {
+    document.getElementById('portabilidadeBrlUsdModal').style.display = 'flex';
+    preencherSelectsPortabilidadeBrlUsd();
+    document.getElementById('portabilidadeBrlUsdData').valueAsDate = new Date();
+}
+
+function fecharModalPortabilidadeBrlUsd() {
+    document.getElementById('portabilidadeBrlUsdModal').style.display = 'none';
+    document.getElementById('portabilidadeBrlUsdValorBRL').value = '';
+    document.getElementById('portabilidadeBrlUsdValorUSD').value = '';
+}
+
+function preencherSelectsPortabilidadeBrlUsd() {
+    const selectOrigem = document.getElementById('portabilidadeBrlUsdOrigem');
+    const selectDestino = document.getElementById('portabilidadeBrlUsdDestino');
+    selectOrigem.innerHTML = '';
+    selectDestino.innerHTML = '';
+    const bancosBRL = bancos.filter(b => !b.is_usd && !b.nome.toLowerCase().includes('tasty'));
+    const bancosUSD = bancos.filter(b => b.is_usd || b.nome.toLowerCase().includes('tasty'));
+    bancosBRL.forEach(b => {
+        const option = document.createElement('option');
+        option.value = b.id;
+        option.textContent = b.nome;
+        selectOrigem.appendChild(option);
+    });
+    bancosUSD.forEach(b => {
+        const option = document.createElement('option');
+        option.value = b.id;
+        option.textContent = b.nome;
+        selectDestino.appendChild(option);
+    });
+}
+
+async function executarPortabilidadeBrlUsd() {
+    const bancoOrigemId = document.getElementById('portabilidadeBrlUsdOrigem').value;
+    const bancoDestinoId = document.getElementById('portabilidadeBrlUsdDestino').value;
+    const data = document.getElementById('portabilidadeBrlUsdData').value;
+    const valorBRL = desformatarMoeda(document.getElementById('portabilidadeBrlUsdValorBRL').value);
+    const valorUSD = desformatarMoeda(document.getElementById('portabilidadeBrlUsdValorUSD').value);
+
+    if (!bancoOrigemId || !bancoDestinoId || !data || !valorBRL || !valorUSD) {
+        alert('Preencha todos os campos!');
+        return;
+    }
+    if (valorBRL <= 0 || valorUSD <= 0) {
+        alert('Valores devem ser maiores que zero!');
+        return;
+    }
+    const [ano, mes] = data.split('-');
+    const periodo = `${ano}/${mes}`;
+    const bancoOrigem = bancos.find(b => b.id === bancoOrigemId);
+    const bancoDestino = bancos.find(b => b.id === bancoDestinoId);
+    showLoading(true);
+    try {
+        const registroOrigem = {
+            banco_id: bancoOrigemId,
+            periodo: periodo,
+            data_fechamento: data,
+            aportes: -valorBRL,
+            patrimonio: 0,
+            aportes_usd: 0,
+            patrimonio_usd: 0,
+            is_usd: false,
+            tipo: 'portabilidade'
+        };
+        const { error: err1 } = await sb.from('registros').insert([registroOrigem]);
+        if (err1) throw err1;
+        const registroDestino = {
+            banco_id: bancoDestinoId,
+            periodo: periodo,
+            data_fechamento: data,
+            aportes: valorBRL,
+            patrimonio: 0,
+            aportes_usd: valorUSD,
+            patrimonio_usd: 0,
+            is_usd: true,
+            tipo: 'portabilidade'
+        };
+        const { error: err2 } = await sb.from('registros').insert([registroDestino]);
+        if (err2) throw err2;
+        alert(`Portabilidade BRL->USD OK!\n-R$ ${valorBRL.toFixed(2)} em ${bancoOrigem.nome}\n+US$ ${valorUSD.toFixed(2)} / +R$ ${valorBRL.toFixed(2)} em ${bancoDestino.nome}`);
+        fecharModalPortabilidadeBrlUsd();
+        await carregarTodosRegistros();
+        await carregarDadosBanco();
+    } catch (error) {
+        alert('Erro: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function executarPortabilidadeUsdBrl() {
+    const bancoOrigemId = document.getElementById('portabilidadeUsdBrlOrigem').value;
+    const bancoDestinoId = document.getElementById('portabilidadeUsdBrlDestino').value;
+    const data = document.getElementById('portabilidadeUsdBrlData').value;
+    const valorUSD = desformatarMoeda(document.getElementById('portabilidadeUsdBrlValorUSD').value);
+    const valorBRL = desformatarMoeda(document.getElementById('portabilidadeUsdBrlValorBRL').value);
+    if (!bancoOrigemId || !bancoDestinoId || !data || !valorUSD || !valorBRL) {
+        alert('Preencha todos os campos!');
+        return;
+    }
+    if (valorUSD <= 0 || valorBRL <= 0) {
+        alert('Valores devem ser maiores que zero!');
+        return;
+    }
+    const [ano, mes] = data.split('-');
+    const periodo = `${ano}/${mes}`;
+    const bancoOrigem = bancos.find(b => b.id === bancoOrigemId);
+    const bancoDestino = bancos.find(b => b.id === bancoDestinoId);
+    showLoading(true);
+    try {
+        const registroOrigem = {
+            banco_id: bancoOrigemId,
+            periodo: periodo,
+            data_fechamento: data,
+            aportes: 0,
+            patrimonio: 0,
+            aportes_usd: -valorUSD,
+            patrimonio_usd: 0,
+            is_usd: true,
+            tipo: 'portabilidade'
+        };
+        const { error: err1 } = await sb.from('registros').insert([registroOrigem]);
+        if (err1) throw err1;
+        const registroDestino = {
+            banco_id: bancoDestinoId,
+            periodo: periodo,
+            data_fechamento: data,
+            aportes: valorBRL,
+            patrimonio: 0,
+            aportes_usd: 0,
+            patrimonio_usd: 0,
+            is_usd: false,
+            tipo: 'portabilidade'
+        };
+        const { error: err2 } = await sb.from('registros').insert([registroDestino]);
+        if (err2) throw err2;
+        alert(`Portabilidade USD->BRL OK!\n-US$ ${valorUSD.toFixed(2)} em ${bancoOrigem.nome}\n+R$ ${valorBRL.toFixed(2)} em ${bancoDestino.nome}`);
+        fecharModalPortabilidadeBrlUsd();
+        await carregarTodosRegistros();
+        await carregarDadosBanco();
+    } catch (error) {
+        alert('Erro: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+function abrirModalPortabilidadeUsdBrl() {
+    document.getElementById('portabilidadeUsdBrlModal').style.display = 'flex';
+    preencherSelectsPortabilidadeUsdBrl();
+    document.getElementById('portabilidadeUsdBrlData').valueAsDate = new Date();
+}
+
+function fecharModalPortabilidadeUsdBrl() {
+    document.getElementById('portabilidadeUsdBrlModal').style.display = 'none';
+    document.getElementById('portabilidadeUsdBrlValorUSD').value = '';
+    document.getElementById('portabilidadeUsdBrlValorBRL').value = '';
+}
+
+function preencherSelectsPortabilidadeUsdBrl() {
+    const selectOrigem = document.getElementById('portabilidadeUsdBrlOrigem');
+    const selectDestino = document.getElementById('portabilidadeUsdBrlDestino');
+    selectOrigem.innerHTML = '';
+    selectDestino.innerHTML = '';
+    const bancosUSD = bancos.filter(b => b.is_usd || b.nome.toLowerCase().includes('tasty'));
+    const bancosBRL = bancos.filter(b => !b.is_usd && !b.nome.toLowerCase().includes('tasty'));
+    bancosUSD.forEach(b => {
+        const option = document.createElement('option');
+        option.value = b.id;
+        option.textContent = b.nome;
+        selectOrigem.appendChild(option);
+    });
+    bancosBRL.forEach(b => {
+        const option = document.createElement('option');
+        option.value = b.id;
+        option.textContent = b.nome;
+        selectDestino.appendChild(option);
+    });
+}
+
 
 </script>
 </body>
 </html>
-
-
-
