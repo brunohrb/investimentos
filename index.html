@@ -443,7 +443,7 @@ if (bancoId.startsWith('consolidado')) {
         
         if (!bancoId || !dataInput) { alert("Preencha os campos!"); return; }
         const [ano, mes] = dataInput.split('-');
-        const payload = { banco_id: bancoId, periodo: `${mes}/${ano}`, data_fechamento: dataInput, aportes: aporte, patrimonio: patrimonio, aportes_usd: aporteUSD, patrimonio_usd: patrimonioUSD, is_usd: isUSD };
+        const payload = { banco_id: bancoId, periodo: `${ano}/${mes}`, data_fechamento: dataInput, aportes: aporte, patrimonio: patrimonio, aportes_usd: aporteUSD, patrimonio_usd: patrimonioUSD, is_usd: isUSD };
         
         showLoading(true); let error;
         if (registroId) { const { error: err } = await sb.from('registros').update(payload).eq('id', registroId); error = err; }
@@ -511,11 +511,17 @@ if (bancoId.startsWith('consolidado')) {
 
         let patAnteriorBRL = 0; let patAnteriorUSD = 0; let linhasCalculadas = [];
         const sortedMeses = Object.keys(mesesAgrupados).sort((a, b) => {
-            const [m1, a1] = a.split('/'); const [m2, a2] = b.split('/');
-            return new Date(a1, m1-1) - new Date(a2, m2-1);
+            // Formato YYYY/MM: a = "2026/01", b = "2025/12"
+            const [anoA, mesA] = a.split('/').map(Number);
+            const [anoB, mesB] = b.split('/').map(Number);
+            // Decrescente (mais recente primeiro): 2026/01 > 2025/12
+            if (anoA !== anoB) return anoB - anoA;  // Ano decrescente
+            return mesB - mesA;  // Mês decrescente
         });
 
-        for (const mesAno of sortedMeses) {
+        // Reverter para começar do mais antigo (para cálculos corretos) mas exibir do mais recente
+        const sortedMesesReverso = [...sortedMeses].reverse();
+        for (const mesAno of sortedMesesReverso) {
             const dadosMes = mesesAgrupados[mesAno];
             const anoReg = mesAno.split('/')[1];
             
@@ -774,9 +780,10 @@ async function consolidarPatrimonioHistorico() {
     }
 
     const labels = Object.keys(historico).sort((a, b) => {
-        const [m1, a1] = a.split('/');
-        const [m2, a2] = b.split('/');
-        return new Date(a1, m1 - 1) - new Date(a2, m2 - 1);
+        const [anoA, mesA] = a.split('/').map(Number);
+        const [anoB, mesB] = b.split('/').map(Number);
+        if (anoA !== anoB) return anoA - anoB;
+        return mesA - mesB;
     });
 
     const valores = labels.map(l => historico[l]);
