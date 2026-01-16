@@ -255,6 +255,8 @@
         <div class="total-card"><h3>Patrimônio do Banco</h3><p id="patrimonioTotalGeral" class="hidden-value">R$ 0,00</p><p id="patrimonioTotalGeralUSD" class="hidden-value" style="display:none; font-size:0.85em; margin-top:5px; color:#666;">US$ 0,00 / R$ 0,00</p></div>
         <div class="stats-card"><h4>Rentabilidade Acumulada</h4><p id="rendimentoMedio" class="hidden-value">0,00%</p></div>
         <div class="stats-card"><h4>Total Aportado (Banco)</h4><p id="totalAportado" class="hidden-value">R$ 0,00</p></div>
+        <div class="stats-card" id="indicadorDolarComprado" style="display:none;"><h4>Dolar Comprado</h4><p id="valorDolarComprado" style="color:#28a745; font-size:20px; font-weight:bold;">R$ 0,00</p></div>
+        <div class="stats-card" id="indicadorDolarComLucro" style="display:none;"><h4>Dolar com Lucro</h4><p id="valorDolarComLucro" style="color:#007bff; font-size:20px; font-weight:bold;">R$ 0,00</p></div>
     </div>
 
 <div class="controls">
@@ -472,6 +474,7 @@ if (selector.value) carregarDadosBanco();
    alternarInputsUSD();
 await atualizarTabela();
 await atualizarDashboardBanco();
+calcularDolarIndicadores();
 
 if (bancoId.startsWith('consolidado')) {
     consolidarPatrimonioHistorico();   // 🔥 HISTÓRICO
@@ -970,6 +973,45 @@ async function consolidarPatrimonioHistorico() {
 
 function carteiraMudou() {
     carregarBancos();
+}
+
+function calcularDolarIndicadores() {
+    const carteiraAtual = document.getElementById('carteiraSelector')?.value || 'br';
+    const indicadorComprado = document.getElementById('indicadorDolarComprado');
+    const indicadorComLucro = document.getElementById('indicadorDolarComLucro');
+    
+    if (carteiraAtual === 'int') {
+        indicadorComprado.style.display = 'block';
+        indicadorComLucro.style.display = 'block';
+        
+        let totalBRLAportado = 0;
+        let totalUSDaportado = 0;
+        let totalUSDpatrimonio = 0;
+        
+        const bancosUSD = todosBancos.filter(b => b.is_usd);
+        
+        bancosUSD.forEach(banco => {
+            const regsBanco = todosRegistros.filter(r => r.banco_id === banco.id);
+            regsBanco.forEach(r => {
+                totalBRLAportado += r.aportes || 0;
+                totalUSDaportado += r.aportes_usd || 0;
+            });
+            
+            const ultimoReg = regsBanco.sort((a, b) => new Date(b.data_fechamento) - new Date(a.data_fechamento))[0];
+            if (ultimoReg && ultimoReg.patrimonio_usd > 0) {
+                totalUSDpatrimonio = ultimoReg.patrimonio_usd;
+            }
+        });
+        
+        const dolarComprado = totalUSDaportado > 0 ? totalBRLAportado / totalUSDaportado : 0;
+        const dolarComLucro = totalUSDpatrimonio > 0 ? totalBRLAportado / totalUSDpatrimonio : 0;
+        
+        document.getElementById('valorDolarComprado').textContent = formatarMoeda(dolarComprado, 'BRL');
+        document.getElementById('valorDolarComLucro').textContent = formatarMoeda(dolarComLucro, 'BRL');
+    } else {
+        indicadorComprado.style.display = 'none';
+        indicadorComLucro.style.display = 'none';
+    }
 }
 
 async function carregarCotacoesHoje() {
@@ -1593,3 +1635,4 @@ function preencherSelectsPortabilidadeUsdBrl() {
 </script>
 </body>
 </html>
+
