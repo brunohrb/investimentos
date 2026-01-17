@@ -272,7 +272,8 @@
     </div>
 
         <div class="controls-row">
-            <select id="anoFilter" onchange="carregarDadosBanco()">
+            <select id="anoFilter" onchange="atualizarFiltroAnoEDados()">
+
 <option value="todos">Todos os Anos</option></select>
         </div>
     </div>
@@ -422,14 +423,23 @@ if (selector.value) carregarDadosBanco();
 
     }
 
-    function atualizarFiltroAnos() {
-        const anos = [...new Set(todosRegistros.map(r => r.data_fechamento.split('-')[0]))].sort((a, b) => b - a);
-        const filter = document.getElementById('anoFilter');
-        const valorAtual = filter.value;
-        filter.innerHTML = '<option value="todos">Todos os Anos</option>';
-        anos.forEach(ano => { const opt = document.createElement('option'); opt.value = ano; opt.textContent = ano; filter.appendChild(opt); });
-        filter.value = valorAtual;
-    }
+function atualizarFiltroAnos() {
+    const filter = document.getElementById('anoFilter');
+    const valorAnterior = filter.value || 'todos';
+    
+    const anos = [...new Set(todosRegistros.map(r => r.data_fechamento.split('-')[0]))].sort((a, b) => b - a);
+    
+    filter.innerHTML = '<option value="todos">Todos os Anos</option>';
+    anos.forEach(ano => { 
+        const opt = document.createElement('option'); 
+        opt.value = ano; 
+        opt.textContent = ano; 
+        filter.appendChild(opt); 
+    });
+    
+    filter.value = valorAnterior;
+}
+
 
   async function carregarDadosBanco() {
     const bancoId = document.getElementById('bancoSelector').value;
@@ -438,7 +448,6 @@ if (selector.value) carregarDadosBanco();
         document.getElementById('tituloSistema').textContent = 'Consolidado';
         document.getElementById('valorAporteInput').parentElement.style.display = 'none';
         
-        // 🔥 CARREGA REGISTROS DOS BANCOS PARA CONSOLIDAÇÃO
         const bancosParaConsolidar = filtrarBancosParaConsolidado(bancoId);
         const idsParaConsolidar = bancosParaConsolidar.map(b => b.id);
         
@@ -452,12 +461,12 @@ if (selector.value) carregarDadosBanco();
             showLoading(false);
             
             if (error) return;
-registrosAtuais = filtrarRegistrosPorAno(data);
+            registrosAtuais = filtrarRegistrosPorAno(data);
         } else {
             registrosAtuais = [];
         }
     } else {
-        document.getElementById('tituloSistema').textContent = 'Investimentos';
+        document.getElementById('tituloSistema').textContent = 'InvestFlow Pro';
         document.getElementById('valorAporteInput').parentElement.style.display = 'grid';
 
         showLoading(true);
@@ -469,22 +478,22 @@ registrosAtuais = filtrarRegistrosPorAno(data);
         showLoading(false);
 
         if (error) return;
-registrosAtuais = filtrarRegistrosPorAno(data);
+        registrosAtuais = filtrarRegistrosPorAno(data);
     }
 
-   alternarInputsUSD();
-await atualizarTabela();
-await atualizarDashboardBanco();
-calcularDolarIndicadores();
+    alternarInputsUSD();
+    
+    // 🔥 AQUI ESTÁ O FIX: FORÇAR ATUALIZAÇÃO VISUAL
+    await atualizarTabela();
+    await atualizarDashboardBanco();
+    calcularDolarIndicadores();
 
-
-if (bancoId.startsWith('consolidado')) {
-    consolidarPatrimonioHistorico();   // 🔥 HISTÓRICO
-    atualizarGraficoPizza();           // 🔥 NECESSÁRIO PARA NÃO QUEBRAR
-} else {
-    atualizarGrafico();
-}
-
+    if (bancoId.startsWith('consolidado')) {
+        consolidarPatrimonioHistorico();
+        atualizarGraficoPizza();
+    } else {
+        atualizarGrafico();
+    }
 }
 
 
@@ -606,7 +615,8 @@ if (bancoId.startsWith('consolidado')) {
         const sortedMesesReverso = [...sortedMeses].reverse();
         for (const mesAno of sortedMesesReverso) {
             const dadosMes = mesesAgrupados[mesAno];
-            const anoReg = mesAno.split('/')[1];
+            const anoReg = mesAno.split('/')[0];
+
             
             if (bancoId === 'consolidado_total' && dadosMes.patrimonioFinalUSDconvertido > 0) {
                 const [mes, ano] = mesAno.split('/');
@@ -1723,22 +1733,88 @@ const regsBanco = registrosAtuais.filter(r => r.banco_id === banco.id);
         rentabilidade.toFixed(2) + '%';
 }
 
+// SUBSTITUA a função filtrarRegistrosPorAno (linhas 1726-1736) por esta:
+
 function filtrarRegistrosPorAno(registros) {
+    // 📌 Obtém o ano selecionado no dropdown
     const anoSelecionado = document.getElementById('anoFilter').value;
 
+    // 📌 Se "Todos os Anos" estiver selecionado, retorna todos os registros
     if (anoSelecionado === 'todos') {
         return registros;
     }
 
-    return registros.filter(r =>
-        r.data_fechamento.startsWith(anoSelecionado)
-    );
+    // 📌 Filtra registros que começam com o ano selecionado
+    // Funciona com formatos: "2026-01-31", "2026/01/31", "2026/01", etc
+    return registros.filter(r => {
+        // Verifica se data_fechamento OU periodo começam com o ano
+        const dataFechamento = r.data_fechamento || '';
+        const periodo = r.periodo || '';
+        
+        return dataFechamento.startsWith(anoSelecionado) || 
+               periodo.startsWith(anoSelecionado);
+    });
+}
+
+async function atualizarFiltroAnoEDados() {
+    // 📌 Guarda o ano selecionado ANTES de qualquer coisa
+    const anoSelecionado = document.getElementById('anoFilter').value;
+    const bancoId = document.getElementById('bancoSelector').value;
+    
+    // 📌 Recarrega os dados do banco do Supabase
+    if (bancoId.startsWith('consolidado')) {
+        const bancosParaConsolidar = filtrarBancosParaConsolidado(bancoId);
+        const idsParaConsolidar = bancosParaConsolidar.map(b => b.id);
+        
+        if (idsParaConsolidar.length > 0) {
+            showLoading(true);
+            const { data, error } = await sb
+                .from('registros')
+                .select('*')
+                .in('banco_id', idsParaConsolidar)
+                .order('data_fechamento', { ascending: true });
+            showLoading(false);
+            
+            if (error) return;
+            // 📌 APLICA O FILTRO DE ANO AOS DADOS
+            registrosAtuais = filtrarRegistrosPorAno(data);
+        } else {
+            registrosAtuais = [];
+        }
+    } else {
+        showLoading(true);
+        const { data, error } = await sb
+            .from('registros')
+            .select('*')
+            .eq('banco_id', bancoId)
+            .order('data_fechamento', { ascending: true });
+        showLoading(false);
+
+        if (error) return;
+        // 📌 APLICA O FILTRO DE ANO AOS DADOS
+        registrosAtuais = filtrarRegistrosPorAno(data);
+    }
+    
+    // 📌 Restaura o ano selecionado no dropdown (porque atualizarFiltroAnos reseta)
+    document.getElementById('anoFilter').value = anoSelecionado;
+    
+    // 📌 ATUALIZA A TABELA E OS GRÁFICOS COM OS DADOS FILTRADOS
+    alternarInputsUSD();
+    await atualizarTabela();
+    await atualizarDashboardBanco();
+    calcularDolarIndicadores();
+
+    if (bancoId.startsWith('consolidado')) {
+        consolidarPatrimonioHistorico();
+        atualizarGraficoPizza();
+    } else {
+        atualizarGrafico();
+    }
 }
 
 
 </script>
 </body>
 </html>
-
 
 
