@@ -1595,7 +1595,7 @@ async function executarPortabilidadeUsdBrl() {
         const { error: err2 } = await sb.from('registros').insert([registroDestino]);
         if (err2) throw err2;
         alert(`Portabilidade USD->BRL OK!\n-US$ ${valorUSD.toFixed(2)} em ${bancoOrigem.nome}\n+R$ ${valorBRL.toFixed(2)} em ${bancoDestino.nome}`);
-        fecharModalPortabilidadeBrlUsd();
+        fecharModalPortabilidadeUsdBrl();
         await carregarTodosRegistros();
         await carregarDadosBanco();
     } catch (error) {
