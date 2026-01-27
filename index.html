@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma Pessoal - Olá Bruno Bandeira</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 100%;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .login-btn {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+            padding: 10px;
+            background: #fadbd8;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .dashboard {
+            display: none;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .dashboard-header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .dashboard-header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .buttons-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .btn-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 250px;
+            animation: cardFadeIn 0.6s ease-out;
+        }
+
+        @keyframes cardFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .btn-card:nth-child(1) { animation-delay: 0.1s; }
+        .btn-card:nth-child(2) { animation-delay: 0.2s; }
+        .btn-card:nth-child(3) { animation-delay: 0.3s; }
+        .btn-card:nth-child(4) { animation-delay: 0.4s; }
+
+        .btn-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-card:active {
+            transform: translateY(-5px);
+        }
+
+        .btn-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .btn-card h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .btn-card p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .btn-card.investimentos {
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.1), rgba(16, 185, 129, 0.1));
+            border: 2px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-card.investimentos:hover {
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.2), rgba(16, 185, 129, 0.2));
+            border-color: rgba(16, 185, 129, 0.6);
+        }
+
+        .btn-card.saude {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+            border: 2px solid rgba(220, 38, 38, 0.3);
+        }
+
+        .btn-card.saude:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2));
+            border-color: rgba(220, 38, 38, 0.6);
+        }
+
+        .btn-card.lazer {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1));
+            border: 2px solid rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-card.lazer:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2));
+            border-color: rgba(37, 99, 235, 0.6);
+        }
+
+        .btn-card.seguranca {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(147, 51, 234, 0.1));
+            border: 2px solid rgba(147, 51, 234, 0.3);
+        }
+
+        .btn-card.seguranca:hover {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(147, 51, 234, 0.2));
+            border-color: rgba(147, 51, 234, 0.6);
+        }
+
+        .logout-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+
+            .login-header h1 {
+                font-size: 24px;
+            }
+
+            .dashboard-header h1 {
+                font-size: 28px;
+            }
+
+            .buttons-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .btn-card {
+                min-height: 200px;
+                padding: 30px 20px;
+            }
+
+            .btn-icon {
+                font-size: 40px;
+            }
+
+            .btn-card h2 {
+                font-size: 20px;
+            }
+
+            .logout-btn {
+                padding: 8px 16px;
+                font-size: 12px;
+                top: 15px;
+                right: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+
+            .login-container {
+                padding: 25px 15px;
+                border-radius: 15px;
+            }
+
+            .login-header h1 {
+                font-size: 22px;
+            }
+
+            .dashboard-header h1 {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+
+            .dashboard-header p {
+                font-size: 14px;
+            }
+
+            .buttons-container {
+                gap: 15px;
+                padding: 0 10px;
+            }
+
+            .btn-card {
+                min-height: 180px;
+                padding: 25px 15px;
+                border-radius: 15px;
+            }
+
+            .btn-icon {
+                font-size: 36px;
+                margin-bottom: 10px;
+            }
+
+            .btn-card h2 {
+                font-size: 18px;
+                margin-bottom: 8px;
+            }
+
+            .btn-card p {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Container -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-header">
+            <h1>Plataforma Pessoal</h1>
+            <p>Olá Bruno Bandeira</p>
+        </div>
+        <form class="login-form" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="password">Senha de Acesso</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    placeholder="Digite sua senha segura"
+                    required
+                >
+            </div>
+            <button type="submit" class="login-btn">Acessar Plataforma</button>
+            <div class="error-message" id="errorMessage"></div>
+        </form>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <button class="logout-btn" onclick="handleLogout()">Sair</button>
+        
+        <div class="dashboard-header">
+            <h1>Bem-vindo, Bruno!</h1>
+            <p>Selecione uma categoria para continuar</p>
+        </div>
+
+        <div class="buttons-container">
+            <a href="https://github.com/brunobandeira/investimentos" target="_blank" class="btn-card investimentos">
+                <div class="btn-icon">💰</div>
+                <h2>Investimentos</h2>
+                <p>Gerencie seus investimentos e portfólio financeiro</p>
+            </a>
+
+            <a href="https://github.com/brunobandeira/saude" target="_blank" class="btn-card saude">
+                <div class="btn-icon">🏥</div>
+                <h2>Saúde</h2>
+                <p>Acompanhe sua saúde e bem-estar</p>
+            </a>
+
+            <a href="https://github.com/brunobandeira/lazer" target="_blank" class="btn-card lazer">
+                <div class="btn-icon">🎮</div>
+                <h2>Lazer</h2>
+                <p>Explore suas atividades de lazer</p>
+            </a>
+
+            <a href="https://github.com/brunobandeira/seguranca" target="_blank" class="btn-card seguranca">
+                <div class="btn-icon">🔒</div>
+                <h2>Segurança</h2>
+                <p>Monitore sua segurança pessoal</p>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Senha de acesso definida
+        const CORRECT_PASSWORD = "bruno"; 
+
+        // Função de login
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const passwordInput = document.getElementById('password');
+            const errorMessage = document.getElementById('errorMessage');
+            const password = passwordInput.value;
+
+            // Comparação simples e direta para evitar erros de hash
+            if (password.toLowerCase() === CORRECT_PASSWORD.toLowerCase()) {
+                // Senha correta
+                errorMessage.classList.remove('show');
+                sessionStorage.setItem('authenticated', 'true');
+                
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+                
+                // Limpar campo de senha
+                passwordInput.value = '';
+            } else {
+                // Senha incorreta
+                errorMessage.textContent = '❌ Senha incorreta. Tente novamente.';
+                errorMessage.classList.add('show');
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+        }
+
+        // Função de logout
+        function handleLogout() {
+            sessionStorage.removeItem('authenticated');
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('password').value = '';
+            document.getElementById('errorMessage').classList.remove('show');
+        }
+
+        // Verificar se já está autenticado ao carregar a página
+        window.addEventListener('load', function() {
+            if (sessionStorage.getItem('authenticated') === 'true') {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+            }
+        });
+
+        // Permitir Enter para enviar formulário
+        document.getElementById('password').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                document.querySelector('.login-form').dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>
