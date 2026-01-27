@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma Pessoal - Olá Bruno Bandeira</title>
+    <title>Plataforma Pessoal - Bruno Bandeira</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -11,31 +14,83 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary: #0f172a;
+            --secondary: #1e293b;
+            --accent: #3b82f6;
+            --accent-light: #60a5fa;
+            --accent-dark: #1e40af;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --bg-light: #f9fafb;
+            --bg-white: #ffffff;
+            --border: #e5e7eb;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 50%, #e5e7eb 100%);
             min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* ========== LOGIN PAGE ========== */
+        .login-page {
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            min-height: 100vh;
             padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-page::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -100px;
+            right: -100px;
+            z-index: 0;
+        }
+
+        .login-page::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            bottom: -50px;
+            left: -50px;
+            z-index: 0;
         }
 
         .login-container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 400px;
+            background: #ffffff;
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 60px 40px;
+            max-width: 450px;
             width: 100%;
-            animation: slideIn 0.6s ease-out;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: slideInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            z-index: 1;
+            border: 2px solid #e5e7eb;
         }
 
-        @keyframes slideIn {
+        @keyframes slideInUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(40px);
             }
             to {
                 opacity: 1;
@@ -45,28 +100,40 @@
 
         .login-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+        }
+
+        .login-header-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
         }
 
         .login-header h1 {
-            color: #333;
-            font-size: 28px;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
         }
 
         .login-header p {
-            color: #666;
+            color: var(--text-secondary);
             font-size: 14px;
+            font-weight: 500;
         }
 
         .login-form {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 24px;
         }
 
         .form-group {
@@ -76,133 +143,230 @@
         }
 
         .form-group label {
-            color: #333;
+            color: var(--text-primary);
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .form-group input {
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg-light);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: #667eea;
-            background: #fff;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: var(--accent);
+            background: var(--bg-white);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            transform: translateY(-2px);
         }
 
         .login-btn {
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 14px 24px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: 'Poppins', sans-serif;
+            margin-top: 8px;
         }
 
         .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
         }
 
         .login-btn:active {
-            transform: translateY(0);
+            transform: translateY(-1px);
         }
 
         .error-message {
-            color: #e74c3c;
-            font-size: 14px;
+            color: var(--danger);
+            font-size: 13px;
             text-align: center;
             display: none;
-            padding: 10px;
-            background: #fadbd8;
+            padding: 12px 16px;
+            background: rgba(239, 68, 68, 0.1);
             border-radius: 8px;
-            border-left: 4px solid #e74c3c;
+            border-left: 4px solid var(--danger);
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
 
         .error-message.show {
             display: block;
         }
 
+        /* ========== DASHBOARD PAGE ========== */
         .dashboard {
             display: none;
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 50%, #e5e7eb 100%);
+            padding: 40px 20px;
+            position: relative;
+            overflow: hidden;
         }
 
         .dashboard.active {
             display: block;
         }
 
-        .dashboard-header {
-            text-align: center;
-            color: white;
-            margin-bottom: 50px;
-            animation: fadeIn 0.6s ease-out;
+        .dashboard::before {
+            content: '';
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -200px;
+            right: -200px;
+            z-index: 0;
+            pointer-events: none;
         }
 
-        @keyframes fadeIn {
+        .dashboard::after {
+            content: '';
+            position: fixed;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.03) 0%, transparent 70%);
+            border-radius: 50%;
+            bottom: -150px;
+            left: -150px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .dashboard-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logout-btn {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 12px 24px;
+            background: #1e40af;
+            color: white;
+            border: 2px solid #1e40af;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 100;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .logout-btn:hover {
+            background: #1e3a8a;
+            border-color: #1e3a8a;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30, 64, 175, 0.3);
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        @keyframes fadeInDown {
             from {
                 opacity: 0;
+                transform: translateY(-20px);
             }
             to {
                 opacity: 1;
+                transform: translateY(0);
             }
         }
 
         .dashboard-header h1 {
-            font-size: 36px;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            font-family: 'Playfair Display', serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 12px;
+            letter-spacing: -1px;
+            text-shadow: none;
         }
 
         .dashboard-header p {
             font-size: 16px;
-            opacity: 0.9;
+            color: #475569;
+            font-weight: 600;
         }
 
         .buttons-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
         }
 
         .btn-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            background: #ffffff;
+            backdrop-filter: blur(20px);
             border-radius: 20px;
             padding: 40px 30px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             text-decoration: none;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 250px;
+            min-height: 280px;
+            border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
             animation: cardFadeIn 0.6s ease-out;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+            pointer-events: none;
         }
 
         @keyframes cardFadeIn {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(30px);
             }
             to {
                 opacity: 1;
@@ -216,103 +380,94 @@
         .btn-card:nth-child(4) { animation-delay: 0.4s; }
 
         .btn-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transform: translateY(-12px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), 0 0 1px rgba(255, 255, 255, 0.5) inset;
         }
 
         .btn-card:active {
-            transform: translateY(-5px);
+            transform: translateY(-6px);
         }
 
         .btn-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
+            font-size: 56px;
+            margin-bottom: 20px;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-card:hover .btn-icon {
+            transform: scale(1.15) rotate(5deg);
         }
 
         .btn-card h2 {
-            color: #333;
-            font-size: 24px;
-            margin-bottom: 10px;
+            color: #0f172a;
+            font-size: 26px;
+            margin-bottom: 12px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
         }
 
         .btn-card p {
-            color: #666;
+            color: #1f2937;
             font-size: 14px;
-            line-height: 1.5;
+            line-height: 1.6;
+            font-weight: 600;
         }
 
+        /* Card Variants */
         .btn-card.investimentos {
-            background: linear-gradient(135deg, rgba(52, 211, 153, 0.1), rgba(16, 185, 129, 0.1));
-            border: 2px solid rgba(16, 185, 129, 0.3);
+            background: #f0fdf4;
+            border-color: #10b981;
         }
 
         .btn-card.investimentos:hover {
-            background: linear-gradient(135deg, rgba(52, 211, 153, 0.2), rgba(16, 185, 129, 0.2));
-            border-color: rgba(16, 185, 129, 0.6);
+            border-color: #059669;
+            background: #dcfce7;
         }
 
         .btn-card.saude {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
-            border: 2px solid rgba(220, 38, 38, 0.3);
+            background: #fef2f2;
+            border-color: #ef4444;
         }
 
         .btn-card.saude:hover {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2));
-            border-color: rgba(220, 38, 38, 0.6);
+            border-color: #dc2626;
+            background: #fee2e2;
         }
 
-        .btn-card.lazer {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1));
-            border: 2px solid rgba(37, 99, 235, 0.3);
+        .btn-card.viagem {
+            background: #fffbeb;
+            border-color: #f59e0b;
         }
 
-        .btn-card.lazer:hover {
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2));
-            border-color: rgba(37, 99, 235, 0.6);
+        .btn-card.viagem:hover {
+            border-color: #d97706;
+            background: #fef3c7;
         }
 
         .btn-card.seguranca {
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(147, 51, 234, 0.1));
-            border: 2px solid rgba(147, 51, 234, 0.3);
+            background: #f3e8ff;
+            border-color: #a855f7;
         }
 
         .btn-card.seguranca:hover {
-            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(147, 51, 234, 0.2));
-            border-color: rgba(147, 51, 234, 0.6);
+            border-color: #7e22ce;
+            background: #e9d5ff;
         }
 
-        .logout-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid white;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
+        /* Responsive */
         @media (max-width: 768px) {
             .login-container {
-                padding: 30px 20px;
+                padding: 40px 24px;
+                border-radius: 20px;
             }
 
             .login-header h1 {
-                font-size: 24px;
+                font-size: 28px;
             }
 
             .dashboard-header h1 {
-                font-size: 28px;
+                font-size: 36px;
             }
 
             .buttons-container {
@@ -321,12 +476,14 @@
             }
 
             .btn-card {
-                min-height: 200px;
+                min-height: 240px;
                 padding: 30px 20px;
+                border-radius: 16px;
             }
 
             .btn-icon {
-                font-size: 40px;
+                font-size: 48px;
+                margin-bottom: 16px;
             }
 
             .btn-card h2 {
@@ -334,30 +491,44 @@
             }
 
             .logout-btn {
-                padding: 8px 16px;
+                top: 20px;
+                right: 20px;
+                padding: 10px 20px;
                 font-size: 12px;
-                top: 15px;
-                right: 15px;
+            }
+
+            .dashboard {
+                padding: 30px 16px;
+            }
+
+            .dashboard-header {
+                margin-bottom: 40px;
             }
         }
 
         @media (max-width: 480px) {
             body {
-                padding: 15px;
+                padding: 0;
             }
 
             .login-container {
-                padding: 25px 15px;
-                border-radius: 15px;
+                padding: 32px 20px;
+                border-radius: 16px;
+                max-width: 100%;
+                margin: 20px;
             }
 
             .login-header h1 {
-                font-size: 22px;
+                font-size: 24px;
+            }
+
+            .login-header p {
+                font-size: 13px;
             }
 
             .dashboard-header h1 {
-                font-size: 24px;
-                margin-bottom: 20px;
+                font-size: 28px;
+                margin-bottom: 8px;
             }
 
             .dashboard-header p {
@@ -365,19 +536,18 @@
             }
 
             .buttons-container {
-                gap: 15px;
-                padding: 0 10px;
+                gap: 16px;
             }
 
             .btn-card {
-                min-height: 180px;
-                padding: 25px 15px;
-                border-radius: 15px;
+                min-height: 200px;
+                padding: 24px 16px;
+                border-radius: 14px;
             }
 
             .btn-icon {
-                font-size: 36px;
-                margin-bottom: 10px;
+                font-size: 40px;
+                margin-bottom: 12px;
             }
 
             .btn-card h2 {
@@ -386,74 +556,89 @@
             }
 
             .btn-card p {
-                font-size: 12px;
+                font-size: 13px;
+            }
+
+            .logout-btn {
+                padding: 8px 16px;
+                font-size: 11px;
+                top: 16px;
+                right: 16px;
+            }
+
+            .dashboard {
+                padding: 20px 12px;
             }
         }
     </style>
 </head>
 <body>
     <!-- Login Container -->
-    <div class="login-container" id="loginContainer">
-        <div class="login-header">
-            <h1>Plataforma Pessoal</h1>
-            <p>Olá Bruno Bandeira</p>
-        </div>
-        <form class="login-form" onsubmit="handleLogin(event)">
-            <div class="form-group">
-                <label for="password">Senha de Acesso</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    placeholder="Digite sua senha segura"
-                    required
-                >
+    <div class="login-page" id="loginPage">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="login-header-icon">👤</div>
+                <h1>Bem-vindo</h1>
+                <p>Bruno Bandeira</p>
             </div>
-            <button type="submit" class="login-btn">Acessar Plataforma</button>
-            <div class="error-message" id="errorMessage"></div>
-        </form>
+            <form class="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="password">Senha de Acesso</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        placeholder="Digite sua senha"
+                        required
+                        autofocus
+                    >
+                </div>
+                <button type="submit" class="login-btn">Acessar Plataforma</button>
+                <div class="error-message" id="errorMessage"></div>
+            </form>
+        </div>
     </div>
 
     <!-- Dashboard -->
     <div class="dashboard" id="dashboard">
-        <button class="logout-btn" onclick="handleLogout()">Sair</button>
+        <button class="logout-btn" onclick="handleLogout()">🚪 Sair</button>
         
-        <div class="dashboard-header">
-            <h1>Bem-vindo, Bruno!</h1>
-            <p>Selecione uma categoria para continuar</p>
-        </div>
+        <div class="dashboard-content">
+            <div class="dashboard-header">
+                <h1>Bem-vindo, Bruno!</h1>
+                <p>Selecione uma categoria para continuar</p>
+            </div>
 
-        <div class="buttons-container">
-            <a href="https://brunohrb.github.io/investimentos/" target="_blank" class="btn-card investimentos">
-                <div class="btn-icon">💰</div>
-                <h2>Investimentos</h2>
-                <p>Gerencie seus investimentos e portfólio financeiro</p>
-            </a>
+            <div class="buttons-container">
+                <a href="https://brunohrb.github.io/pessoal/investimentos" class="btn-card investimentos">
+                    <div class="btn-icon">💰</div>
+                    <h2>Investimentos</h2>
+                    <p>Gerencie seus investimentos e portfólio financeiro</p>
+                </a>
 
-            <a href="https://github.com/brunobandeira/saude" target="_blank" class="btn-card saude">
-                <div class="btn-icon">🏥</div>
-                <h2>Saúde</h2>
-                <p>Acompanhe sua saúde e bem-estar</p>
-            </a>
+                <a href="https://github.com/brunobandeira/saude" target="_blank" class="btn-card saude">
+                    <div class="btn-icon">🏥</div>
+                    <h2>Saúde</h2>
+                    <p>Acompanhe sua saúde e bem-estar</p>
+                </a>
 
-            <a href="https://github.com/brunobandeira/lazer" target="_blank" class="btn-card lazer">
-                <div class="btn-icon">🎮</div>
-                <h2>Lazer</h2>
-                <p>Explore suas atividades de lazer</p>
-            </a>
+                <a href="https://github.com/brunobandeira/viagem" target="_blank" class="btn-card viagem">
+                    <div class="btn-icon">✈️</div>
+                    <h2>Viagem</h2>
+                    <p>Planeje suas próximas aventuras</p>
+                </a>
 
-            <a href="https://github.com/brunobandeira/seguranca" target="_blank" class="btn-card seguranca">
-                <div class="btn-icon">🔒</div>
-                <h2>Segurança</h2>
-                <p>Monitore sua segurança pessoal</p>
-            </a>
+                <a href="https://brunohrb.github.io/pessoal/cofre" class="btn-card seguranca">
+                    <div class="btn-icon">🔒</div>
+                    <h2>Segurança</h2>
+                    <p>Acesse seu Cofre Digital Seguro</p>
+                </a>
+            </div>
         </div>
     </div>
 
     <script>
-        // Senha de acesso definida
-        const CORRECT_PASSWORD = "bruno"; 
+        const CORRECT_PASSWORD = "bruno";
 
-        // Função de login
         async function handleLogin(event) {
             event.preventDefault();
             
@@ -461,19 +646,15 @@
             const errorMessage = document.getElementById('errorMessage');
             const password = passwordInput.value;
 
-            // Comparação simples e direta para evitar erros de hash
             if (password.toLowerCase() === CORRECT_PASSWORD.toLowerCase()) {
-                // Senha correta
                 errorMessage.classList.remove('show');
                 sessionStorage.setItem('authenticated', 'true');
                 
-                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('loginPage').style.display = 'none';
                 document.getElementById('dashboard').classList.add('active');
                 
-                // Limpar campo de senha
                 passwordInput.value = '';
             } else {
-                // Senha incorreta
                 errorMessage.textContent = '❌ Senha incorreta. Tente novamente.';
                 errorMessage.classList.add('show');
                 passwordInput.value = '';
@@ -481,24 +662,21 @@
             }
         }
 
-        // Função de logout
         function handleLogout() {
             sessionStorage.removeItem('authenticated');
             document.getElementById('dashboard').classList.remove('active');
-            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('loginPage').style.display = 'flex';
             document.getElementById('password').value = '';
             document.getElementById('errorMessage').classList.remove('show');
         }
 
-        // Verificar se já está autenticado ao carregar a página
         window.addEventListener('load', function() {
             if (sessionStorage.getItem('authenticated') === 'true') {
-                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('loginPage').style.display = 'none';
                 document.getElementById('dashboard').classList.add('active');
             }
         });
 
-        // Permitir Enter para enviar formulário
         document.getElementById('password').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
                 document.querySelector('.login-form').dispatchEvent(new Event('submit'));
