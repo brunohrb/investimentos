@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cofre Digital Seguro</title>
+    <meta name="description" content="Sistema seguro de armazenamento de documentos e senhas com criptografia AES-256">
+    <meta name="theme-color" content="#1e3a8a">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --primary-dark: #1e40af;
+            --primary-foreground: #f0f9ff;
+            --background: #ffffff;
+            --foreground: #1f2937;
+            --card: #f9fafb;
+            --border: #e5e7eb;
+            --input-bg: #f3f4f6;
+            --muted: #6b7280;
+            --success: #10b981;
+            --danger: #ef4444;
+            --sidebar-bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background);
+            color: var(--foreground);
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+        }
+
+        h1 { font-size: 2rem; }
+        h2 { font-size: 1.5rem; }
+        h3 { font-size: 1.25rem; }
+
+        .container {
+            width: 100%;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Componentes */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.95);
+        }
+
+        .btn-secondary {
+            background-color: var(--input-bg);
+            color: var(--foreground);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            background-color: var(--input-bg);
+            color: var(--foreground);
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+
+        .card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.2s;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            background-color: var(--background);
+        }
+
+        .sidebar {
+            width: 16rem;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s;
+            overflow: hidden;
+        }
+
+        .sidebar.hidden {
+            width: 0;
+            border-right: none;
+        }
+
+        .sidebar-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .sidebar-item {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .sidebar-item:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .sidebar-item.active {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: white;
+            border-bottom: 1px solid var(--border);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .header-title {
+            flex: 1;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-title p {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .item-card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .item-title {
+            font-weight: 600;
+            color: var(--foreground);
+        }
+
+        .item-date {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        .item-content {
+            background-color: #f0f0f0;
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .item-actions button {
+            flex: 1;
+            min-width: 80px;
+            padding: 0.4rem 0.6rem;
+            font-size: 0.85rem;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            max-width: 28rem;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal h2 {
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .form-actions button {
+            flex: 1;
+        }
+
+        /* Auth Page */
+        .auth-container {
+            min-height: 100vh;
+            background: linear-gradient(to bottom right, #eff6ff, #f1f5f9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .auth-card {
+            background-color: white;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 2rem;
+            max-width: 28rem;
+            width: 100%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-header h1 {
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-header p {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .error-message {
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .success-message {
+            background-color: #dcfce7;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 1rem;
+            height: 1rem;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        .password-input-wrapper {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--muted);
+            padding: 0.25rem;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h2 {
+            margin-bottom: 0.5rem;
+            color: var(--foreground);
+        }
+
+        .empty-state p {
+            margin-bottom: 1.5rem;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            color: var(--foreground);
+        }
+
+        /* Responsivo */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                z-index: 40;
+                width: 16rem;
+            }
+
+            .sidebar.hidden {
+                transform: translateX(-100%);
+                width: 16rem;
+            }
+
+            .app-container {
+                flex-direction: column;
+            }
+
+            .main-content {
+                width: 100%;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-title h1 {
+                font-size: 1.25rem;
+            }
+
+            .header-title p {
+                font-size: 0.75rem;
+            }
+
+            .item-actions {
+                flex-direction: column;
+            }
+
+            .item-actions button {
+                width: 100%;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .form-actions button {
+                width: 100%;
+            }
+
+            .auth-card {
+                padding: 1.5rem;
+            }
+
+            .auth-header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        // ============ CRYPTO UTILITIES ============
+        const ALGORITHM = { name: 'AES-GCM', length: 256 };
+        const PBKDF2_ITERATIONS = 100000;
+
+        async function deriveKeyFromPassword(password, salt) {
+            const encoder = new TextEncoder();
+            const passwordBuffer = encoder.encode(password);
+            const baseKey = await crypto.subtle.importKey('raw', passwordBuffer, { name: 'PBKDF2' }, false, ['deriveBits', 'deriveKey']);
+            return crypto.subtle.deriveKey(
+                { name: 'PBKDF2', salt: salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+                baseKey,
+                ALGORITHM,
+                false,
+                ['encrypt', 'decrypt']
+            );
+        }
+
+        function generateSalt() {
+            return crypto.getRandomValues(new Uint8Array(16));
+        }
+
+        function generateIV() {
+            return crypto.getRandomValues(new Uint8Array(12));
+        }
+
+        async function encryptData(data, key, iv) {
+            const encoder = new TextEncoder();
+            const dataBuffer = encoder.encode(data);
+            const encryptedData = await crypto.subtle.encrypt({ name: ALGORITHM.name, iv: iv }, key, dataBuffer);
+            return new Uint8Array(encryptedData);
+        }
+
+        async function decryptData(encryptedData, key, iv) {
+            const decryptedData = await crypto.subtle.decrypt({ name: ALGORITHM.name, iv: iv }, key, encryptedData);
+            const decoder = new TextDecoder();
+            return decoder.decode(decryptedData);
+        }
+
+        function uint8ArrayToBase64(arr) {
+            return btoa(String.fromCharCode.apply(null, Array.from(arr)));
+        }
+
+        function base64ToUint8Array(str) {
+            const binary = atob(str);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes;
+        }
+
+        async function encryptAndEncode(data, key, iv) {
+            const encrypted = await encryptData(data, key, iv);
+            return uint8ArrayToBase64(encrypted);
+        }
+
+        async function decodeAndDecrypt(encodedData, key, iv) {
+            const encrypted = base64ToUint8Array(encodedData);
+            return decryptData(encrypted, key, iv);
+        }
+
+        async function hashData(data) {
+            const encoder = new TextEncoder();
+            const dataBuffer = encoder.encode(data);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+            return uint8ArrayToBase64(new Uint8Array(hashBuffer));
+        }
+
+        // ============ STATE MANAGEMENT ============
+        const STORAGE_KEY = 'vault_storage';
+        let appState = {
+            isAuthenticated: false,
+            sessionKey: null,
+            sessionIV: null,
+            items: [],
+            people: [],
+            selectedPerson: null,
+            selectedCategory: null,
+            decryptedContent: {},
+            visibleItems: new Set(),
+            sidebarOpen: true,
+        };
+
+        // ============ UI RENDERING ============
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (!appState.isAuthenticated) {
+                app.innerHTML = renderAuthPage();
+                attachAuthEventListeners();
+            } else {
+                app.innerHTML = renderDashboard();
+                attachDashboardEventListeners();
+            }
+        }
+
+        function renderAuthPage() {
+            return `
+                <div class="auth-container animate-fadeIn">
+                    <div class="auth-card">
+                        <div class="auth-header">
+                            <div class="auth-header-icon">🛡️</div>
+                            <h1>Cofre Digital</h1>
+                            <p>Armazenamento seguro de documentos e senhas</p>
+                        </div>
+
+                        <div id="auth-error" class="error-message hidden"></div>
+
+                        <div id="setup-step">
+                            <h2>Configurar Cofre</h2>
+                            <form id="setup-form">
+                                <div class="form-group">
+                                    <label for="master-password">🔐 Senha Mestre (mínimo 8 caracteres)</label>
+                                    <div class="password-input-wrapper">
+                                        <input type="password" id="master-password" class="input-field" placeholder="Digite uma senha forte" required>
+                                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('master-password')">👁️</button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirm-password">Confirmar Senha Mestre</label>
+                                    <input type="password" id="confirm-password" class="input-field" placeholder="Confirme a senha" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width: 100%;">Próximo: Configurar PIN</button>
+                            </form>
+                        </div>
+
+                        <div id="pin-step" class="hidden">
+                            <h2>Configurar PIN de Segurança</h2>
+                            <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 1rem;">O PIN é uma camada adicional de segurança. Use números (4-6 dígitos).</p>
+                            <form id="pin-form">
+                                <div class="form-group">
+                                    <label for="pin">PIN de Segurança (apenas números)</label>
+                                    <input type="password" id="pin" class="input-field" placeholder="Ex: 1234" maxlength="6" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirm-pin">Confirmar PIN</label>
+                                    <input type="password" id="confirm-pin" class="input-field" placeholder="Confirme o PIN" maxlength="6" required>
+                                </div>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="show-pin">
+                                    <label for="show-pin">Mostrar PIN</label>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-secondary" onclick="goBackToSetup()">Voltar</button>
+                                    <button type="submit" class="btn btn-primary">Criar Cofre</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div id="login-step" class="hidden">
+                            <h2>Acessar Cofre</h2>
+                            <form id="login-form">
+                                <div class="form-group">
+                                    <label for="login-password">🔐 Senha Mestre</label>
+                                    <div class="password-input-wrapper">
+                                        <input type="password" id="login-password" class="input-field" placeholder="Digite sua senha" required autofocus>
+                                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('login-password')">👁️</button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="login-pin">PIN de Segurança</label>
+                                    <input type="password" id="login-pin" class="input-field" placeholder="Digite seu PIN" maxlength="6" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width: 100%;">Acessar Cofre</button>
+                            </form>
+                        </div>
+
+                        <p style="text-align: center; font-size: 0.85rem; color: var(--muted); margin-top: 1.5rem;">
+                            ✓ Criptografia AES-256 local | Seus dados nunca saem do navegador
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderDashboard() {
+            const currentPerson = appState.people.find(p => p.id === appState.selectedPerson);
+            const currentCategory = currentPerson?.categories.find(c => c.id === appState.selectedCategory);
+            const filteredItems = appState.items.filter(
+                item => item.personName === currentPerson?.name && item.category === appState.selectedCategory
+            );
+
+            return `
+                <div class="app-container">
+                    <aside class="sidebar ${!appState.sidebarOpen ? 'hidden' : ''}">
+                        <div class="sidebar-header">Cofre Digital</div>
+                        <div class="sidebar-content">
+                            <div class="sidebar-nav">
+                                ${appState.people.map(person => `
+                                    <div>
+                                        <div class="sidebar-item ${appState.selectedPerson === person.id ? 'active' : ''}" 
+                                             onclick="selectPerson('${person.id}')">
+                                            ${person.name}
+                                        </div>
+                                        ${appState.selectedPerson === person.id ? `
+                                            <div style="margin-left: 0.5rem; margin-top: 0.25rem;">
+                                                ${person.categories.map(cat => `
+                                                    <div class="sidebar-item ${appState.selectedCategory === cat.id ? 'active' : ''}" 
+                                                         onclick="selectCategory('${cat.id}')"
+                                                         style="font-size: 0.9rem;">
+                                                        ${cat.icon} ${cat.name}
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="sidebar-footer">
+                            <button class="btn btn-secondary" style="width: 100%;" onclick="logout()">🚪 Sair</button>
+                        </div>
+                    </aside>
+
+                    <main class="main-content">
+                        <header class="header">
+                            <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                            <div class="header-title">
+                                <h1>${currentCategory?.name || 'Cofre Digital'}</h1>
+                                <p>${filteredItems.length} item${filteredItems.length !== 1 ? 's' : ''}</p>
+                            </div>
+                            <button class="btn btn-primary" onclick="openAddModal()">➕ Novo</button>
+                        </header>
+
+                        <div class="content">
+                            ${filteredItems.length === 0 ? `
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">📦</div>
+                                    <h2>Nenhum item encontrado</h2>
+                                    <p>Comece adicionando seus documentos e senhas</p>
+                                    <button class="btn btn-primary" onclick="openAddModal()">Adicionar Primeiro Item</button>
+                                </div>
+                            ` : `
+                                <div class="grid">
+                                    ${filteredItems.map(item => `
+                                        <div class="item-card animate-fadeIn">
+                                            <div class="item-header">
+                                                <div>
+                                                    <div class="item-title">${item.title}</div>
+                                                    <div class="item-date">${new Date(item.createdAt).toLocaleDateString('pt-BR')}</div>
+                                                </div>
+                                                <span class="badge">🔒 Criptografado</span>
+                                            </div>
+                                            ${appState.visibleItems.has(item.id) && appState.decryptedContent[item.id] ? `
+                                                <div class="item-content">${escapeHtml(appState.decryptedContent[item.id])}</div>
+                                            ` : ''}
+                                            <div class="item-actions">
+                                                <button class="btn btn-primary" onclick="toggleItemVisibility('${item.id}')">
+                                                    ${appState.visibleItems.has(item.id) ? '👁️ Ocultar' : '👁️ Revelar'}
+                                                </button>
+                                                ${appState.visibleItems.has(item.id) && appState.decryptedContent[item.id] ? `
+                                                    <button class="btn btn-secondary" onclick="copyToClipboard('${item.id}')">📋 Copiar</button>
+                                                ` : ''}
+                                                <button class="btn btn-secondary" onclick="deleteItem('${item.id}')" style="background-color: #fee2e2; color: #991b1b;">🗑️ Deletar</button>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `}
+                        </div>
+                    </main>
+                </div>
+
+                <div id="add-modal" class="modal-overlay">
+                    <div class="modal">
+                        <h2>Adicionar Novo Item</h2>
+                        <form id="add-form">
+                            <div class="form-group">
+                                <label for="item-title">Título</label>
+                                <input type="text" id="item-title" class="input-field" placeholder="Ex: Meu CPF" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="item-type">Tipo</label>
+                                <select id="item-type" class="input-field" required>
+                                    <option value="password">Senha</option>
+                                    <option value="cpf">CPF</option>
+                                    <option value="rg">RG</option>
+                                    <option value="cnpj">CNPJ</option>
+                                    <option value="document">Documento</option>
+                                    <option value="other">Outro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="item-content">Conteúdo</label>
+                                <textarea id="item-content" class="input-field" placeholder="Cole seu conteúdo aqui" required></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="closeAddModal()">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Adicionar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============ EVENT HANDLERS ============
+        function attachAuthEventListeners() {
+            // Check if vault exists
+            const vaultExists = localStorage.getItem(STORAGE_KEY) !== null;
+            if (vaultExists) {
+                document.getElementById('setup-step').classList.add('hidden');
+                document.getElementById('pin-step').classList.add('hidden');
+                document.getElementById('login-step').classList.remove('hidden');
+            }
+
+            // Setup form
+            const setupForm = document.getElementById('setup-form');
+            if (setupForm) {
+                setupForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const password = document.getElementById('master-password').value;
+                    const confirmPassword = document.getElementById('confirm-password').value;
+                    const errorDiv = document.getElementById('auth-error');
+
+                    if (password.length < 8) {
+                        errorDiv.textContent = 'A senha deve ter no mínimo 8 caracteres';
+                        errorDiv.classList.remove('hidden');
+                        return;
+                    }
+
+                    if (password !== confirmPassword) {
+                        errorDiv.textContent = 'As senhas não coincidem';
+                        errorDiv.classList.remove('hidden');
+                        return;
+                    }
+
+                    document.getElementById('setup-step').classList.add('hidden');
+                    document.getElementById('pin-step').classList.remove('hidden');
+                    errorDiv.classList.add('hidden');
+                });
+            }
+
+            // PIN form
+            const pinForm = document.getElementById('pin-form');
+            if (pinForm) {
+                const pinInput = document.getElementById('pin');
+                const confirmPinInput = document.getElementById('confirm-pin');
+                const showPinCheckbox = document.getElementById('show-pin');
+
+                pinInput.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.replace(/\D/g, '');
+                });
+
+                confirmPinInput.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.replace(/\D/g, '');
+                });
+
+                showPinCheckbox.addEventListener('change', (e) => {
+                    const type = e.target.checked ? 'text' : 'password';
+                    pinInput.type = type;
+                    confirmPinInput.type = type;
+                });
+
+                pinForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const pin = pinInput.value;
+                    const confirmPin = confirmPinInput.value;
+                    const password = document.getElementById('master-password').value;
+                    const errorDiv = document.getElementById('auth-error');
+
+                    if (pin.length < 4) {
+                        errorDiv.textContent = 'O PIN deve ter no mínimo 4 dígitos';
+                        errorDiv.classList.remove('hidden');
+                        return;
+                    }
+
+                    if (pin !== confirmPin) {
+                        errorDiv.textContent = 'Os PINs não coincidem';
+                        errorDiv.classList.remove('hidden');
+                        return;
+                    }
+
+                    await initializeVault(password, pin);
+                });
+            }
+
+            // Login form
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const password = document.getElementById('login-password').value;
+                    const pin = document.getElementById('login-pin').value;
+                    await loginVault(password, pin);
+                });
+            }
+        }
+
+        function attachDashboardEventListeners() {
+            const addForm = document.getElementById('add-form');
+            if (addForm) {
+                addForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await addItem();
+                });
+            }
+        }
+
+        // ============ AUTH FUNCTIONS ============
+        async function initializeVault(masterPassword, pin) {
+            try {
+                const salt = generateSalt();
+                const pinHash = await hashData(pin);
+
+                const vaultStorage = {
+                    version: '1.0',
+                    salt: uint8ArrayToBase64(salt),
+                    pinHash,
+                    items: [],
+                    people: [
+                        {
+                            id: 'self',
+                            name: 'Meus Dados',
+                            relationship: 'self',
+                            categories: [
+                                { id: 'personal', name: 'Documentos Pessoais', personName: 'Meus Dados', icon: '📄', color: '#3b82f6', itemCount: 0 },
+                                { id: 'passwords', name: 'Senhas', personName: 'Meus Dados', icon: '🔐', color: '#1e3a8a', itemCount: 0 },
+                                { id: 'property', name: 'Imóveis', personName: 'Meus Dados', icon: '🏠', color: '#10b981', itemCount: 0 },
+                            ],
+                        },
+                    ],
+                };
+
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(vaultStorage));
+
+                const key = await deriveKeyFromPassword(masterPassword, salt);
+                const iv = generateIV();
+
+                appState.isAuthenticated = true;
+                appState.sessionKey = key;
+                appState.sessionIV = iv;
+                appState.people = vaultStorage.people;
+                appState.selectedPerson = vaultStorage.people[0].id;
+                appState.selectedCategory = vaultStorage.people[0].categories[0].id;
+
+                render();
+            } catch (err) {
+                alert('Erro ao criar cofre: ' + err.message);
+            }
+        }
+
+        async function loginVault(masterPassword, pin) {
+            try {
+                const storageData = localStorage.getItem(STORAGE_KEY);
+                if (!storageData) {
+                    alert('Cofre não encontrado');
+                    return;
+                }
+
+                const vaultStorage = JSON.parse(storageData);
+                const salt = base64ToUint8Array(vaultStorage.salt);
+
+                const pinHash = await hashData(pin);
+                if (pinHash !== vaultStorage.pinHash) {
+                    document.getElementById('auth-error').textContent = 'PIN incorreto';
+                    document.getElementById('auth-error').classList.remove('hidden');
+                    return;
+                }
+
+                const key = await deriveKeyFromPassword(masterPassword, salt);
+                const iv = generateIV();
+
+                appState.isAuthenticated = true;
+                appState.sessionKey = key;
+                appState.sessionIV = iv;
+                appState.items = vaultStorage.items;
+                appState.people = vaultStorage.people;
+                appState.selectedPerson = vaultStorage.people[0].id;
+                appState.selectedCategory = vaultStorage.people[0].categories[0].id;
+
+                render();
+            } catch (err) {
+                document.getElementById('auth-error').textContent = 'Erro ao fazer login: ' + err.message;
+                document.getElementById('auth-error').classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            appState.isAuthenticated = false;
+            appState.sessionKey = null;
+            appState.sessionIV = null;
+            appState.decryptedContent = {};
+            appState.visibleItems.clear();
+            render();
+        }
+
+        // ============ VAULT FUNCTIONS ============
+        async function addItem() {
+            try {
+                const title = document.getElementById('item-title').value;
+                const type = document.getElementById('item-type').value;
+                const content = document.getElementById('item-content').value;
+
+                if (!title || !content) {
+                    alert('Por favor, preencha todos os campos');
+                    return;
+                }
+
+                const currentPerson = appState.people.find(p => p.id === appState.selectedPerson);
+                const iv = generateIV();
+                const encryptedContent = await encryptAndEncode(content, appState.sessionKey, iv);
+
+                const newItem = {
+                    id: Math.random().toString(36).substr(2, 9),
+                    category: appState.selectedCategory,
+                    personName: currentPerson.name,
+                    documentType: type,
+                    title,
+                    encryptedContent,
+                    iv: uint8ArrayToBase64(iv),
+                    createdAt: Date.now(),
+                    updatedAt: Date.now(),
+                };
+
+                appState.items.push(newItem);
+
+                const storageData = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                storageData.items = appState.items;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(storageData));
+
+                closeAddModal();
+                render();
+            } catch (err) {
+                alert('Erro ao adicionar item: ' + err.message);
+            }
+        }
+
+        async function toggleItemVisibility(itemId) {
+            try {
+                if (appState.visibleItems.has(itemId)) {
+                    appState.visibleItems.delete(itemId);
+                } else {
+                    const item = appState.items.find(i => i.id === itemId);
+                    const iv = base64ToUint8Array(item.iv);
+                    const content = await decodeAndDecrypt(item.encryptedContent, appState.sessionKey, iv);
+                    appState.decryptedContent[itemId] = content;
+                    appState.visibleItems.add(itemId);
+                }
+                render();
+            } catch (err) {
+                alert('Erro ao descriptografar: ' + err.message);
+            }
+        }
+
+        function copyToClipboard(itemId) {
+            const content = appState.decryptedContent[itemId];
+            navigator.clipboard.writeText(content).then(() => {
+                alert('Copiado para a área de transferência!');
+            });
+        }
+
+        function deleteItem(itemId) {
+            if (!confirm('Tem certeza que deseja deletar este item? Esta ação não pode ser desfeita.')) {
+                return;
+            }
+
+            appState.items = appState.items.filter(i => i.id !== itemId);
+            delete appState.decryptedContent[itemId];
+            appState.visibleItems.delete(itemId);
+
+            const storageData = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            storageData.items = appState.items;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(storageData));
+
+            render();
+        }
+
+        // ============ UI FUNCTIONS ============
+        function selectPerson(personId) {
+            appState.selectedPerson = personId;
+            const person = appState.people.find(p => p.id === personId);
+            appState.selectedCategory = person.categories[0].id;
+            render();
+        }
+
+        function selectCategory(categoryId) {
+            appState.selectedCategory = categoryId;
+            render();
+        }
+
+        function toggleSidebar() {
+            appState.sidebarOpen = !appState.sidebarOpen;
+            render();
+        }
+
+        function openAddModal() {
+            document.getElementById('add-modal').classList.add('active');
+        }
+
+        function closeAddModal() {
+            document.getElementById('add-modal').classList.remove('active');
+            document.getElementById('add-form').reset();
+        }
+
+        function goBackToSetup() {
+            document.getElementById('setup-step').classList.remove('hidden');
+            document.getElementById('pin-step').classList.add('hidden');
+            document.getElementById('auth-error').classList.add('hidden');
+        }
+
+        function togglePasswordVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ============ INIT ============
+        render();
+    </script>
+</body>
+</html>
