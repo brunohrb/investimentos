@@ -863,7 +863,7 @@
 // ⚠️ CREDENCIAIS DO SUPABASE - Investimentos
 // Estas credenciais estão no código para funcionar no GitHub Pages
 const SUPABASE_URL = 'https://fwhsjzkmnfxnlrvspkyr.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3aHNqemttbmZ4bmxydnNwa3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0Nzg3MzUsImV4cCI6MjA4MzA1NDczNX0.lT_tHpkxiOQl2HdsFc5VQr_xfkEvoGi101MaITnSLkc;
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3aHNqemttbmZ4bmxydnNwa3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzNzI3MzYsImV4cCI6MjA0OTk0ODczNn0.YlIH15cVv8PB9w-VLfG9qmPQFt--oNlQPFCNLnlvl5I';
 
 // Inicializa Supabase
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -880,7 +880,6 @@ const App = {
         pizza: null
     },
     config: {
-        senha: localStorage.getItem('senha_investflow') || '1234',
         tema: localStorage.getItem('tema') || 'dark',
         privacidadeAtiva: true,
         modoExcluirBanco: false
@@ -892,31 +891,104 @@ const App = {
 };
 
 /* ============================================
-   🔐 AUTENTICAÇÃO
+   🔐 AUTENTICAÇÃO COM SUPABASE
    ============================================ */
 
-function fazerLogin() {
+async function fazerLogin() {
     const senha = document.getElementById('mainPassword').value;
     
-    if (senha === App.config.senha) {
+    if (!senha) {
+        alert('⚠️ Digite a senha!');
+        return;
+    }
+    
+    mostrarLoading(true);
+    
+    try {
+        // Busca usuário no Supabase
+        const { data, error } = await sb
+            .from('usuarios')
+            .select('*')
+            .eq('username', 'bruno')
+            .eq('senha_hash', senha)
+            .single();
+        
+        mostrarLoading(false);
+        
+        if (error || !data) {
+            alert('❌ Senha incorreta!');
+            document.getElementById('mainPassword').value = '';
+            return;
+        }
+        
+        // Login bem-sucedido
+        sessionStorage.setItem('authenticated_invest', 'true');
+        sessionStorage.setItem('username', data.username);
+        
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('mainContainer').style.display = 'block';
+        
         inicializarSistema();
-    } else {
-        alert('❌ Senha incorreta!');
-        document.getElementById('mainPassword').value = '';
+        
+    } catch (err) {
+        mostrarLoading(false);
+        console.error('Erro no login:', err);
+        alert('❌ Erro ao fazer login. Tente novamente.');
     }
 }
 
-function mudarSenha() {
-    const novaSenha = prompt('Digite a nova senha:');
+async function mudarSenha() {
+    const senhaAtual = prompt('Digite a senha atual:');
+    if (!senhaAtual) return;
     
-    if (novaSenha && novaSenha.length >= 4) {
-        App.config.senha = novaSenha;
-        localStorage.setItem('senha_investflow', novaSenha);
+    const novaSenha = prompt('Digite a nova senha:');
+    if (!novaSenha || novaSenha.length < 4) {
+        alert('❌ A nova senha deve ter pelo menos 4 caracteres!');
+        return;
+    }
+    
+    const confirmarSenha = prompt('Confirme a nova senha:');
+    if (novaSenha !== confirmarSenha) {
+        alert('❌ As senhas não coincidem!');
+        return;
+    }
+    
+    mostrarLoading(true);
+    
+    try {
+        // Verifica senha atual
+        const { data: usuario, error: erroBusca } = await sb
+            .from('usuarios')
+            .select('*')
+            .eq('username', 'bruno')
+            .eq('senha_hash', senhaAtual)
+            .single();
+        
+        if (erroBusca || !usuario) {
+            mostrarLoading(false);
+            alert('❌ Senha atual incorreta!');
+            return;
+        }
+        
+        // Atualiza senha
+        const { error: erroUpdate } = await sb
+            .from('usuarios')
+            .update({ senha_hash: novaSenha })
+            .eq('username', 'bruno');
+        
+        mostrarLoading(false);
+        
+        if (erroUpdate) {
+            alert('❌ Erro ao atualizar senha: ' + erroUpdate.message);
+            return;
+        }
+        
         alert('✅ Senha alterada com sucesso!');
-    } else if (novaSenha !== null) {
-        alert('❌ A senha deve ter pelo menos 4 caracteres!');
+        
+    } catch (err) {
+        mostrarLoading(false);
+        console.error('Erro ao mudar senha:', err);
+        alert('❌ Erro ao alterar senha. Tente novamente.');
     }
 }
 
@@ -928,6 +1000,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Inicializa tema
     aplicarTema(App.config.tema);
+    
+    // Verifica se já está logado
+    if (sessionStorage.getItem('authenticated_invest') === 'true') {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainContainer').style.display = 'block';
+        inicializarSistema();
+    }
 });
 
 /* ============================================
