@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plataforma Pessoal - Bruno Bandeira</title>
+    
+    <!-- Biblioteca Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
@@ -609,25 +613,25 @@
             </div>
 
             <div class="buttons-container">
-                <a href="https://brunohrb.github.io/pessoal/investimentos" class="btn-card investimentos">
+                <a href="investimentos.html" class="btn-card investimentos">
                     <div class="btn-icon">💰</div>
                     <h2>Investimentos</h2>
                     <p>Gerencie seus investimentos e portfólio financeiro</p>
                 </a>
 
-                <a href="https://github.com/brunobandeira/saude" target="_blank" class="btn-card saude">
+                <a href="#" class="btn-card saude">
                     <div class="btn-icon">🏥</div>
                     <h2>Saúde</h2>
                     <p>Acompanhe sua saúde e bem-estar</p>
                 </a>
 
-                <a href="https://github.com/brunobandeira/viagem" target="_blank" class="btn-card viagem">
+                <a href="#" class="btn-card viagem">
                     <div class="btn-icon">✈️</div>
                     <h2>Viagem</h2>
                     <p>Planeje suas próximas aventuras</p>
                 </a>
 
-                <a href="https://brunohrb.github.io/pessoal/cofre" class="btn-card seguranca">
+                <a href="cofre.html" class="btn-card seguranca">
                     <div class="btn-icon">🔒</div>
                     <h2>Segurança</h2>
                     <p>Acesse seu Cofre Digital Seguro</p>
@@ -637,7 +641,12 @@
     </div>
 
     <script>
-        const CORRECT_PASSWORD = "bruno";
+        // ⚠️ CREDENCIAIS DO SUPABASE (mesmo do investimentos)
+        const SUPABASE_URL = 'https://fwhsjzkmnfxnlrvspkyr.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3aHNqemttbmZ4bmxydnNwa3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzNzI3MzYsImV4cCI6MjA0OTk0ODczNn0.YlIH15cVv8PB9w-VLfG9qmPQFt--oNlQPFCNLnlvl5I';
+        
+        // Inicializa Supabase
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function handleLogin(event) {
             event.preventDefault();
@@ -646,24 +655,49 @@
             const errorMessage = document.getElementById('errorMessage');
             const password = passwordInput.value;
 
-            if (password.toLowerCase() === CORRECT_PASSWORD.toLowerCase()) {
+            if (!password) {
+                errorMessage.textContent = '⚠️ Digite a senha!';
+                errorMessage.classList.add('show');
+                return;
+            }
+
+            try {
+                // Busca usuário no Supabase
+                const { data, error } = await sb
+                    .from('usuarios')
+                    .select('*')
+                    .eq('username', 'bruno')
+                    .eq('senha_hash', password)
+                    .single();
+                
+                if (error || !data) {
+                    errorMessage.textContent = '❌ Senha incorreta. Tente novamente.';
+                    errorMessage.classList.add('show');
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                    return;
+                }
+                
+                // Login bem-sucedido
                 errorMessage.classList.remove('show');
                 sessionStorage.setItem('authenticated', 'true');
+                sessionStorage.setItem('username', data.username);
                 
                 document.getElementById('loginPage').style.display = 'none';
                 document.getElementById('dashboard').classList.add('active');
                 
                 passwordInput.value = '';
-            } else {
-                errorMessage.textContent = '❌ Senha incorreta. Tente novamente.';
+                
+            } catch (err) {
+                console.error('Erro no login:', err);
+                errorMessage.textContent = '❌ Erro ao fazer login. Tente novamente.';
                 errorMessage.classList.add('show');
-                passwordInput.value = '';
-                passwordInput.focus();
             }
         }
 
         function handleLogout() {
             sessionStorage.removeItem('authenticated');
+            sessionStorage.removeItem('username');
             document.getElementById('dashboard').classList.remove('active');
             document.getElementById('loginPage').style.display = 'flex';
             document.getElementById('password').value = '';
