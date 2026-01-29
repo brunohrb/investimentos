@@ -1,7 +1,0 @@
-# ⚠️ Nunca versione arquivos de configuração com credenciais
-config_investimentos.js
-config_index.js
-
-# Arquivos do sistema
-.DS_Store
-Thumbs.db
