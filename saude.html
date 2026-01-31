@@ -38,7 +38,7 @@
             background: var(--dark);
             color: var(--text);
             line-height: 1.6;
-            padding-top: 70px;
+            padding-top: 130px;
             padding-bottom: 1rem;
             overflow-x: hidden;
         }
@@ -79,28 +79,33 @@
             background-clip: text;
         }
 
-        /* NAVEGAÇÃO NO TOPO */
+        /* NAVEGAÇÃO NO TOPO (ABAIXO DO HEADER) */
         .nav-tabs {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            z-index: 999;
             display: flex;
             gap: 0.25rem;
             background: var(--dark-card);
-            border-radius: 12px;
-            padding: 0.25rem;
-            margin: 0.5rem 1rem 1rem;
+            border-radius: 0;
+            padding: 0.5rem 1rem;
             overflow-x: auto;
             scrollbar-width: none;
+            border-bottom: 1px solid rgba(0, 217, 177, 0.1);
         }
 
         .nav-tabs::-webkit-scrollbar { display: none; }
 
         .nav-tab {
-            flex: 1;
+            flex: 0 0 auto;
             min-width: fit-content;
-            padding: 0.75rem 1rem;
+            padding: 0.65rem 1rem;
             background: transparent;
             border: none;
             color: var(--text-muted);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
@@ -137,6 +142,7 @@
         .btn-free { background: var(--gradient-free); color: white; box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3); }
         .btn-block { width: 100%; margin-top: 1rem; }
         .btn-small { padding: 0.6rem 1rem; font-size: 0.85rem; min-height: 40px; }
+        .btn-success { background: rgba(74, 222, 128, 0.2); color: var(--success); border: 1px solid var(--success); }
 
         .section { display: none; padding: 1rem 0 2rem; animation: fadeIn 0.3s ease-out; }
         .section.active { display: block; }
@@ -200,217 +206,277 @@
             border-left: 4px solid var(--primary);
         }
 
+        /* MELHORIAS NOS CARDS DE TREINO - MOBILE FIRST */
         .workout-card {
-            background: var(--dark-lighter);
-            padding: 1.25rem;
-            border-radius: 16px;
-            border-left: 4px solid var(--primary);
-            margin-bottom: 1rem;
+            background: linear-gradient(135deg, rgba(0, 217, 177, 0.1) 0%, rgba(0, 184, 148, 0.05) 100%);
+            padding: 1.5rem;
+            border-radius: 20px;
+            border: 2px solid rgba(0, 217, 177, 0.2);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
         .workout-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
             gap: 1rem;
         }
 
         .workout-title {
             flex: 1;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'Archivo Black', sans-serif;
         }
 
         .workout-actions {
             display: flex;
+            flex-direction: column;
             gap: 0.5rem;
-            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .workout-badge {
+            background: var(--gradient-ai);
+            color: white;
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .exercise-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
         }
 
         .exercise-item {
             background: var(--dark-card);
-            padding: 1rem;
-            border-radius: 12px;
-            margin-bottom: 0.75rem;
+            padding: 1.25rem;
+            border-radius: 16px;
+            border-left: 4px solid var(--success);
             display: flex;
-            align-items: flex-start;
+            justify-content: space-between;
+            align-items: center;
             gap: 1rem;
         }
 
-        .exercise-checkbox {
-            width: 24px;
-            height: 24px;
-            min-width: 24px;
-            accent-color: var(--primary);
-            cursor: pointer;
-            margin-top: 0.25rem;
+        .exercise-item.completed {
+            border-left-color: var(--primary);
+            background: rgba(0, 217, 177, 0.1);
         }
 
-        .exercise-content {
+        .exercise-info {
             flex: 1;
         }
 
-        .exercise-text {
+        .exercise-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text);
             margin-bottom: 0.5rem;
-            line-height: 1.5;
         }
 
-        .youtube-link {
+        .exercise-details {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .exercise-link {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            color: var(--error);
+            gap: 0.4rem;
+            color: var(--secondary);
             text-decoration: none;
             font-size: 0.85rem;
-            padding: 0.5rem 0.75rem;
-            background: rgba(239, 68, 68, 0.1);
-            border-radius: 8px;
+            margin-top: 0.5rem;
+            font-weight: 600;
+        }
+
+        .exercise-link:hover {
+            text-decoration: underline;
+        }
+
+        .exercise-check {
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            border: 2px solid var(--text-muted);
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.5rem;
             transition: all 0.3s;
         }
 
-        .youtube-link:active {
-            transform: scale(0.95);
+        .exercise-check.checked {
+            background: var(--gradient-1);
+            border-color: var(--primary);
+            color: var(--dark);
         }
 
-        .timer-widget {
-            background: var(--dark-lighter);
-            padding: 1.5rem;
-            border-radius: 16px;
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-
-        .timer-display {
-            font-family: 'Archivo Black', sans-serif;
-            font-size: 3rem;
-            color: var(--primary);
-            margin: 1rem 0;
-        }
-
-        .timer-buttons {
+        .workout-controls {
             display: flex;
             gap: 0.75rem;
-            justify-content: center;
+            margin-top: 1.5rem;
             flex-wrap: wrap;
         }
 
-        .chart-container {
-            background: var(--dark-card);
-            padding: 1.5rem;
-            border-radius: 16px;
-            margin-bottom: 1rem;
+        .workout-controls .btn {
+            flex: 1;
+            min-width: 140px;
         }
 
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .stat-card {
-            background: var(--dark-lighter);
-            padding: 1.25rem;
-            border-radius: 14px;
-            text-align: center;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-value {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--primary);
-            font-family: 'Archivo Black', sans-serif;
-            margin-top: 0.5rem;
-        }
-
+        /* MODAL */
         .modal {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
             z-index: 2000;
-            padding: 1rem;
             overflow-y: auto;
+            padding: 1rem;
         }
-        
-        .modal.active { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            animation: fadeIn 0.3s; 
-        }
-        
+
+        .modal.active { display: flex; align-items: center; justify-content: center; }
+
         .modal-content {
             background: var(--dark-card);
-            border-radius: 20px;
-            padding: 1.5rem;
+            border-radius: 24px;
+            padding: 2rem;
             max-width: 600px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
+            border: 2px solid rgba(0, 217, 177, 0.3);
         }
 
-        .ai-question {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-            text-align: center;
-            color: var(--primary);
-            line-height: 1.3;
-        }
-
-        .ai-recommendation {
-            font-size: 0.85rem;
-            color: var(--warning);
-            text-align: center;
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 1.5rem;
-            padding: 0.75rem;
-            background: rgba(252, 211, 77, 0.1);
-            border-radius: 10px;
         }
 
-        .ai-options {
-            display: grid;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
+        .modal-title {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 1.4rem;
+            color: var(--primary);
         }
 
-        .ai-option-btn {
-            padding: 1.25rem;
-            background: var(--dark-lighter);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px;
-            color: var(--text);
-            font-weight: 600;
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.8rem;
             cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
             transition: all 0.3s;
-            font-size: 1rem;
-            min-height: 56px;
-            text-align: left;
         }
 
-        .ai-option-btn:active {
-            transform: scale(0.98);
-            border-color: var(--primary);
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* CRONÔMETRO */
+        .timer-display {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .timer-time {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 3.5rem;
+            color: var(--primary);
+            margin: 1rem 0;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        /* STATS */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: var(--dark-lighter);
+            padding: 1.25rem;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-value {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 2rem;
+            color: var(--primary);
+            margin-top: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* DASHBOARD DE EVOLUÇÃO */
+        .evolution-chart {
+            background: var(--dark-lighter);
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-top: 1rem;
+        }
+
+        .info-box {
             background: rgba(0, 217, 177, 0.1);
+            border: 1px solid rgba(0, 217, 177, 0.3);
+            padding: 1.25rem;
+            border-radius: 16px;
+            margin-top: 1rem;
+            line-height: 1.8;
+        }
+
+        .warning-box {
+            background: rgba(252, 211, 77, 0.1);
+            border: 1px solid rgba(252, 211, 77, 0.3);
+            padding: 1.25rem;
+            border-radius: 16px;
+            margin-top: 1rem;
+            line-height: 1.8;
         }
 
         .ai-loading {
             display: inline-block;
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(0, 217, 177, 0.2);
-            border-top-color: var(--primary);
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(102, 126, 234, 0.2);
+            border-top-color: #667eea;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -419,1292 +485,984 @@
             to { transform: rotate(360deg); }
         }
 
-        .badge {
-            display: inline-block;
-            padding: 0.35rem 0.85rem;
-            background: var(--gradient-free);
-            color: white;
-            border-radius: 20px;
-            font-size: 0.7rem;
+        /* NOTIFICAÇÕES */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dark-card);
+            color: var(--text);
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            border: 2px solid var(--primary);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            z-index: 3000;
+            animation: slideUp 0.3s ease-out;
+            max-width: 90%;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        /* HISTÓRICO DE TREINO DO DIA */
+        .day-history {
+            background: var(--dark-lighter);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-top: 0.75rem;
+            border-left: 3px solid var(--warning);
+        }
+
+        .day-history-title {
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            color: var(--warning);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
         }
 
-        .badge-ai { background: var(--gradient-ai); }
-        .badge-warning { background: var(--warning); color: var(--dark); }
-        .badge-success { background: var(--success); }
-
-        .info-box {
-            background: rgba(0, 217, 177, 0.1);
-            border-left: 4px solid var(--primary);
-            padding: 1.25rem;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
-
-        .warning-box {
-            background: rgba(255, 107, 157, 0.1);
-            border-left: 4px solid var(--secondary);
-            padding: 1.25rem;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            font-size: 0.95rem;
-        }
-
-        .alert-box {
-            background: rgba(252, 211, 77, 0.1);
-            border-left: 4px solid var(--warning);
-            padding: 1.25rem;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            font-size: 0.95rem;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: var(--dark-lighter);
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 1rem 0;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--gradient-1);
-            transition: width 0.3s;
-        }
-
-        .file-upload {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .file-upload input[type="file"] {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-
-        .file-upload-label {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            padding: 1.25rem;
-            background: var(--dark-lighter);
-            border: 2px dashed rgba(0, 217, 177, 0.3);
-            border-radius: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-            min-height: 60px;
-        }
-
-        .file-upload-label:hover {
-            border-color: var(--primary);
-            background: rgba(0, 217, 177, 0.05);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1.5rem;
+        .day-history-item {
+            font-size: 0.85rem;
             color: var(--text-muted);
+            padding: 0.25rem 0;
         }
 
-        .empty-state-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
+        /* RECOMENDAÇÕES */
+        .recommendation {
+            color: var(--primary);
+            font-size: 0.85rem;
+            font-style: italic;
+            margin-top: 0.25rem;
         }
 
-        @media (max-width: 768px) {
-            .stat-grid { grid-template-columns: 1fr; }
+        /* RESPONSIVE */
+        @media (max-width: 480px) {
+            .timer-time { font-size: 2.5rem; }
+            .workout-title { font-size: 1.1rem; }
+            .stat-value { font-size: 1.5rem; }
         }
     </style>
 </head>
 <body>
+    <!-- HEADER FIXO NO TOPO -->
     <header>
         <div class="header-content">
-            <div class="logo">💪 VitalTrack</div>
-            <button class="btn btn-primary btn-small" onclick="switchTab('relatorio')" style="padding: 0.5rem 1rem;">
-                📊 Relatório
-            </button>
-        </div>
-        <div class="nav-tabs">
-            <button class="nav-tab active" onclick="switchTab('perfil')">👤 Perfil</button>
-            <button class="nav-tab" onclick="switchTab('bio')">📊 Bio</button>
-            <button class="nav-tab" onclick="switchTab('exames')">🩺 Exames</button>
-            <button class="nav-tab" onclick="switchTab('treinos')">💪 Treinos</button>
-            <button class="nav-tab" onclick="switchTab('atividades')">🏃 Atividades</button>
+            <div class="logo">VitalTrack Pro</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">🤖 AI Powered</div>
         </div>
     </header>
 
+    <!-- NAVEGAÇÃO NO TOPO -->
+    <div class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('inicio')">🏠 Início</button>
+        <button class="nav-tab" onclick="switchTab('treinos')">💪 Treinos</button>
+        <button class="nav-tab" onclick="switchTab('atividades')">🏃 Atividades</button>
+        <button class="nav-tab" onclick="switchTab('bio')">📊 Bio</button>
+        <button class="nav-tab" onclick="switchTab('exames')">🩺 Exames</button>
+        <button class="nav-tab" onclick="switchTab('relatorio')">📈 Relatório</button>
+        <button class="nav-tab" onclick="switchTab('perfil')">⚙️ Perfil</button>
+    </div>
+
     <div class="container">
-        <!-- PERFIL -->
-        <div id="perfil" class="section active">
+        <!-- INÍCIO -->
+        <section id="inicio" class="section active">
             <div class="card">
-                <div class="card-title">👤 Meu Perfil</div>
-                <form onsubmit="savePerfil(event)">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Nome</label>
-                            <input type="text" id="p-nome" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Idade</label>
-                            <input type="number" id="p-idade" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Sexo</label>
-                            <select id="p-sexo" required>
-                                <option value="">Selecione</option>
-                                <option value="M">Masculino</option>
-                                <option value="F">Feminino</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Peso (kg)</label>
-                            <input type="number" step="0.1" id="p-peso" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Altura (cm)</label>
-                            <input type="number" id="p-altura" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Nível de Atividade</label>
-                            <select id="p-nivel" required>
-                                <option value="">Selecione</option>
-                                <option value="sedentario">Sedentário</option>
-                                <option value="leve">Levemente Ativo</option>
-                                <option value="moderado">Moderadamente Ativo</option>
-                                <option value="intenso">Muito Ativo</option>
-                                <option value="extremo">Atleta</option>
-                            </select>
-                        </div>
+                <h2 class="card-title">Bem-vindo ao VitalTrack Pro! 🚀</h2>
+                <p style="margin-bottom: 1rem;">Seu assistente pessoal de saúde e fitness com Inteligência Artificial.</p>
+                
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Treinos Hoje</div>
+                        <div class="stat-value" id="treinosHoje">0</div>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-block">💾 Salvar Perfil</button>
-                </form>
-            </div>
-
-            <div class="card">
-                <div class="card-title">🤖 OpenAI (Opcional)</div>
-                <div class="info-box">
-                    <strong>💡 Recursos com IA:</strong><br>
-                    • Análise inteligente de exames e bioimpedância<br>
-                    • Gráficos de evolução com insights<br>
-                    • Relatórios mensais personalizados<br>
-                    • Geração de treinos com GPT-4
-                </div>
-                <div class="form-group">
-                    <label>Chave API OpenAI</label>
-                    <input type="password" id="apiKey" placeholder="sk-...">
-                </div>
-                <button class="btn btn-ai btn-block" onclick="saveApiKey()">🔑 Salvar Chave</button>
-            </div>
-
-            <div class="card">
-                <button class="btn btn-danger btn-block" onclick="clearAll()">🗑️ Limpar Todos os Dados</button>
-            </div>
-        </div>
-
-        <!-- BIOIMPEDÂNCIA -->
-        <div id="bio" class="section">
-            <div class="card">
-                <div class="card-title">
-                    📊 Bioimpedância
-                    <button class="btn btn-primary btn-small" onclick="openModal('bioModal')">+ Adicionar</button>
-                </div>
-                <div class="stat-grid" id="bioStats"></div>
-                <button class="btn btn-ai btn-block" onclick="verDashboardBio()">📈 Ver Dashboard & Evolução</button>
-                <div id="bioList" class="item-list"></div>
-            </div>
-        </div>
-
-        <!-- EXAMES -->
-        <div id="exames" class="section">
-            <div class="card">
-                <div class="card-title">
-                    🩺 Exames
-                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                        <button class="btn btn-primary btn-small" onclick="openModal('exameModal')">+ Adicionar</button>
-                        <button class="btn btn-ai btn-small" onclick="verDashboardExames()">📈 Dashboard</button>
+                    <div class="stat-card">
+                        <div class="stat-label">Esta Semana</div>
+                        <div class="stat-value" id="treinosSemana">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total de Horas</div>
+                        <div class="stat-value" id="totalHoras">0h</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Consistência</div>
+                        <div class="stat-value" id="consistencia">-</div>
                     </div>
                 </div>
-                <div id="exameList" class="item-list"></div>
+
+                <button class="btn btn-ai btn-block" onclick="switchTab('treinos')">🎯 Criar Treino Personalizado</button>
+                <button class="btn btn-primary btn-block" onclick="switchTab('relatorio')">📊 Ver Relatório Completo</button>
             </div>
-        </div>
+
+            <div class="card">
+                <h3 class="card-title">🔥 Último Treino</h3>
+                <div id="ultimoTreinoInfo">
+                    <p style="color: var(--text-muted);">Nenhum treino registrado ainda.</p>
+                </div>
+            </div>
+        </section>
 
         <!-- TREINOS -->
-        <div id="treinos" class="section">
+        <section id="treinos" class="section">
             <div class="card">
-                <div class="card-title">
+                <h2 class="card-title">
                     💪 Meus Treinos
                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                        <button class="btn btn-free btn-small" onclick="iniciarTreinoInteligente()">✨ Gerar</button>
-                        <button class="btn btn-primary btn-small" onclick="openModal('treinoMan')">+ Manual</button>
+                        <button class="btn btn-ai btn-small" onclick="openModal('gerarTreinoModal')">🤖 Gerar com IA</button>
+                        <button class="btn btn-primary btn-small" onclick="openModal('treinoMan')">➕ Adicionar</button>
                     </div>
-                </div>
-                <div id="treinoList"></div>
+                </h2>
+                
+                <div id="treinosList"></div>
             </div>
-        </div>
+        </section>
 
-        <!-- ATIVIDADES -->
-        <div id="atividades" class="section">
+        <!-- ATIVIDADES EXTRAS -->
+        <section id="atividades" class="section">
             <div class="card">
-                <div class="card-title">🏃 Atividades Extras</div>
-                <div class="info-box">
-                    <strong>📱 Importe do Apple Watch:</strong><br>
-                    Faça upload de arquivos .fit, .gpx ou .csv com suas atividades
-                </div>
-                <div class="file-upload">
-                    <input type="file" id="fileUpload" accept=".fit,.gpx,.csv,.xml" onchange="processarArquivo(event)">
-                    <div class="file-upload-label">
-                        <span style="font-size: 2rem;">📤</span>
-                        <span>Clique para fazer upload</span>
-                    </div>
-                </div>
-                <button class="btn btn-primary btn-block" onclick="openModal('atividadeManual')">+ Adicionar Manualmente</button>
-                <div id="atividadeList" class="item-list" style="margin-top: 1.5rem;"></div>
+                <h2 class="card-title">
+                    🏃 Atividades Extras
+                    <button class="btn btn-primary btn-small" onclick="openModal('atividadeModal')">➕ Adicionar</button>
+                </h2>
+                <p style="margin-bottom: 1rem; color: var(--text-muted);">Registre outras atividades físicas e uploads do Apple Watch</p>
+                <div id="atividadesList"></div>
             </div>
-        </div>
+        </section>
+
+        <!-- BIOIMPEDÂNCIA -->
+        <section id="bio" class="section">
+            <div class="card">
+                <h2 class="card-title">
+                    📊 Bioimpedância
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn btn-ai btn-small" onclick="analisarBioIA()">🤖 Analisar</button>
+                        <button class="btn btn-primary btn-small" onclick="openModal('bioModal')">➕ Adicionar</button>
+                    </div>
+                </h2>
+                
+                <div class="evolution-chart">
+                    <canvas id="bioChart"></canvas>
+                </div>
+
+                <div id="bioList" style="margin-top: 1.5rem;"></div>
+            </div>
+        </section>
+
+        <!-- EXAMES -->
+        <section id="exames" class="section">
+            <div class="card">
+                <h2 class="card-title">
+                    🩺 Exames
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn btn-ai btn-small" onclick="analisarExamesIA()">🤖 Analisar</button>
+                        <button class="btn btn-primary btn-small" onclick="openModal('exameModal')">➕ Adicionar</button>
+                    </div>
+                </h2>
+                
+                <div id="examesList"></div>
+            </div>
+        </section>
 
         <!-- RELATÓRIO -->
-        <div id="relatorio" class="section">
+        <section id="relatorio" class="section">
             <div class="card">
-                <div class="card-title">📊 Relatório Mensal</div>
+                <h2 class="card-title">📈 Relatório de Progresso</h2>
+                
                 <div class="form-group">
                     <label>Período</label>
                     <select id="periodoRelatorio" onchange="gerarRelatorio()">
-                        <option value="30">Últimos 30 dias</option>
+                        <option value="7">Últimos 7 dias</option>
+                        <option value="15">Últimos 15 dias</option>
+                        <option value="30" selected>Últimos 30 dias</option>
                         <option value="60">Últimos 60 dias</option>
                         <option value="90">Últimos 90 dias</option>
                     </select>
                 </div>
-                <button class="btn btn-ai btn-block" onclick="gerarRelatorioIA()">🤖 Gerar Relatório com IA</button>
+
+                <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+                    <button class="btn btn-primary" style="flex: 1;" onclick="gerarRelatorio()">📊 Atualizar</button>
+                    <button class="btn btn-ai" style="flex: 1;" onclick="gerarRelatorioIA()">🤖 Análise IA</button>
+                </div>
+
                 <div id="relatorioContent"></div>
             </div>
+        </section>
+
+        <!-- PERFIL -->
+        <section id="perfil" class="section">
+            <div class="card">
+                <h2 class="card-title">⚙️ Configurações</h2>
+                
+                <form onsubmit="savePerfil(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nome</label>
+                            <input type="text" id="nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Idade</label>
+                            <input type="number" id="idade" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Chave OpenAI (para IA)</label>
+                            <input type="password" id="openaiKey" placeholder="sk-...">
+                            <small style="color: var(--text-muted); font-size: 0.8rem;">Necessário para análises com IA</small>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">💾 Salvar Perfil</button>
+                </form>
+
+                <button class="btn btn-danger btn-block" onclick="clearAll()">🗑️ Limpar Todos os Dados</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- MODAL: GERAR TREINO COM IA -->
+    <div id="gerarTreinoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">🤖 Gerar Treino com IA</h3>
+                <button class="modal-close" onclick="closeModal('gerarTreinoModal')">×</button>
+            </div>
+            <form onsubmit="gerarTreinoIA(event)" id="formGerarTreino">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Objetivo Principal</label>
+                        <select id="objetivo" required onchange="updateRecommendations()">
+                            <option value="">Selecione...</option>
+                            <option value="hipertrofia">Hipertrofia (Ganho de Massa)</option>
+                            <option value="emagrecimento">Emagrecimento (Perda de Peso)</option>
+                            <option value="definicao">Definição Muscular</option>
+                            <option value="forca">Ganho de Força</option>
+                            <option value="resistencia">Resistência</option>
+                            <option value="saude">Saúde Geral</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nível de Experiência</label>
+                        <select id="nivel" required>
+                            <option value="">Selecione...</option>
+                            <option value="iniciante">Iniciante</option>
+                            <option value="intermediario">Intermediário</option>
+                            <option value="avancado">Avançado</option>
+                        </select>
+                        <div class="recommendation" id="recNivel"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Frequência Semanal</label>
+                        <select id="frequencia" required>
+                            <option value="">Selecione...</option>
+                            <option value="2">2x por semana</option>
+                            <option value="3">3x por semana</option>
+                            <option value="4">4x por semana</option>
+                            <option value="5">5x por semana</option>
+                            <option value="6">6x por semana</option>
+                        </select>
+                        <div class="recommendation" id="recFreq"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Duração do Treino</label>
+                        <select id="duracao" required>
+                            <option value="">Selecione...</option>
+                            <option value="30">30 minutos</option>
+                            <option value="45">45 minutos</option>
+                            <option value="60">60 minutos</option>
+                            <option value="90">90 minutos</option>
+                        </select>
+                        <div class="recommendation" id="recDuracao"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Equipamentos Disponíveis</label>
+                        <select id="equipamentos" required multiple size="5">
+                            <option value="peso_livre">Pesos Livres (Halteres, Barras)</option>
+                            <option value="maquinas">Máquinas</option>
+                            <option value="peso_corporal">Peso Corporal</option>
+                            <option value="elasticos">Elásticos/Bandas</option>
+                            <option value="kettlebell">Kettlebell</option>
+                        </select>
+                        <small style="color: var(--text-muted); font-size: 0.8rem;">Segure Ctrl/Cmd para selecionar múltiplos</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Faz outras atividades físicas?</label>
+                        <select id="outrasAtividades" onchange="toggleOutrasAtividades()">
+                            <option value="nao">Não</option>
+                            <option value="sim">Sim</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="detalhesOutrasAtividades" style="display:none;">
+                        <label>Quais atividades e frequência?</label>
+                        <textarea id="detalhesAtividades" rows="3" placeholder="Ex: Futebol 2x/semana, Corrida 3x/semana"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Restrições ou Lesões</label>
+                        <textarea id="restricoes" rows="3" placeholder="Opcional: Descreva lesões ou limitações"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Observações Adicionais</label>
+                        <textarea id="observacoes" rows="3" placeholder="Opcional: Preferências específicas"></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-ai btn-block">🚀 Gerar Treino Personalizado</button>
+            </form>
         </div>
     </div>
 
-    <!-- MODALS -->
+    <!-- MODAL: ADICIONAR TREINO MANUAL -->
+    <div id="treinoMan" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">➕ Adicionar Treino Manual</h3>
+                <button class="modal-close" onclick="closeModal('treinoMan')">×</button>
+            </div>
+            <form onsubmit="saveTreinoManual(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Nome do Treino</label>
+                        <input type="text" id="tm-nome" required placeholder="Ex: Treino A - Peito e Tríceps">
+                    </div>
+                    <div class="form-group">
+                        <label>Exercícios (um por linha)</label>
+                        <textarea id="tm-ex" rows="8" required placeholder="Ex:&#10;Supino Reto - 4x10 - https://youtube.com/watch?v=...&#10;Crucifixo - 3x12 - https://youtube.com/watch?v=..."></textarea>
+                        <small style="color: var(--text-muted); font-size: 0.8rem;">Formato: Nome - Séries x Reps - Link YouTube (opcional)</small>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">💾 Salvar Treino</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ATIVIDADE EXTRA -->
+    <div id="atividadeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">🏃 Adicionar Atividade</h3>
+                <button class="modal-close" onclick="closeModal('atividadeModal')">×</button>
+            </div>
+            <form onsubmit="saveAtividade(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Tipo de Atividade</label>
+                        <select id="tipoAtividade" required onchange="toggleUpload()">
+                            <option value="">Selecione...</option>
+                            <option value="corrida">Corrida</option>
+                            <option value="ciclismo">Ciclismo</option>
+                            <option value="natacao">Natação</option>
+                            <option value="futebol">Futebol</option>
+                            <option value="basquete">Basquete</option>
+                            <option value="yoga">Yoga</option>
+                            <option value="caminhada">Caminhada</option>
+                            <option value="apple_watch">Upload Apple Watch</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="nomeAtividade">
+                        <label>Nome/Descrição</label>
+                        <input type="text" id="atividadeNome" placeholder="Ex: Corrida no parque">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Data</label>
+                        <input type="date" id="atividadeData" required>
+                    </div>
+
+                    <div class="form-group" id="duracaoAtividade">
+                        <label>Duração (minutos)</label>
+                        <input type="number" id="atividadeDuracao" min="1" placeholder="Ex: 30">
+                    </div>
+
+                    <div class="form-group" id="uploadField" style="display:none;">
+                        <label>Arquivo Apple Watch</label>
+                        <input type="file" id="appleWatchFile" accept=".xml,.gpx,.fit">
+                        <small style="color: var(--text-muted); font-size: 0.8rem;">Formatos: XML, GPX, FIT</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Observações</label>
+                        <textarea id="atividadeObs" rows="3" placeholder="Opcional"></textarea>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">💾 Salvar Atividade</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: BIOIMPEDÂNCIA -->
     <div id="bioModal" class="modal">
         <div class="modal-content">
-            <h3 style="color:var(--primary); margin-bottom:1rem;">Nova Bioimpedância</h3>
+            <div class="modal-header">
+                <h3 class="modal-title">📊 Adicionar Bioimpedância</h3>
+                <button class="modal-close" onclick="closeModal('bioModal')">×</button>
+            </div>
             <form onsubmit="saveBio(event)">
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Data</label>
-                        <input type="date" id="bio-data" required>
+                        <input type="date" id="bioData" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Upload do Resultado (Opcional)</label>
+                        <input type="file" id="bioArquivo" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                        <small style="color: var(--text-muted); font-size: 0.8rem;">PDF, Imagem ou Word</small>
                     </div>
                     <div class="form-group">
                         <label>Peso (kg)</label>
-                        <input type="number" step="0.1" id="bio-peso" required>
+                        <input type="number" step="0.1" id="bioPeso" required>
                     </div>
                     <div class="form-group">
-                        <label>% Gordura</label>
-                        <input type="number" step="0.1" id="bio-gord" required>
+                        <label>IMC</label>
+                        <input type="number" step="0.1" id="bioIMC">
+                    </div>
+                    <div class="form-group">
+                        <label>Gordura (%)</label>
+                        <input type="number" step="0.1" id="bioGordura">
                     </div>
                     <div class="form-group">
                         <label>Massa Muscular (kg)</label>
-                        <input type="number" step="0.1" id="bio-musc" required>
+                        <input type="number" step="0.1" id="bioMassa">
+                    </div>
+                    <div class="form-group">
+                        <label>Água (%)</label>
+                        <input type="number" step="0.1" id="bioAgua">
                     </div>
                 </div>
-                <div style="display:flex; gap:0.75rem; margin-top:1rem;">
-                    <button type="button" class="btn btn-danger" style="flex:1" onclick="closeModal('bioModal')">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" style="flex:1">Salvar</button>
-                </div>
+                <button type="submit" class="btn btn-primary btn-block">💾 Salvar</button>
             </form>
         </div>
     </div>
 
+    <!-- MODAL: EXAME -->
     <div id="exameModal" class="modal">
         <div class="modal-content">
-            <h3 style="color:var(--primary); margin-bottom:1rem;">Novo Exame</h3>
-            <form onsubmit="saveExame(event)">
-                <div class="form-group">
-                    <label>Tipo</label>
-                    <select id="ex-tipo" onchange="updateExameFields()">
-                        <option value="custom">Outro</option>
-                        <option value="hemograma">Hemograma</option>
-                        <option value="colesterol">Colesterol</option>
-                        <option value="glicemia">Glicemia</option>
-                        <option value="tireoide">Tireoide</option>
-                        <option value="vitaminas">Vitaminas</option>
-                        <option value="hormonios">Hormônios</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Nome</label>
-                    <input type="text" id="ex-nome" required>
-                </div>
-                <div class="form-group">
-                    <label>Data</label>
-                    <input type="date" id="ex-data" required>
-                </div>
-                <div class="form-group">
-                    <label>Resultado</label>
-                    <textarea id="ex-res" rows="4" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="ex-status">
-                        <option value="normal">Normal</option>
-                        <option value="atencao">Atenção</option>
-                        <option value="alterado">Alterado</option>
-                    </select>
-                </div>
-                <div style="display:flex; gap:0.75rem; margin-top:1rem;">
-                    <button type="button" class="btn btn-danger" style="flex:1" onclick="closeModal('exameModal')">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" style="flex:1">Salvar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="treinoMan" class="modal">
-        <div class="modal-content">
-            <h3 style="color:var(--primary); margin-bottom:1rem;">Treino Manual</h3>
-            <form onsubmit="saveTreinoManual(event)">
-                <div class="form-group">
-                    <label>Nome</label>
-                    <input type="text" id="tm-nome" required>
-                </div>
-                <div class="form-group">
-                    <label>Exercícios</label>
-                    <textarea id="tm-ex" rows="6" placeholder="Ex: Supino reto - 4x12" required></textarea>
-                </div>
-                <div style="display:flex; gap:0.75rem; margin-top:1rem;">
-                    <button type="button" class="btn btn-danger" style="flex:1" onclick="closeModal('treinoMan')">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" style="flex:1">Salvar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="atividadeManual" class="modal">
-        <div class="modal-content">
-            <h3 style="color:var(--primary); margin-bottom:1rem;">Atividade Extra</h3>
-            <form onsubmit="saveAtividade(event)">
-                <div class="form-group">
-                    <label>Tipo</label>
-                    <select id="at-tipo" required>
-                        <option value="">Selecione</option>
-                        <option value="corrida">Corrida</option>
-                        <option value="ciclismo">Ciclismo</option>
-                        <option value="natacao">Natação</option>
-                        <option value="futebol">Futebol</option>
-                        <option value="luta">Luta/Artes Marciais</option>
-                        <option value="yoga">Yoga/Pilates</option>
-                        <option value="outro">Outro</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Data</label>
-                    <input type="date" id="at-data" required>
-                </div>
-                <div class="form-group">
-                    <label>Duração (minutos)</label>
-                    <input type="number" id="at-duracao" required>
-                </div>
-                <div class="form-group">
-                    <label>Notas (opcional)</label>
-                    <textarea id="at-notas" rows="3"></textarea>
-                </div>
-                <div style="display:flex; gap:0.75rem; margin-top:1rem;">
-                    <button type="button" class="btn btn-danger" style="flex:1" onclick="closeModal('atividadeManual')">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" style="flex:1">Salvar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="treinoChoice" class="modal">
-        <div class="modal-content">
-            <h3 style="color:var(--primary); margin-bottom:1.5rem; text-align:center;">Gerar Treino Personalizado</h3>
-            <div style="display:grid; gap:1rem;">
-                <button class="btn btn-free btn-block" onclick="iniciarChatTreinoGratis()" style="padding:1.5rem;">
-                    <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
-                        <span style="font-size:2.5rem;">✨</span>
-                        <span style="font-size:1.1rem; font-weight:700;">Sistema Inteligente</span>
-                        <span class="badge">100% GRÁTIS</span>
-                        <span style="font-size:0.85rem; opacity:0.9;">Com análise de bio + exames</span>
-                    </div>
-                </button>
-                <button class="btn btn-ai btn-block" onclick="iniciarChatTreinoIA()" style="padding:1.5rem;">
-                    <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
-                        <span style="font-size:2.5rem;">🤖</span>
-                        <span style="font-size:1.1rem; font-weight:700;">GPT-4 OpenAI</span>
-                        <span class="badge badge-ai">REQUER API</span>
-                        <span style="font-size:0.85rem; opacity:0.9;">IA avançada personalizada</span>
-                    </div>
-                </button>
+            <div class="modal-header">
+                <h3 class="modal-title">🩺 Adicionar Exame</h3>
+                <button class="modal-close" onclick="closeModal('exameModal')">×</button>
             </div>
-            <button class="btn btn-danger btn-block" onclick="closeModal('treinoChoice')">Cancelar</button>
+            <form onsubmit="saveExame(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Data</label>
+                        <input type="date" id="exameData" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Exame</label>
+                        <input type="text" id="exameTipo" required placeholder="Ex: Hemograma Completo">
+                    </div>
+                    <div class="form-group">
+                        <label>Upload do Resultado (Opcional)</label>
+                        <input type="file" id="exameArquivo" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                        <small style="color: var(--text-muted); font-size: 0.8rem;">PDF, Imagem ou Word</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Resultados</label>
+                        <textarea id="exameResultados" rows="6" required placeholder="Descreva os resultados..."></textarea>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">💾 Salvar</button>
+            </form>
         </div>
     </div>
 
-    <div id="aiChat" class="modal">
-        <div class="modal-content">
-            <h3 style="color:var(--primary); margin-bottom:1rem; text-align:center;">
-                <span id="chatTitleIcon">✨</span> <span id="chatTitle">Gerador</span>
-            </h3>
-            <div id="aiChatContent"></div>
-        </div>
-    </div>
-
+    <!-- MODAL: CRONÔMETRO -->
     <div id="cronometroModal" class="modal">
         <div class="modal-content">
-            <div class="timer-widget">
-                <h3 style="color:var(--primary); margin-bottom:1rem;">⏱️ Cronômetro de Treino</h3>
-                <div class="timer-display" id="timerDisplay">00:00:00</div>
-                <div class="timer-buttons">
-                    <button class="btn btn-primary" id="startBtn" onclick="iniciarTimer()">▶️ Iniciar</button>
-                    <button class="btn btn-danger" id="pauseBtn" onclick="pausarTimer()" style="display:none;">⏸️ Pausar</button>
-                    <button class="btn btn-ai" id="finishBtn" onclick="finalizarTimer()" style="display:none;">⏹️ Finalizar</button>
-                </div>
-                <div id="workoutName" style="margin-top:1rem; color:var(--text-muted);"></div>
+            <div class="modal-header">
+                <h3 class="modal-title">⏱️ Cronômetro</h3>
+                <button class="modal-close" onclick="closeModal('cronometroModal')">×</button>
             </div>
-            <button class="btn btn-danger btn-block" onclick="closeModal('cronometroModal')">Fechar</button>
+            
+            <div class="timer-display">
+                <div style="color: var(--text-muted); font-size: 1rem; margin-bottom: 0.5rem;">Treino Atual</div>
+                <div style="font-weight: 700; font-size: 1.3rem; color: var(--primary);" id="workoutName">-</div>
+                <div class="timer-time" id="timerDisplay">00:00:00</div>
+                
+                <div class="timer-controls">
+                    <button class="btn btn-success" id="startBtn" onclick="iniciarTimer()">▶️ Iniciar</button>
+                    <button class="btn btn-primary" id="pauseBtn" style="display:none;" onclick="pausarTimer()">⏸️ Pausar</button>
+                    <button class="btn btn-danger" id="finishBtn" style="display:none;" onclick="finalizarTimer()">✓ Finalizar</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
+        // DATABASE
         const DB = {
             perfil: 'vt_perfil',
+            treinos: 'vt_treinos',
+            sessoes: 'vt_sessoes',
             bio: 'vt_bio',
             exames: 'vt_exames',
-            treinos: 'vt_treinos',
             atividades: 'vt_atividades',
-            sessoes: 'vt_sessoes',
-            apiKey: 'vt_apikey'
+            openai: 'vt_openai'
         };
 
-        let timerInterval = null;
-        let timerSeconds = 0;
-        let timerPaused = false;
-        let currentWorkout = null;
+        function save(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
 
+        function load(key) {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function loadSingle(key) {
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : null;
+        }
+
+        // NAVEGAÇÃO
         function switchTab(tab) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(tab).classList.add('active');
-            const tabBtn = Array.from(document.querySelectorAll('.nav-tab')).find(t => t.textContent.includes(tab === 'perfil' ? 'Perfil' : tab === 'bio' ? 'Bio' : tab === 'exames' ? 'Exames' : tab === 'treinos' ? 'Treinos' : 'Atividades'));
-            if(tabBtn) tabBtn.classList.add('active');
             
-            if(tab === 'relatorio') gerarRelatorio();
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+
+            // Atualizar dados ao mudar de aba
+            if (tab === 'inicio') updateDashboard();
+            if (tab === 'bio') loadBio();
+            if (tab === 'exames') loadExames();
+            if (tab === 'treinos') loadTreinos();
+            if (tab === 'atividades') loadAtividades();
+            if (tab === 'relatorio') gerarRelatorio();
         }
 
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-        
-        function load(key) {
-            try { return JSON.parse(localStorage.getItem(key)) || []; }
-            catch { return []; }
+        // MODAL
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            const dateInputs = document.getElementById(id).querySelectorAll('input[type="date"]');
+            dateInputs.forEach(input => {
+                if (!input.value) {
+                    input.value = new Date().toISOString().split('T')[0];
+                }
+            });
         }
-        
-        function save(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
-        
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // NOTIFICAÇÃO
         function notify(msg) {
-            const n = document.createElement('div');
-            n.textContent = msg;
-            n.style.cssText = 'position:fixed;top:80px;right:20px;background:var(--success);color:white;padding:1rem 1.5rem;border-radius:12px;z-index:9999;animation:fadeIn 0.3s;box-shadow:0 4px 20px rgba(0,0,0,0.5);';
-            document.body.appendChild(n);
-            setTimeout(() => n.remove(), 3000);
-        }
-
-        function deleteItem(key, id, reload) {
-            if(confirm('Deseja realmente excluir?')) {
-                save(key, load(key).filter(i => i.id !== id));
-                reload();
-                notify('Item excluído!');
-            }
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
         }
 
         // PERFIL
         function savePerfil(e) {
             e.preventDefault();
             const perfil = {
-                nome: document.getElementById('p-nome').value,
-                idade: parseInt(document.getElementById('p-idade').value),
-                sexo: document.getElementById('p-sexo').value,
-                peso: parseFloat(document.getElementById('p-peso').value),
-                altura: parseInt(document.getElementById('p-altura').value),
-                nivel: document.getElementById('p-nivel').value
+                nome: document.getElementById('nome').value,
+                idade: document.getElementById('idade').value,
+                openaiKey: document.getElementById('openaiKey').value
             };
-            localStorage.setItem(DB.perfil, JSON.stringify(perfil));
-            notify('Perfil salvo!');
+            save(DB.perfil, perfil);
+            if (perfil.openaiKey) {
+                localStorage.setItem(DB.openai, perfil.openaiKey);
+            }
+            notify('Perfil salvo com sucesso! ✅');
         }
 
         function loadPerfil() {
-            const p = localStorage.getItem(DB.perfil);
-            if(p) {
-                const perfil = JSON.parse(p);
-                document.getElementById('p-nome').value = perfil.nome || '';
-                document.getElementById('p-idade').value = perfil.idade || '';
-                document.getElementById('p-sexo').value = perfil.sexo || '';
-                document.getElementById('p-peso').value = perfil.peso || '';
-                document.getElementById('p-altura').value = perfil.altura || '';
-                document.getElementById('p-nivel').value = perfil.nivel || '';
-            }
-        }
-
-        function saveApiKey() {
-            const key = document.getElementById('apiKey').value.trim();
-            if(key) {
-                localStorage.setItem(DB.apiKey, key);
-                notify('Chave API salva!');
-            } else {
-                localStorage.removeItem(DB.apiKey);
-                notify('Chave removida!');
+            const perfil = loadSingle(DB.perfil);
+            if (perfil) {
+                document.getElementById('nome').value = perfil.nome || '';
+                document.getElementById('idade').value = perfil.idade || '';
+                document.getElementById('openaiKey').value = perfil.openaiKey || '';
             }
         }
 
         function checkApiKey() {
-            const key = localStorage.getItem(DB.apiKey);
-            if(key) document.getElementById('apiKey').value = key;
-            return !!key;
+            return !!localStorage.getItem(DB.openai);
         }
 
-        // BIO
-        function saveBio(e) {
-            e.preventDefault();
-            const list = load(DB.bio);
-            list.unshift({
-                id: Date.now(),
-                data: document.getElementById('bio-data').value,
-                peso: parseFloat(document.getElementById('bio-peso').value),
-                gordura: parseFloat(document.getElementById('bio-gord').value),
-                muscular: parseFloat(document.getElementById('bio-musc').value)
-            });
-            save(DB.bio, list);
-            closeModal('bioModal');
-            e.target.reset();
-            loadBio();
-            notify('Bioimpedância salva!');
-        }
-
-        function loadBio() {
-            const list = load(DB.bio);
-            const container = document.getElementById('bioList');
-            const stats = document.getElementById('bioStats');
-            
-            if(list.length > 0) {
-                const latest = list[0];
-                const perfil = JSON.parse(localStorage.getItem(DB.perfil) || '{}');
-                const imc = perfil.altura ? (latest.peso / ((perfil.altura / 100) ** 2)).toFixed(1) : '-';
-                
-                stats.innerHTML = `
-                    <div class="stat-card">
-                        <div class="stat-label">Peso Atual</div>
-                        <div class="stat-value">${latest.peso}kg</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">IMC</div>
-                        <div class="stat-value">${imc}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">% Gordura</div>
-                        <div class="stat-value">${latest.gordura}%</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Massa Muscular</div>
-                        <div class="stat-value">${latest.muscular}kg</div>
-                    </div>
-                `;
-            } else {
-                stats.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><p>Adicione sua primeira medição</p></div>';
-            }
-            
-            container.innerHTML = list.length ? list.map(b => `
-                <div class="item">
-                    <div style="flex:1">
-                        <h4>${new Date(b.data).toLocaleDateString('pt-BR')}</h4>
-                        <p style="margin-top:0.5rem; color:var(--text-muted); font-size:0.9rem;">
-                            ${b.peso}kg • ${b.gordura}% gordura • ${b.muscular}kg muscular
-                        </p>
-                    </div>
-                    <button class="btn btn-danger btn-small" onclick="deleteItem('${DB.bio}', ${b.id}, loadBio)">🗑️</button>
-                </div>
-            `).join('') : '';
-        }
-
-        function verDashboardBio() {
-            const list = load(DB.bio);
-            if(list.length < 2) {
-                alert('Adicione pelo menos 2 medições para ver evolução!');
-                return;
-            }
-            
-            const modal = document.createElement('div');
-            modal.className = 'modal active';
-            modal.style.zIndex = '3000';
-            
-            const hasAPI = checkApiKey();
-            
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <h3 style="color:var(--primary); margin-bottom:1rem;">📈 Dashboard de Bioimpedância</h3>
-                    <div class="chart-container">
-                        <canvas id="bioChart"></canvas>
-                    </div>
-                    ${hasAPI ? `<button class="btn btn-ai btn-block" onclick="analisarBioIA()">🤖 Análise com IA</button>` : ''}
-                    <div id="bioAnalise"></div>
-                    <button class="btn btn-primary btn-block" onclick="this.closest('.modal').remove()">Fechar</button>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-            
-            setTimeout(() => {
-                const ctx = document.getElementById('bioChart').getContext('2d');
-                const sortedData = list.sort((a, b) => new Date(a.data) - new Date(b.data));
-                
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: sortedData.map(b => new Date(b.data).toLocaleDateString('pt-BR')),
-                        datasets: [
-                            {
-                                label: 'Peso (kg)',
-                                data: sortedData.map(b => b.peso),
-                                borderColor: '#00D9B1',
-                                tension: 0.4
-                            },
-                            {
-                                label: '% Gordura',
-                                data: sortedData.map(b => b.gordura),
-                                borderColor: '#FF6B9D',
-                                tension: 0.4
-                            },
-                            {
-                                label: 'Massa Muscular (kg)',
-                                data: sortedData.map(b => b.muscular),
-                                borderColor: '#667eea',
-                                tension: 0.4
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: { legend: { labels: { color: '#E8EAED' } } },
-                        scales: {
-                            y: { ticks: { color: '#9CA3AF' }, grid: { color: 'rgba(255,255,255,0.1)' } },
-                            x: { ticks: { color: '#9CA3AF' }, grid: { color: 'rgba(255,255,255,0.1)' } }
-                        }
-                    }
-                });
-            }, 100);
-        }
-
-        async function analisarBioIA() {
-            const bioAnalise = document.getElementById('bioAnalise');
-            bioAnalise.innerHTML = '<div style="text-align:center; padding:2rem;"><span class="ai-loading"></span><p style="margin-top:1rem;">Analisando evolução...</p></div>';
-            
-            try {
-                const list = load(DB.bio);
-                const prompt = `Analise a evolução desta bioimpedância e forneça insights:
-                
-${JSON.stringify(list, null, 2)}
-
-Forneça:
-1. Tendências identificadas
-2. Pontos positivos
-3. Pontos de atenção
-4. Recomendações específicas
-
-Seja objetivo e motivador.`;
-                
-                const resposta = await callIA(prompt);
-                bioAnalise.innerHTML = `<div class="info-box" style="white-space:pre-line; margin-top:1rem;">${resposta}</div>`;
-            } catch(e) {
-                bioAnalise.innerHTML = `<div class="warning-box">Erro na análise: ${e.message}</div>`;
-            }
-        }
-
-        // EXAMES
-        function updateExameFields() {
-            const tipo = document.getElementById('ex-tipo').value;
-            const nomeField = document.getElementById('ex-nome');
-            
-            const templates = {
-                hemograma: 'Hemograma Completo',
-                colesterol: 'Perfil Lipídico',
-                glicemia: 'Glicemia de Jejum',
-                tireoide: 'TSH e T4 Livre',
-                vitaminas: 'Vitaminas',
-                hormonios: 'Perfil Hormonal'
-            };
-            
-            if(templates[tipo]) nomeField.value = templates[tipo];
-        }
-
-        function saveExame(e) {
-            e.preventDefault();
-            const list = load(DB.exames);
-            list.unshift({
-                id: Date.now(),
-                tipo: document.getElementById('ex-tipo').value,
-                nome: document.getElementById('ex-nome').value,
-                data: document.getElementById('ex-data').value,
-                resultado: document.getElementById('ex-res').value,
-                status: document.getElementById('ex-status').value
-            });
-            save(DB.exames, list);
-            closeModal('exameModal');
-            e.target.reset();
-            loadExames();
-            notify('Exame salvo!');
-        }
-
-        function loadExames() {
-            const list = load(DB.exames);
-            const container = document.getElementById('exameList');
-            
-            const statusColors = {
-                normal: 'var(--success)',
-                atencao: 'var(--warning)',
-                alterado: 'var(--error)'
-            };
-            
-            const statusLabels = {
-                normal: '✓ Normal',
-                atencao: '⚠ Atenção',
-                alterado: '✗ Alterado'
-            };
-            
-            container.innerHTML = list.length ? list.map(e => `
-                <div class="item">
-                    <div style="flex:1">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-                            <h4>${e.nome}</h4>
-                            <span style="color:${statusColors[e.status]}; font-size:0.85rem; font-weight:bold;">${statusLabels[e.status]}</span>
-                        </div>
-                        <p style="color:var(--text-muted); font-size:0.85rem;">${new Date(e.data).toLocaleDateString('pt-BR')}</p>
-                        <p style="margin-top:0.75rem; font-size:0.9rem; line-height:1.5;">${e.resultado}</p>
-                    </div>
-                    <button class="btn btn-danger btn-small" onclick="deleteItem('${DB.exames}', ${e.id}, loadExames)">🗑️</button>
-                </div>
-            `).join('') : '<div class="empty-state"><div class="empty-state-icon">🩺</div><p>Nenhum exame cadastrado</p></div>';
-        }
-
-        function verDashboardExames() {
-            const exames = load(DB.exames);
-            if(exames.length === 0) {
-                alert('Adicione exames primeiro!');
-                return;
-            }
-            
-            const modal = document.createElement('div');
-            modal.className = 'modal active';
-            modal.style.zIndex = '3000';
-            
-            const hasAPI = checkApiKey();
-            
-            const alterados = exames.filter(e => e.status === 'alterado').length;
-            const atencao = exames.filter(e => e.status === 'atencao').length;
-            const normais = exames.length - alterados - atencao;
-            
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <h3 style="color:var(--primary); margin-bottom:1rem;">🩺 Dashboard de Exames</h3>
-                    <div class="stat-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Total</div>
-                            <div class="stat-value">${exames.length}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Normais</div>
-                            <div class="stat-value" style="color:var(--success);">${normais}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Atenção</div>
-                            <div class="stat-value" style="color:var(--warning);">${atencao}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Alterados</div>
-                            <div class="stat-value" style="color:var(--error);">${alterados}</div>
-                        </div>
-                    </div>
-                    ${hasAPI ? `<button class="btn btn-ai btn-block" onclick="analisarExamesIA()">🤖 Análise Detalhada com IA</button>` : ''}
-                    <div id="examAnalise"></div>
-                    <button class="btn btn-primary btn-block" onclick="this.closest('.modal').remove()">Fechar</button>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-        }
-
-        async function analisarExamesIA() {
-            const examAnalise = document.getElementById('examAnalise');
-            examAnalise.innerHTML = '<div style="text-align:center; padding:2rem;"><span class="ai-loading"></span><p style="margin-top:1rem;">Analisando exames...</p></div>';
-            
-            try {
-                const exames = load(DB.exames);
-                const prompt = `Você é um assistente de saúde. Analise estes exames laboratoriais:
-
-${JSON.stringify(exames, null, 2)}
-
-Forneça:
-1. Resumo geral do estado de saúde
-2. Exames que requerem atenção especial
-3. Tendências ao longo do tempo (se houver múltiplos exames)
-4. Recomendações gerais (lembre que você NÃO é médico)
-
-IMPORTANTE: Sempre oriente a consultar um profissional de saúde.`;
-                
-                const resposta = await callIA(prompt);
-                examAnalise.innerHTML = `<div class="info-box" style="white-space:pre-line; margin-top:1rem;">${resposta}</div>`;
-            } catch(e) {
-                examAnalise.innerHTML = `<div class="warning-box">Erro: ${e.message}</div>`;
-            }
-        }
-
-        // ATIVIDADES
-        function saveAtividade(e) {
-            e.preventDefault();
-            const list = load(DB.atividades);
-            list.unshift({
-                id: Date.now(),
-                tipo: document.getElementById('at-tipo').value,
-                data: document.getElementById('at-data').value,
-                duracao: parseInt(document.getElementById('at-duracao').value),
-                notas: document.getElementById('at-notas').value,
-                fonte: 'manual'
-            });
-            save(DB.atividades, list);
-            closeModal('atividadeManual');
-            e.target.reset();
-            loadAtividades();
-            notify('Atividade salva!');
-        }
-
-        function processarArquivo(event) {
-            const file = event.target.files[0];
-            if(!file) return;
-            
-            notify('Upload simulado! Em produção, processaria: ' + file.name);
-            
-            // Simulação de atividade importada
-            const list = load(DB.atividades);
-            list.unshift({
-                id: Date.now(),
-                tipo: 'corrida',
-                data: new Date().toISOString().split('T')[0],
-                duracao: 45,
-                notas: 'Importado de ' + file.name,
-                fonte: 'apple_watch'
-            });
-            save(DB.atividades, list);
-            loadAtividades();
-        }
-
-        function loadAtividades() {
-            const list = load(DB.atividades);
-            const container = document.getElementById('atividadeList');
-            
-            const tipoIcons = {
-                corrida: '🏃',
-                ciclismo: '🚴',
-                natacao: '🏊',
-                futebol: '⚽',
-                luta: '🥋',
-                yoga: '🧘',
-                outro: '💪'
-            };
-            
-            container.innerHTML = list.length ? list.map(a => `
-                <div class="item">
-                    <div style="flex:1">
-                        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.5rem;">
-                            <span style="font-size:1.5rem;">${tipoIcons[a.tipo] || '💪'}</span>
-                            <div>
-                                <h4>${a.tipo.charAt(0).toUpperCase() + a.tipo.slice(1)}</h4>
-                                <p style="color:var(--text-muted); font-size:0.85rem;">${new Date(a.data).toLocaleDateString('pt-BR')} • ${a.duracao} min</p>
-                            </div>
-                        </div>
-                        ${a.notas ? `<p style="font-size:0.9rem; margin-top:0.5rem;">${a.notas}</p>` : ''}
-                        ${a.fonte === 'apple_watch' ? `<span class="badge badge-success" style="margin-top:0.5rem;">Apple Watch</span>` : ''}
-                    </div>
-                    <button class="btn btn-danger btn-small" onclick="deleteItem('${DB.atividades}', ${a.id}, loadAtividades)">🗑️</button>
-                </div>
-            `).join('') : '<div class="empty-state"><div class="empty-state-icon">🏃</div><p>Nenhuma atividade registrada</p></div>';
-        }
-
-        // TREINOS COM TIMER E CHECKBOXES
-        let chatStep = 0;
-        let chatData = {};
-        let isFreeMode = false;
-
-        function iniciarTreinoInteligente() {
-            openModal('treinoChoice');
-        }
-
-        function iniciarChatTreinoGratis() {
-            if(!localStorage.getItem(DB.perfil)) {
-                alert('Preencha seu perfil primeiro!');
-                closeModal('treinoChoice');
-                switchTab('perfil');
-                return;
-            }
-            closeModal('treinoChoice');
-            openModal('aiChat');
-            isFreeMode = true;
-            document.getElementById('chatTitleIcon').textContent = '✨';
-            document.getElementById('chatTitle').textContent = 'Gerador Inteligente';
-            chatStep = 0;
-            chatData = {};
-            proximoPassoChat();
-        }
-
-        function iniciarChatTreinoIA() {
-            if (!checkApiKey()) {
-                alert('Configure sua chave OpenAI primeiro!');
-                closeModal('treinoChoice');
-                switchTab('perfil');
-                return;
-            }
-            if(!localStorage.getItem(DB.perfil)) {
-                alert('Preencha seu perfil primeiro!');
-                closeModal('treinoChoice');
-                switchTab('perfil');
-                return;
-            }
-            closeModal('treinoChoice');
-            openModal('aiChat');
-            isFreeMode = false;
-            document.getElementById('chatTitleIcon').textContent = '🤖';
-            document.getElementById('chatTitle').textContent = 'GPT-4';
-            chatStep = 0;
-            chatData = {};
-            proximoPassoChat();
-        }
-
-        function getRecomendacao(pergunta, chatData) {
-            const perfil = JSON.parse(localStorage.getItem(DB.perfil) || '{}');
-            const bio = load(DB.bio)[0];
-            const exames = load(DB.exames);
-            
-            if(pergunta === 'foco') {
-                if(bio && bio.gordura > 25) return '💡 Recomendado: Emagrecimento (% gordura elevado)';
-                if(bio && bio.muscular < 30 && perfil.sexo === 'M') return '💡 Recomendado: Hipertrofia (massa muscular baixa)';
-                return '💡 Escolha baseado no seu objetivo principal';
-            }
-            
-            if(pergunta === 'dias') {
-                if(perfil.nivel === 'iniciante') return '💡 Recomendado: 3-4 dias (iniciantes)';
-                return '💡 Recomendado: 4-5 dias (melhor progressão)';
-            }
-            
-            if(pergunta === 'variacao') {
-                if(chatData.experiencia === 'Avançado') return '💡 Recomendado: Toda semana (maior estímulo)';
-                return '💡 Recomendado: Mensal (melhor adaptação)';
-            }
-            
-            if(pergunta === 'estimulos') {
-                if(chatData.foco === 'Hipertrofia') return '💡 Recomendado: Sim, força + hipertrofia';
-                return '💡 Sugestão baseada no seu objetivo';
-            }
-            
-            if(pergunta === 'periodizacao') {
-                return '💡 Recomendado: 6-8 semanas (ideal para progressão)';
-            }
-            
-            return '';
-        }
-
-        function proximoPassoChat() {
-            const cont = document.getElementById('aiChatContent');
-            const steps = [
-                { q: 'Qual seu objetivo principal?', opts: ['Hipertrofia', 'Emagrecimento', 'Força', 'Resistência'], key: 'foco' },
-                { q: 'Quantos dias por semana?', opts: ['3 dias', '4 dias', '5 dias', '6 dias'], key: 'dias' },
-                { q: 'Onde vai treinar?', opts: ['Academia Completa', 'Academia Básica', 'Em Casa', 'Parque'], key: 'local' },
-                { q: 'Nível de experiência?', opts: ['Iniciante', 'Intermediário', 'Avançado'], key: 'experiencia' },
-                { q: 'Pratica outras atividades?', opts: ['Não', 'Corrida/Ciclismo', 'Esportes', 'Lutas', 'Yoga', 'Outra (especificar)'], key: 'outrasAtividades' },
-                { q: 'Prefere variar treinos?', opts: ['Sim, toda semana', 'A cada 2 semanas', 'Mensal', 'Não'], key: 'variacao' },
-                { q: 'Combinar estímulos?', opts: ['Sim, força + hipertrofia', 'Sim, força + resistência', 'Não, foco único', 'Alternar semanalmente'], key: 'estimulos' },
-                { q: 'Trocar ficha a cada?', opts: ['4 semanas', '6 semanas', '8 semanas', '12 semanas'], key: 'periodizacao' }
-            ];
-
-            if(chatStep < steps.length) {
-                const s = steps[chatStep];
-                const recomendacao = getRecomendacao(s.key, chatData);
-                
-                cont.innerHTML = `
-                    <div class="ai-question">${s.q}</div>
-                    ${recomendacao ? `<div class="ai-recommendation">${recomendacao}</div>` : ''}
-                    <div class="ai-options">
-                        ${s.opts.map(o => `<button class="ai-option-btn" onclick="setChatVal('${s.key}', '${o}')">${o}</button>`).join('')}
-                    </div>
-                    ${s.key === 'outrasAtividades' ? `
-                        <div class="form-group" style="margin-top:1rem;">
-                            <label>Se "Outra", especifique e frequência:</label>
-                            <input type="text" id="outraAtividade" placeholder="Ex: Natação - 2x semana" style="margin-top:0.5rem;">
-                        </div>
-                    ` : ''}
-                    <p style="text-align:center; color:var(--text-muted); font-size:0.85rem; margin-top:1rem;">Passo ${chatStep + 1} de ${steps.length}</p>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${((chatStep + 1) / steps.length) * 100}%"></div>
-                    </div>
-                `;
-            } else {
-                if(isFreeMode) {
-                    gerarTreinoInteligente();
-                } else {
-                    gerarTreinoIA();
-                }
-            }
-        }
-
-        function setChatVal(key, val) {
-            if(key === 'outrasAtividades' && val === 'Outra (especificar)') {
-                const input = document.getElementById('outraAtividade');
-                chatData[key] = input.value || 'Não especificado';
-            } else {
-                chatData[key] = val;
-            }
-            chatStep++;
-            proximoPassoChat();
-        }
-
-        function gerarTreinoInteligente() {
-            const cont = document.getElementById('aiChatContent');
-            cont.innerHTML = '<div style="text-align:center; padding:2rem;"><span class="ai-loading"></span><p style="margin-top:1rem;">Analisando dados...</p><p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.5rem;">Bio + Exames + Perfil</p></div>';
-            
-            setTimeout(() => {
-                try {
-                    const perfil = JSON.parse(localStorage.getItem(DB.perfil));
-                    const bioData = load(DB.bio)[0];
-                    const treinos = gerarTreinosSimples(perfil, bioData, chatData);
-                    
-                    const list = load(DB.treinos);
-                    treinos.forEach(t => {
-                        list.push({
-                            id: Date.now() + Math.random(),
-                            nome: t.nome,
-                            ex: t.exercicios,
-                            tipo: `Inteligente - ${chatData.foco}`,
-                            periodizacao: chatData.periodizacao,
-                            dataCriacao: new Date().toISOString(),
-                            progresso: {}
-                        });
-                    });
-                    
-                    save(DB.treinos, list);
-                    loadTreinos();
-                    
-                    cont.innerHTML = `
-                        <div style="text-align:center; color:var(--success); padding:2rem;">
-                            <div style="font-size:4rem; margin-bottom:1rem;">✨</div>
-                            <h3>${treinos.length} treino(s) gerado(s)!</h3>
-                            <div class="info-box" style="text-align:left; margin-top:1.5rem;">
-                                <strong>Seu plano:</strong><br>
-                                • ${chatData.foco} - ${chatData.dias}<br>
-                                • ${chatData.local}<br>
-                                • Nível: ${chatData.experiencia}<br>
-                                • Trocar em: ${chatData.periodizacao}
-                            </div>
-                            <button class="btn btn-primary btn-block" onclick="closeModal('aiChat'); switchTab('treinos')">Ver Treinos</button>
-                        </div>
-                    `;
-                    notify('Treinos gerados!');
-                } catch(e) {
-                    cont.innerHTML = `<div class="warning-box">Erro: ${e.message}<br><br><button class="btn btn-primary" onclick="iniciarChatTreinoGratis()">Tentar Novamente</button></div>`;
-                }
-            }, 2000);
-        }
-
-        function gerarTreinosSimples(perfil, bio, prefs) {
-            const exercicios = [
-                'Supino reto - 4x10',
-                'Supino inclinado - 3x12',
-                'Crucifixo - 3x15',
-                'Agachamento - 4x12',
-                'Leg press - 3x15',
-                'Stiff - 3x12',
-                'Barra fixa - 4x8',
-                'Remada curvada - 4x10',
-                'Puxada frontal - 3x12',
-                'Desenvolvimento - 4x10',
-                'Elevação lateral - 3x15',
-                'Rosca direta - 3x12',
-                'Tríceps testa - 3x12'
-            ];
-            
-            const dias = parseInt(prefs.dias);
-            const treinos = [];
-            
-            if(dias === 3) {
-                treinos.push(
-                    { nome: 'Treino A - Peito/Ombro/Tríceps', exercicios: exercicios.slice(0, 4).join('\n') },
-                    { nome: 'Treino B - Costas/Bíceps', exercicios: exercicios.slice(6, 10).join('\n') },
-                    { nome: 'Treino C - Pernas', exercicios: exercicios.slice(3, 6).join('\n') }
-                );
-            } else if(dias === 4) {
-                treinos.push(
-                    { nome: 'Treino A - Peito/Tríceps', exercicios: exercicios.slice(0, 3).concat(exercicios.slice(11, 13)).join('\n') },
-                    { nome: 'Treino B - Costas/Bíceps', exercicios: exercicios.slice(6, 10).concat(exercicios.slice(10, 11)).join('\n') },
-                    { nome: 'Treino C - Pernas', exercicios: exercicios.slice(3, 6).join('\n') },
-                    { nome: 'Treino D - Ombros', exercicios: exercicios.slice(9, 11).join('\n') }
-                );
-            } else {
-                treinos.push(
-                    { nome: 'Treino A - Peito', exercicios: exercicios.slice(0, 3).join('\n') },
-                    { nome: 'Treino B - Costas', exercicios: exercicios.slice(6, 9).join('\n') },
-                    { nome: 'Treino C - Pernas', exercicios: exercicios.slice(3, 6).join('\n') },
-                    { nome: 'Treino D - Ombros', exercicios: exercicios.slice(9, 11).join('\n') },
-                    { nome: 'Treino E - Braços', exercicios: [exercicios[10], exercicios[12]].join('\n') }
-                );
-            }
-            
-            return treinos;
-        }
-
-        async function gerarTreinoIA() {
-            const cont = document.getElementById('aiChatContent');
-            cont.innerHTML = '<div style="text-align:center; padding:2rem;"><span class="ai-loading"></span><p style="margin-top:1rem;">GPT-4 criando...</p></div>';
-            
-            try {
-                const perfil = localStorage.getItem(DB.perfil);
-                const bio = JSON.stringify(load(DB.bio).slice(0, 2));
-                const exames = JSON.stringify(load(DB.exames));
-                
-                const prompt = `Crie um plano de treino DETALHADO:
-
-PERFIL: ${perfil}
-BIO: ${bio}
-EXAMES: ${exames}
-PREFERÊNCIAS: ${JSON.stringify(chatData)}
-
-Formato: [TREINO] Nome | Exercícios [FIM]
-Inclua séries, repetições e observações.`;
-                
-                const res = await callIA(prompt);
-                const treinosEncontrados = res.split('[TREINO]').filter(t => t.includes('[FIM]'));
-                
-                const list = load(DB.treinos);
-                treinosEncontrados.forEach(t => {
-                    const content = t.split('[FIM]')[0].trim();
-                    const parts = content.split('|');
-                    list.push({
-                        id: Date.now() + Math.random(),
-                        nome: parts[0].trim() || 'Treino GPT-4',
-                        ex: parts.slice(1).join('|').trim() || content,
-                        tipo: 'GPT-4 - ' + chatData.foco,
-                        periodizacao: chatData.periodizacao,
-                        dataCriacao: new Date().toISOString(),
-                        progresso: {}
-                    });
-                });
-                
-                save(DB.treinos, list);
-                loadTreinos();
-                cont.innerHTML = '<div style="text-align:center; color:var(--success); padding:2rem;"><div style="font-size:4rem;">🤖</div><h3>Treino GPT-4 criado!</h3><button class="btn btn-primary btn-block" onclick="closeModal(\'aiChat\')">Ver Treinos</button></div>';
-                notify('Treinos gerados!');
-            } catch(e) {
-                cont.innerHTML = `<div class="warning-box">Erro: ${e.message}</div>`;
-            }
-        }
-
+        // IA - OPENAI
         async function callIA(prompt) {
-            const key = localStorage.getItem(DB.apiKey);
-            if (!key) throw new Error('Chave não configurada');
+            const apiKey = localStorage.getItem(DB.openai);
+            if (!apiKey) {
+                throw new Error('Chave OpenAI não configurada');
+            }
 
             const response = await fetch('https://api.openai.com/v1/chat/completions', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
                 body: JSON.stringify({
-                    model: 'gpt-4o-mini',
-                    messages: [{ role: 'user', content: prompt }],
-                    max_tokens: 2000
+                    model: 'gpt-4',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: 'Você é um personal trainer e nutricionista experiente. Seja objetivo, motivador e profissional. Sempre forneça links reais do YouTube quando solicitado.'
+                        },
+                        {
+                            role: 'user',
+                            content: prompt
+                        }
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 3000
                 })
             });
-            
+
+            if (!response.ok) {
+                throw new Error('Erro na API OpenAI');
+            }
+
             const data = await response.json();
-            if (data.error) throw new Error(data.error.message);
             return data.choices[0].message.content;
         }
 
+        // RECOMENDAÇÕES BASEADAS NO OBJETIVO
+        function updateRecommendations() {
+            const objetivo = document.getElementById('objetivo').value;
+            
+            const recomendacoes = {
+                hipertrofia: {
+                    nivel: '(Recomendado: Intermediário ou Avançado para melhores resultados)',
+                    freq: '(Ideal: 4-6x por semana com divisão de grupos musculares)',
+                    duracao: '(Ideal: 60-90 minutos para volume adequado)'
+                },
+                emagrecimento: {
+                    nivel: '(Qualquer nível pode começar)',
+                    freq: '(Ideal: 4-5x por semana combinando cardio e musculação)',
+                    duracao: '(Ideal: 45-60 minutos)'
+                },
+                definicao: {
+                    nivel: '(Recomendado: Intermediário - já ter base muscular)',
+                    freq: '(Ideal: 5-6x por semana com alta intensidade)',
+                    duracao: '(Ideal: 60 minutos)'
+                },
+                forca: {
+                    nivel: '(Recomendado: Intermediário ou Avançado)',
+                    freq: '(Ideal: 3-4x por semana para recuperação adequada)',
+                    duracao: '(Ideal: 60-90 minutos com descanso entre séries)'
+                },
+                resistencia: {
+                    nivel: '(Qualquer nível)',
+                    freq: '(Ideal: 4-5x por semana)',
+                    duracao: '(Ideal: 45-60 minutos)'
+                },
+                saude: {
+                    nivel: '(Qualquer nível)',
+                    freq: '(Ideal: 3-4x por semana)',
+                    duracao: '(Ideal: 30-45 minutos)'
+                }
+            };
+
+            if (objetivo && recomendacoes[objetivo]) {
+                document.getElementById('recNivel').textContent = recomendacoes[objetivo].nivel;
+                document.getElementById('recFreq').textContent = recomendacoes[objetivo].freq;
+                document.getElementById('recDuracao').textContent = recomendacoes[objetivo].duracao;
+            } else {
+                document.getElementById('recNivel').textContent = '';
+                document.getElementById('recFreq').textContent = '';
+                document.getElementById('recDuracao').textContent = '';
+            }
+        }
+
+        function toggleOutrasAtividades() {
+            const select = document.getElementById('outrasAtividades').value;
+            const detalhes = document.getElementById('detalhesOutrasAtividades');
+            detalhes.style.display = select === 'sim' ? 'block' : 'none';
+        }
+
+        // GERAR TREINO COM IA
+        async function gerarTreinoIA(e) {
+            e.preventDefault();
+            
+            if (!checkApiKey()) {
+                alert('Configure sua chave OpenAI nas configurações primeiro! ⚙️');
+                closeModal('gerarTreinoModal');
+                switchTab('perfil');
+                return;
+            }
+
+            const objetivo = document.getElementById('objetivo').value;
+            const nivel = document.getElementById('nivel').value;
+            const frequencia = document.getElementById('frequencia').value;
+            const duracao = document.getElementById('duracao').value;
+            const equipamentos = Array.from(document.getElementById('equipamentos').selectedOptions).map(o => o.text);
+            const outrasAtividades = document.getElementById('outrasAtividades').value;
+            const detalhesAtividades = document.getElementById('detalhesAtividades').value;
+            const restricoes = document.getElementById('restricoes').value;
+            const observacoes = document.getElementById('observacoes').value;
+
+            // Buscar dados
+            const bioData = load(DB.bio);
+            const examesData = load(DB.exames);
+            const bioRecente = bioData.length > 0 ? bioData[bioData.length - 1] : null;
+            const examesRecentes = examesData.slice(-3);
+
+            closeModal('gerarTreinoModal');
+            notify('Gerando treino personalizado com IA... 🤖⏳');
+
+            try {
+                const prompt = `Crie um treino personalizado COMPLETO baseado em:
+
+OBJETIVO: ${objetivo}
+NÍVEL: ${nivel}
+FREQUÊNCIA: ${frequencia}x por semana
+DURAÇÃO: ${duracao} minutos
+EQUIPAMENTOS: ${equipamentos.join(', ')}
+${outrasAtividades === 'sim' ? `OUTRAS ATIVIDADES: ${detalhesAtividades}` : ''}
+${restricoes ? `RESTRIÇÕES: ${restricoes}` : ''}
+${observacoes ? `OBSERVAÇÕES: ${observacoes}` : ''}
+
+${bioRecente ? `BIOIMPEDÂNCIA: Peso ${bioRecente.peso}kg, Gordura ${bioRecente.gordura}%, Massa ${bioRecente.massa}kg` : ''}
+${examesRecentes.length > 0 ? `EXAMES RECENTES: ${examesRecentes.length} exame(s)` : ''}
+
+IMPORTANTE:
+1. Crie exatamente ${frequencia} treinos diferentes (Treino A, B, C...)
+2. Para CADA exercício, inclua um link REAL do YouTube de canais populares brasileiros como: Dicas do Diego Cardoso, Leandro Twin, Cariani, Pri Leite, Renato Cariani, Gorgo, Mauro Ferrari
+3. Formato OBRIGATÓRIO de cada linha:
+   NomeExercicio - SeriesxReps - https://youtube.com/watch?v=ID_REAL
+
+Exemplo de linha correta:
+Supino Reto - 4x10 - https://www.youtube.com/watch?v=gRVjAtPip0Y
+
+RETORNE em formato JSON estruturado assim:
+[
+  {
+    "nome": "Treino A - Peito e Tríceps",
+    "foco": "Peito e Tríceps",
+    "exercicios": [
+      {"nome": "Supino Reto", "series": "4x10", "youtube": "https://www.youtube.com/watch?v=IDREAL", "observacao": "Dica técnica"}
+    ]
+  }
+]
+
+LEMBRE-SE: Links REAIS do YouTube são OBRIGATÓRIOS!`;
+
+                const resposta = await callIA(prompt);
+                
+                // Parse JSON
+                let treinos;
+                try {
+                    const jsonMatch = resposta.match(/\[[\s\S]*\]/);
+                    if (jsonMatch) {
+                        treinos = JSON.parse(jsonMatch[0]);
+                    } else {
+                        throw new Error('Formato inválido');
+                    }
+                } catch {
+                    // Fallback: processar manualmente
+                    const linhas = resposta.split('\n').filter(l => l.trim() && (l.includes('-') || l.includes('http')));
+                    treinos = [{
+                        nome: `Treino ${objetivo} - IA`,
+                        foco: nivel,
+                        exercicios: linhas.map(linha => {
+                            const partes = linha.split(' - ');
+                            return {
+                                nome: partes[0]?.trim() || linha,
+                                series: partes[1]?.trim() || '3x12',
+                                youtube: partes[2]?.trim() || '',
+                                observacao: ''
+                            };
+                        })
+                    }];
+                }
+
+                // Salvar treinos
+                const listaTreinos = load(DB.treinos);
+                treinos.forEach(treino => {
+                    listaTreinos.push({
+                        id: Date.now() + Math.random(),
+                        nome: treino.nome,
+                        foco: treino.foco,
+                        exercicios: treino.exercicios || [],
+                        tipo: 'IA',
+                        dataCriacao: new Date().toISOString(),
+                        progresso: {},
+                        config: { objetivo, nivel, frequencia, duracao }
+                    });
+                });
+                
+                save(DB.treinos, listaTreinos);
+                document.getElementById('formGerarTreino').reset();
+                loadTreinos();
+                switchTab('treinos');
+                notify(`${treinos.length} treino(s) criado(s) com sucesso! 💪🔥`);
+                
+            } catch (error) {
+                notify('❌ Erro ao gerar treino: ' + error.message);
+                console.error(error);
+            }
+        }
+
+        // TREINOS
         function loadTreinos() {
             const list = load(DB.treinos);
-            const container = document.getElementById('treinoList');
+            const container = document.getElementById('treinosList');
             
-            container.innerHTML = list.length ? list.map(t => {
-                const exercicios = t.ex.split('\n').filter(e => e.trim());
-                const progresso = t.progresso || {};
-                const feitos = Object.values(progresso).filter(v => v).length;
-                
+            if (list.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 2rem;">Nenhum treino cadastrado. Clique em "Gerar com IA" para começar! 🚀</p>';
+                return;
+            }
+
+            container.innerHTML = list.map(treino => {
+                const exercicios = treino.exercicios || parseExercicios(treino.ex || '');
+                const totalExercicios = exercicios.length;
+                const concluidos = Object.values(treino.progresso || {}).filter(Boolean).length;
+                const percentual = totalExercicios > 0 ? Math.round((concluidos / totalExercicios) * 100) : 0;
+
                 return `
                     <div class="workout-card">
                         <div class="workout-header">
-                            <div class="workout-title">
-                                <h3>${t.nome}</h3>
-                                <p style="color:var(--primary); font-size:0.8rem; font-weight:600; margin-top:0.25rem;">${t.tipo || 'Manual'}</p>
-                                ${t.periodizacao ? `<span class="badge badge-warning" style="margin-top:0.5rem;">Trocar em ${t.periodizacao}</span>` : ''}
-                            </div>
+                            <div class="workout-title">${treino.nome}</div>
                             <div class="workout-actions">
-                                <button class="btn btn-primary btn-small" onclick="iniciarCronometro(${t.id}, '${t.nome}')">⏱️</button>
-                                <button class="btn btn-danger btn-small" onclick="deleteItem('${DB.treinos}', ${t.id}, loadTreinos)">🗑️</button>
+                                <span class="workout-badge">${treino.tipo || 'Manual'}</span>
+                                ${treino.foco ? `<span class="workout-badge" style="background: var(--gradient-free);">${treino.foco}</span>` : ''}
                             </div>
                         </div>
-                        <div style="margin-bottom:1rem;">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
-                                <span style="font-size:0.85rem; color:var(--text-muted);">Progresso</span>
-                                <span style="font-size:0.85rem; font-weight:600; color:var(--primary);">${feitos}/${exercicios.length}</span>
+
+                        ${treino.config ? `
+                            <div style="background: rgba(0,217,177,0.05); padding: 0.75rem; border-radius: 12px; margin-bottom: 1rem; font-size: 0.85rem;">
+                                📋 ${treino.config.frequencia}x/semana • ${treino.config.duracao}min • ${treino.config.nivel}
                             </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${exercicios.length ? (feitos / exercicios.length) * 100 : 0}%"></div>
+                        ` : ''}
+
+                        <div style="background: var(--dark-lighter); padding: 0.75rem 1rem; border-radius: 12px; margin-bottom: 1rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">Progresso</span>
+                                <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary);">${percentual}%</span>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="background: var(--gradient-1); height: 100%; width: ${percentual}%; transition: width 0.3s;"></div>
                             </div>
                         </div>
-                        <div>
+
+                        <div class="exercise-list">
                             ${exercicios.map((ex, idx) => {
-                                const exercicioNome = ex.split('-')[0].trim();
-                                const youtubeQuery = encodeURIComponent(exercicioNome + ' como fazer');
-                                const isChecked = progresso[idx] || false;
-                                
+                                const isCompleted = treino.progresso && treino.progresso[idx];
                                 return `
-                                    <div class="exercise-item">
-                                        <input type="checkbox" class="exercise-checkbox" 
-                                            ${isChecked ? 'checked' : ''} 
-                                            onchange="toggleExercicio(${t.id}, ${idx})">
-                                        <div class="exercise-content">
-                                            <div class="exercise-text" style="${isChecked ? 'text-decoration:line-through; opacity:0.6;' : ''}">${ex}</div>
-                                            <a href="https://www.youtube.com/results?search_query=${youtubeQuery}" target="_blank" class="youtube-link">
-                                                ▶️ Ver no YouTube
-                                            </a>
+                                    <div class="exercise-item ${isCompleted ? 'completed' : ''}">
+                                        <div class="exercise-info">
+                                            <div class="exercise-name">${ex.nome}</div>
+                                            <div class="exercise-details">${ex.series}</div>
+                                            ${ex.observacao ? `<div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">💡 ${ex.observacao}</div>` : ''}
+                                            ${ex.youtube ? `
+                                                <a href="${ex.youtube}" target="_blank" class="exercise-link">
+                                                    ▶️ Ver no YouTube
+                                                </a>
+                                            ` : ''}
+                                        </div>
+                                        <div class="exercise-check ${isCompleted ? 'checked' : ''}" onclick="toggleExercicio(${treino.id}, ${idx})">
+                                            ${isCompleted ? '✓' : ''}
                                         </div>
                                     </div>
                                 `;
                             }).join('')}
                         </div>
+
+                        ${getHistoricoTreinoDia(treino.id)}
+
+                        <div class="workout-controls">
+                            <button class="btn btn-success" onclick="iniciarCronometro(${treino.id}, '${treino.nome.replace(/'/g, '')}')">⏱️ Iniciar</button>
+                            <button class="btn btn-danger" onclick="deleteTreino(${treino.id})">🗑️ Excluir</button>
+                        </div>
                     </div>
                 `;
-            }).join('') : '<div class="empty-state"><div class="empty-state-icon">💪</div><p>Nenhum treino cadastrado</p><button class="btn btn-free" onclick="iniciarTreinoInteligente()" style="margin-top:1rem;">✨ Gerar Treino</button></div>';
+            }).join('');
+        }
+
+        function parseExercicios(texto) {
+            if (!texto) return [];
+            return texto.split('\n')
+                .filter(linha => linha.trim())
+                .map(linha => {
+                    const partes = linha.split(' - ');
+                    return {
+                        nome: partes[0]?.trim() || linha,
+                        series: partes[1]?.trim() || '3x12',
+                        youtube: partes[2]?.trim() || '',
+                        observacao: ''
+                    };
+                });
+        }
+
+        function getHistoricoTreinoDia(treinoId) {
+            const sessoes = load(DB.sessoes);
+            const hoje = new Date().toISOString().split('T')[0];
+            const ontem = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+            
+            const sessoesRecentes = sessoes
+                .filter(s => s.treinoId === treinoId)
+                .filter(s => {
+                    const dataSessao = new Date(s.data).toISOString().split('T')[0];
+                    return dataSessao === hoje || dataSessao === ontem;
+                });
+
+            if (sessoesRecentes.length === 0) return '';
+
+            const ultimaSessao = sessoesRecentes[sessoesRecentes.length - 1];
+            const dataUltima = new Date(ultimaSessao.data).toISOString().split('T')[0];
+            const label = dataUltima === hoje ? '✅ Feito hoje' : '⏰ Feito ontem';
+
+            return `
+                <div class="day-history">
+                    <div class="day-history-title">${label}</div>
+                    <div class="day-history-item">⏱️ Duração: ${formatTime(ultimaSessao.duracao)}</div>
+                    <div class="day-history-item">🕐 ${new Date(ultimaSessao.data).toLocaleString('pt-BR')}</div>
+                </div>
+            `;
         }
 
         function toggleExercicio(treinoId, exercicioIdx) {
             const list = load(DB.treinos);
             const treino = list.find(t => t.id === treinoId);
-            if(treino) {
-                if(!treino.progresso) treino.progresso = {};
+            if (treino) {
+                if (!treino.progresso) treino.progresso = {};
                 treino.progresso[exercicioIdx] = !treino.progresso[exercicioIdx];
                 save(DB.treinos, list);
                 loadTreinos();
             }
         }
 
+        function deleteTreino(id) {
+            if (confirm('Deseja realmente excluir este treino? ❌')) {
+                const list = load(DB.treinos).filter(t => t.id !== id);
+                save(DB.treinos, list);
+                loadTreinos();
+                notify('Treino excluído! 🗑️');
+            }
+        }
+
         function saveTreinoManual(e) {
             e.preventDefault();
             const list = load(DB.treinos);
+            const exerciciosTexto = document.getElementById('tm-ex').value;
+            const exercicios = exerciciosTexto.split('\n')
+                .filter(linha => linha.trim())
+                .map(linha => {
+                    const partes = linha.split(' - ');
+                    return {
+                        nome: partes[0]?.trim() || linha,
+                        series: partes[1]?.trim() || '3x12',
+                        youtube: partes[2]?.trim() || '',
+                        observacao: ''
+                    };
+                });
+
             list.push({
                 id: Date.now(),
                 nome: document.getElementById('tm-nome').value,
-                ex: document.getElementById('tm-ex').value,
+                exercicios: exercicios,
                 tipo: 'Manual',
                 dataCriacao: new Date().toISOString(),
                 progresso: {}
@@ -1713,12 +1471,17 @@ Inclua séries, repetições e observações.`;
             closeModal('treinoMan');
             e.target.reset();
             loadTreinos();
-            notify('Treino salvo!');
+            notify('Treino salvo! 💪');
         }
 
         // CRONÔMETRO
+        let timerInterval;
+        let timerSeconds = 0;
+        let timerPaused = false;
+        let currentWorkout = null;
+
         function iniciarCronometro(treinoId, treinoNome) {
-            currentWorkout = { id: treinoId, nome: treinoNome, inicio: Date.now() };
+            currentWorkout = { id: treinoId, nome: treinoNome };
             document.getElementById('workoutName').textContent = treinoNome;
             openModal('cronometroModal');
         }
@@ -1730,7 +1493,7 @@ Inclua séries, repetições e observações.`;
             document.getElementById('finishBtn').style.display = 'inline-flex';
             
             timerInterval = setInterval(() => {
-                if(!timerPaused) {
+                if (!timerPaused) {
                     timerSeconds++;
                     updateTimerDisplay();
                 }
@@ -1755,7 +1518,7 @@ Inclua séries, repetições e observações.`;
             });
             save(DB.sessoes, sessoes);
             
-            notify(`Treino finalizado! ${formatTime(timerSeconds)}`);
+            notify(`Treino finalizado! ⏱️ ${formatTime(timerSeconds)} 🔥`);
             
             timerSeconds = 0;
             timerPaused = false;
@@ -1764,6 +1527,9 @@ Inclua séries, repetições e observações.`;
             document.getElementById('pauseBtn').style.display = 'none';
             document.getElementById('finishBtn').style.display = 'none';
             closeModal('cronometroModal');
+            
+            loadTreinos();
+            updateDashboard();
         }
 
         function updateTimerDisplay() {
@@ -1777,6 +1543,354 @@ Inclua séries, repetições e observações.`;
             return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
         }
 
+        // ATIVIDADES
+        function toggleUpload() {
+            const tipo = document.getElementById('tipoAtividade').value;
+            const uploadField = document.getElementById('uploadField');
+            const duracaoField = document.getElementById('duracaoAtividade');
+            
+            if (tipo === 'apple_watch') {
+                uploadField.style.display = 'block';
+                duracaoField.style.display = 'none';
+            } else {
+                uploadField.style.display = 'none';
+                duracaoField.style.display = 'block';
+            }
+        }
+
+        function saveAtividade(e) {
+            e.preventDefault();
+            const list = load(DB.atividades);
+            
+            const tipo = document.getElementById('tipoAtividade').value;
+            const arquivo = document.getElementById('appleWatchFile').files[0];
+            
+            list.push({
+                id: Date.now(),
+                tipo: tipo,
+                nome: document.getElementById('atividadeNome').value,
+                data: document.getElementById('atividadeData').value,
+                duracao: document.getElementById('atividadeDuracao').value || 0,
+                observacoes: document.getElementById('atividadeObs').value,
+                arquivo: arquivo ? arquivo.name : null
+            });
+            
+            save(DB.atividades, list);
+            closeModal('atividadeModal');
+            e.target.reset();
+            loadAtividades();
+            notify('Atividade registrada! 🏃✅');
+        }
+
+        function loadAtividades() {
+            const list = load(DB.atividades);
+            const container = document.getElementById('atividadesList');
+            
+            if (list.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 2rem;">Nenhuma atividade registrada ainda.</p>';
+                return;
+            }
+
+            container.innerHTML = list.map(ativ => `
+                <div class="item">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.25rem;">${ativ.nome || ativ.tipo}</div>
+                            <div style="color: var(--text-muted); font-size: 0.9rem;">📅 ${new Date(ativ.data).toLocaleDateString('pt-BR')}</div>
+                        </div>
+                        <button class="btn btn-danger btn-small" onclick="deleteAtividade(${ativ.id})">🗑️</button>
+                    </div>
+                    ${ativ.duracao > 0 ? `<div style="font-size: 0.9rem;">⏱️ Duração: ${ativ.duracao} minutos</div>` : ''}
+                    ${ativ.arquivo ? `<div style="font-size: 0.9rem; color: var(--primary);">📎 ${ativ.arquivo}</div>` : ''}
+                    ${ativ.observacoes ? `<div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">${ativ.observacoes}</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function deleteAtividade(id) {
+            if (confirm('Excluir esta atividade? ❌')) {
+                const list = load(DB.atividades).filter(a => a.id !== id);
+                save(DB.atividades, list);
+                loadAtividades();
+                notify('Atividade excluída! 🗑️');
+            }
+        }
+
+        // BIOIMPEDÂNCIA
+        let bioChart = null;
+
+        function saveBio(e) {
+            e.preventDefault();
+            const list = load(DB.bio);
+            const arquivo = document.getElementById('bioArquivo').files[0];
+            
+            list.push({
+                id: Date.now(),
+                data: document.getElementById('bioData').value,
+                peso: parseFloat(document.getElementById('bioPeso').value),
+                imc: parseFloat(document.getElementById('bioIMC').value) || 0,
+                gordura: parseFloat(document.getElementById('bioGordura').value) || 0,
+                massa: parseFloat(document.getElementById('bioMassa').value) || 0,
+                agua: parseFloat(document.getElementById('bioAgua').value) || 0,
+                arquivo: arquivo ? arquivo.name : null,
+                arquivoTipo: arquivo ? arquivo.type : null
+            });
+            save(DB.bio, list);
+            closeModal('bioModal');
+            e.target.reset();
+            loadBio();
+            notify('Bioimpedância salva! 📊✅');
+        }
+
+        function loadBio() {
+            const list = load(DB.bio).sort((a, b) => new Date(a.data) - new Date(b.data));
+            const container = document.getElementById('bioList');
+            
+            updateBioChart(list);
+            
+            if (list.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 2rem;">Nenhuma medição registrada ainda.</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="margin-bottom: 1rem;">
+                    <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 1rem;">📋 Histórico de Medições</h3>
+                    ${list.reverse().map(bio => `
+                        <div class="item">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                                <div style="font-weight: 700; font-size: 1.1rem;">${new Date(bio.data).toLocaleDateString('pt-BR')}</div>
+                                <button class="btn btn-danger btn-small" onclick="deleteBio(${bio.id})">🗑️</button>
+                            </div>
+                            ${bio.arquivo ? `<div style="font-size: 0.9rem; color: var(--primary); margin-bottom: 0.75rem;">📎 Arquivo anexado: ${bio.arquivo}</div>` : ''}
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; font-size: 0.9rem;">
+                                <div>⚖️ Peso: <strong>${bio.peso}kg</strong></div>
+                                <div>📊 IMC: <strong>${bio.imc}</strong></div>
+                                <div>💧 Gordura: <strong>${bio.gordura}%</strong></div>
+                                <div>💪 Massa: <strong>${bio.massa}kg</strong></div>
+                                ${bio.agua > 0 ? `<div>💦 Água: <strong>${bio.agua}%</strong></div>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function updateBioChart(list) {
+            const ctx = document.getElementById('bioChart');
+            if (!ctx) return;
+
+            const labels = list.map(b => new Date(b.data).toLocaleDateString('pt-BR'));
+            const pesoData = list.map(b => b.peso);
+            const gorduraData = list.map(b => b.gordura);
+            const massaData = list.map(b => b.massa);
+
+            if (bioChart) {
+                bioChart.destroy();
+            }
+
+            bioChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Peso (kg)',
+                            data: pesoData,
+                            borderColor: '#00D9B1',
+                            backgroundColor: 'rgba(0, 217, 177, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Gordura (%)',
+                            data: gorduraData,
+                            borderColor: '#FF6B9D',
+                            backgroundColor: 'rgba(255, 107, 157, 0.1)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Massa Muscular (kg)',
+                            data: massaData,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#E8EAED' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: '#9CA3AF' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: '#9CA3AF' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function deleteBio(id) {
+            if (confirm('Excluir esta medição? ❌')) {
+                const list = load(DB.bio).filter(b => b.id !== id);
+                save(DB.bio, list);
+                loadBio();
+                notify('Medição excluída! 🗑️');
+            }
+        }
+
+        async function analisarBioIA() {
+            if (!checkApiKey()) {
+                alert('Configure sua chave OpenAI para análises com IA! ⚙️');
+                switchTab('perfil');
+                return;
+            }
+
+            const list = load(DB.bio);
+            if (list.length === 0) {
+                alert('Adicione pelo menos uma medição de bioimpedância primeiro! 📊');
+                return;
+            }
+
+            notify('Analisando evolução... 🤖📊');
+
+            try {
+                const prompt = `Analise a evolução da bioimpedância baseado nos dados:
+
+${JSON.stringify(list, null, 2)}
+
+Forneça:
+1. 📈 Análise da evolução do peso
+2. 💪 Evolução da composição corporal (gordura vs massa muscular)
+3. ✅ Tendências positivas
+4. ⚠️ Pontos de atenção
+5. 🎯 Recomendações específicas para os próximos 30 dias
+6. 💡 Metas realistas
+
+Seja motivador, específico e use emojis.`;
+
+                const resposta = await callIA(prompt);
+                
+                const container = document.getElementById('bioList');
+                container.innerHTML = `
+                    <div class="info-box" style="white-space: pre-line; line-height: 1.8; margin-bottom: 1.5rem;">
+                        <strong style="font-size: 1.1rem; color: var(--primary);">🤖 Análise da Evolução por IA</strong><br><br>
+                        ${resposta}
+                    </div>
+                ` + container.innerHTML;
+
+            } catch (error) {
+                notify('❌ Erro ao analisar: ' + error.message);
+            }
+        }
+
+        // EXAMES
+        function saveExame(e) {
+            e.preventDefault();
+            const list = load(DB.exames);
+            const arquivo = document.getElementById('exameArquivo').files[0];
+            
+            list.push({
+                id: Date.now(),
+                data: document.getElementById('exameData').value,
+                tipo: document.getElementById('exameTipo').value,
+                resultados: document.getElementById('exameResultados').value,
+                arquivo: arquivo ? arquivo.name : null,
+                arquivoTipo: arquivo ? arquivo.type : null
+            });
+            save(DB.exames, list);
+            closeModal('exameModal');
+            e.target.reset();
+            loadExames();
+            notify('Exame salvo! 🩺✅');
+        }
+
+        function loadExames() {
+            const list = load(DB.exames).sort((a, b) => new Date(b.data) - new Date(a.data));
+            const container = document.getElementById('examesList');
+            
+            if (list.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 2rem;">Nenhum exame registrado ainda.</p>';
+                return;
+            }
+
+            container.innerHTML = list.map(exame => `
+                <div class="item">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.25rem;">${exame.tipo}</div>
+                            <div style="color: var(--text-muted); font-size: 0.9rem;">📅 ${new Date(exame.data).toLocaleDateString('pt-BR')}</div>
+                        </div>
+                        <button class="btn btn-danger btn-small" onclick="deleteExame(${exame.id})">🗑️</button>
+                    </div>
+                    ${exame.arquivo ? `<div style="font-size: 0.9rem; color: var(--primary); margin-bottom: 0.75rem;">📎 Arquivo anexado: ${exame.arquivo}</div>` : ''}
+                    <div style="font-size: 0.9rem; color: var(--text-muted); white-space: pre-line; margin-top: 0.75rem;">${exame.resultados}</div>
+                </div>
+            `).join('');
+        }
+
+        function deleteExame(id) {
+            if (confirm('Excluir este exame? ❌')) {
+                const list = load(DB.exames).filter(e => e.id !== id);
+                save(DB.exames, list);
+                loadExames();
+                notify('Exame excluído! 🗑️');
+            }
+        }
+
+        async function analisarExamesIA() {
+            if (!checkApiKey()) {
+                alert('Configure sua chave OpenAI para análises com IA! ⚙️');
+                switchTab('perfil');
+                return;
+            }
+
+            const list = load(DB.exames);
+            if (list.length === 0) {
+                alert('Adicione pelo menos um exame primeiro! 🩺');
+                return;
+            }
+
+            notify('Analisando exames... 🤖🩺');
+
+            try {
+                const prompt = `Analise os exames médicos e forneça insights:
+
+${JSON.stringify(list, null, 2)}
+
+Forneça:
+1. 📊 Análise geral do estado de saúde
+2. 📈 Tendências ao longo do tempo (se houver múltiplos)
+3. ⚠️ Pontos de atenção
+4. 💡 Recomendações gerais (não substitui consulta médica!)
+5. 🎯 Sugestões de acompanhamento
+
+IMPORTANTE: Sempre reforce que é essencial consultar um médico para interpretação precisa.`;
+
+                const resposta = await callIA(prompt);
+                
+                const container = document.getElementById('examesList');
+                container.innerHTML = `
+                    <div class="info-box" style="white-space: pre-line; line-height: 1.8; margin-bottom: 1.5rem;">
+                        <strong style="font-size: 1.1rem; color: var(--primary);">🤖 Análise dos Exames por IA</strong><br><br>
+                        ${resposta}
+                    </div>
+                ` + container.innerHTML;
+
+            } catch (error) {
+                notify('❌ Erro ao analisar: ' + error.message);
+            }
+        }
+
         // RELATÓRIO
         function gerarRelatorio() {
             const dias = parseInt(document.getElementById('periodoRelatorio').value);
@@ -1786,37 +1900,51 @@ Inclua séries, repetições e observações.`;
             const sessoes = load(DB.sessoes).filter(s => new Date(s.data) >= dataLimite);
             const bio = load(DB.bio).filter(b => new Date(b.data) >= dataLimite);
             const exames = load(DB.exames).filter(e => new Date(e.data) >= dataLimite);
+            const atividades = load(DB.atividades).filter(a => new Date(a.data) >= dataLimite);
             
             const totalSessoes = sessoes.length;
-            const totalHoras = sessoes.reduce((acc, s) => acc + s.duracao, 0) / 3600;
+            const totalHoras = (sessoes.reduce((acc, s) => acc + s.duracao, 0) / 3600).toFixed(1);
             const mediaSemana = (totalSessoes / (dias / 7)).toFixed(1);
+            const diasUnicos = new Set(sessoes.map(s => new Date(s.data).toISOString().split('T')[0])).size;
             
             const container = document.getElementById('relatorioContent');
             
             container.innerHTML = `
                 <div class="stat-grid" style="margin-top:1.5rem;">
                     <div class="stat-card">
-                        <div class="stat-label">Treinos Realizados</div>
+                        <div class="stat-label">Treinos</div>
                         <div class="stat-value">${totalSessoes}</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Total de Horas</div>
-                        <div class="stat-value">${totalHoras.toFixed(1)}h</div>
+                        <div class="stat-label">Dias Ativos</div>
+                        <div class="stat-value">${diasUnicos}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Horas</div>
+                        <div class="stat-value">${totalHoras}h</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-label">Média/Semana</div>
                         <div class="stat-value">${mediaSemana}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Consistência</div>
-                        <div class="stat-value">${totalSessoes > 0 ? '✓' : '✗'}</div>
                     </div>
                 </div>
                 
                 ${bio.length > 0 ? `
                     <div class="info-box" style="margin-top:1.5rem;">
                         <strong>📊 Evolução Bioimpedância:</strong><br>
-                        • ${bio.length} medição(ões) no período
+                        • ${bio.length} medição(ões) no período<br>
+                        ${bio.length >= 2 ? `
+                            • Variação de peso: ${(bio[bio.length-1].peso - bio[0].peso).toFixed(1)}kg<br>
+                            • Variação de gordura: ${(bio[bio.length-1].gordura - bio[0].gordura).toFixed(1)}%
+                        ` : ''}
+                    </div>
+                ` : ''}
+                
+                ${atividades.length > 0 ? `
+                    <div class="info-box">
+                        <strong>🏃 Atividades Extras:</strong><br>
+                        • ${atividades.length} atividade(s)<br>
+                        • Total: ${atividades.reduce((acc, a) => acc + (parseInt(a.duracao) || 0), 0)} minutos
                     </div>
                 ` : ''}
                 
@@ -1829,22 +1957,31 @@ Inclua séries, repetições e observações.`;
                 
                 ${totalSessoes === 0 ? `
                     <div class="warning-box">
-                        <strong>⚠️ Nenhum treino registrado neste período!</strong><br>
-                        Comece a treinar para ter dados no relatório.
+                        <strong>⚠️ Nenhum treino neste período!</strong><br>
+                        Comece a treinar para ter dados.
+                    </div>
+                ` : ''}
+
+                ${totalSessoes > 0 ? `
+                    <div class="info-box" style="margin-top:1.5rem;">
+                        <strong>💪 Consistência:</strong><br>
+                        ${diasUnicos >= (dias / 3) ? '✅ Excelente! Você está indo muito bem!' : 
+                          diasUnicos >= (dias / 5) ? '⚠️ Bom! Mas pode melhorar a frequência.' : 
+                          '❌ Tente treinar com mais frequência!'}
                     </div>
                 ` : ''}
             `;
         }
 
         async function gerarRelatorioIA() {
-            if(!checkApiKey()) {
-                alert('Configure sua chave OpenAI para relatórios com IA!');
+            if (!checkApiKey()) {
+                alert('Configure sua chave OpenAI para relatórios com IA! ⚙️');
                 switchTab('perfil');
                 return;
             }
             
             const container = document.getElementById('relatorioContent');
-            container.innerHTML = '<div style="text-align:center; padding:3rem;"><span class="ai-loading"></span><p style="margin-top:1rem;">Gerando relatório com IA...</p></div>';
+            container.innerHTML = '<div style="text-align:center; padding:3rem;"><span class="ai-loading"></span><p style="margin-top:1rem;">Gerando relatório completo com IA... 🤖</p></div>';
             
             try {
                 const dias = parseInt(document.getElementById('periodoRelatorio').value);
@@ -1856,50 +1993,99 @@ Inclua séries, repetições e observações.`;
                 const exames = load(DB.exames).filter(e => new Date(e.data) >= dataLimite);
                 const atividades = load(DB.atividades).filter(a => new Date(a.data) >= dataLimite);
                 
-                const prompt = `Gere um relatório de saúde e fitness detalhado dos últimos ${dias} dias:
+                const prompt = `Gere um relatório COMPLETO de saúde e fitness dos últimos ${dias} dias:
 
 TREINOS: ${JSON.stringify(sessoes)}
 BIOIMPEDÂNCIA: ${JSON.stringify(bio)}
 EXAMES: ${JSON.stringify(exames)}
 ATIVIDADES EXTRAS: ${JSON.stringify(atividades)}
 
-Forneça:
-1. Resumo executivo
-2. Análise de frequência e consistência
-3. Evolução física (se houver dados de bio)
-4. Pontos positivos
-5. Pontos de melhoria
-6. Recomendações específicas
+Estruture assim:
 
-Seja motivador e construtivo.`;
+📊 RESUMO EXECUTIVO
+(Principais números e conquistas)
+
+💪 ANÁLISE DE FREQUÊNCIA E CONSISTÊNCIA
+(Avaliação detalhada dos treinos)
+
+📈 EVOLUÇÃO FÍSICA
+(Se houver bioimpedância - analise composição corporal)
+
+✅ PONTOS POSITIVOS
+(Celebre as conquistas!)
+
+⚠️ PONTOS DE MELHORIA
+(Construtivo e motivador)
+
+🎯 RECOMENDAÇÕES PARA OS PRÓXIMOS ${dias} DIAS
+(Específicas e acionáveis)
+
+🔥 MENSAGEM MOTIVACIONAL
+(Inspire!)
+
+Use MUITOS emojis e seja MUITO motivador!`;
                 
                 const resposta = await callIA(prompt);
                 
                 container.innerHTML = `
-                    <div class="info-box" style="margin-top:1.5rem; white-space:pre-line; line-height:1.8;">
-                        <strong style="font-size:1.1rem; color:var(--primary);">🤖 Relatório Gerado por IA</strong><br><br>
+                    <div class="info-box" style="margin-top:1.5rem; white-space:pre-line; line-height:1.9;">
+                        <strong style="font-size:1.2rem; color:var(--primary);">🤖 Relatório Completo com IA</strong><br><br>
                         ${resposta}
                     </div>
                 `;
-            } catch(e) {
-                container.innerHTML = `<div class="warning-box">Erro ao gerar relatório: ${e.message}</div>`;
+            } catch (error) {
+                container.innerHTML = `<div class="warning-box">❌ Erro: ${error.message}</div>`;
+            }
+        }
+
+        // DASHBOARD
+        function updateDashboard() {
+            const hoje = new Date().toISOString().split('T')[0];
+            const inicioDaSemana = new Date();
+            inicioDaSemana.setDate(inicioDaSemana.getDate() - inicioDaSemana.getDay());
+            
+            const sessoes = load(DB.sessoes);
+            const sessoesHoje = sessoes.filter(s => new Date(s.data).toISOString().split('T')[0] === hoje);
+            const sessoesSemana = sessoes.filter(s => new Date(s.data) >= inicioDaSemana);
+            
+            const totalHoras = (sessoes.reduce((acc, s) => acc + s.duracao, 0) / 3600).toFixed(1);
+            const diasUnicos = new Set(sessoes.map(s => new Date(s.data).toISOString().split('T')[0])).size;
+            
+            document.getElementById('treinosHoje').textContent = sessoesHoje.length;
+            document.getElementById('treinosSemana').textContent = sessoesSemana.length;
+            document.getElementById('totalHoras').textContent = totalHoras + 'h';
+            document.getElementById('consistencia').textContent = diasUnicos > 0 ? '✓' : '-';
+            
+            if (sessoes.length > 0) {
+                const ultimo = sessoes[sessoes.length - 1];
+                document.getElementById('ultimoTreinoInfo').innerHTML = `
+                    <div style="background: var(--dark-lighter); padding: 1.25rem; border-radius: 16px;">
+                        <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">${ultimo.treinoNome}</div>
+                        <div style="color: var(--text-muted); font-size: 0.9rem;">
+                            📅 ${new Date(ultimo.data).toLocaleString('pt-BR')}<br>
+                            ⏱️ Duração: ${formatTime(ultimo.duracao)}
+                        </div>
+                    </div>
+                `;
             }
         }
 
         function clearAll() {
-            if(confirm('Isso apagará TODOS os dados. Continuar?')) {
+            if (confirm('⚠️ ATENÇÃO: Isso apagará TODOS os dados permanentemente!\n\nTem certeza?')) {
                 localStorage.clear();
-                location.reload();
+                notify('Todos os dados foram apagados! 🗑️');
+                setTimeout(() => location.reload(), 1500);
             }
         }
 
+        // INICIALIZAÇÃO
         document.addEventListener('DOMContentLoaded', () => {
             loadPerfil();
             loadBio();
             loadExames();
             loadTreinos();
             loadAtividades();
-            checkApiKey();
+            updateDashboard();
             gerarRelatorio();
         });
     </script>
