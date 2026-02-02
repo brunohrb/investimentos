@@ -313,7 +313,7 @@ let charts = {};
 let dolarFallbackHoje = null;
 
     const SUPABASE_URL = 'https://fwhsjzkmnfxnlrvspkyr.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_9pRTCRjY673snoOMAz1O_g_QNSAx3AB';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3aHNqemttbmZ4bmxydnNwa3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0Nzg3MzUsImV4cCI6MjA4MzA1NDczNX0.lT_tHpkxiOQl2HdsFc5VQr_xfkEvoGi101MaITnSLkc';
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let senhaMestra = localStorage.getItem('investflow_pass') || '1234';
     let privacidadeAtiva = true;
@@ -394,11 +394,7 @@ let modoExcluirBanco = false;
     todosBancos = data;   // 👈 GUARDA TODOS
     bancos = data;
        const selector = document.getElementById('bancoSelector');
-selector.innerHTML = `
-    <option value="consolidado_total">🌍 Consolidado Total</option>
-    <option value="consolidado_br">🇧🇷 Consolidado Brasil (R$)</option>
-    <option value="consolidado_usd">🌎 Consolidado Internacional (USD)</option>
-`;
+selector.innerHTML = '';
 
 const carteira = document.getElementById('carteiraSelector')?.value || 'br';
 
@@ -522,27 +518,71 @@ function atualizarFiltroAnos() {
     }
 
     async function salvarRegistro() {
-        const bancoId = document.getElementById('bancoSelector').value; if (bancoId.startsWith('consolidado')
-) return;
-        const registroId = document.getElementById('registroId').value;
-        const dataInput = document.getElementById('dataInput').value;
-        const aporte = desformatarMoeda(document.getElementById('valorAporteInput').value);
-        const patrimonio = desformatarMoeda(document.getElementById('patrimonioAtualInput').value);
-        const banco = bancos.find(b => b.id === bancoId);
-        const isUSD = banco?.is_usd || banco?.nome.toLowerCase().includes('tasty');
-        const aporteUSD = desformatarMoeda(document.getElementById('valorAporteInputUSD').value);
-        const patrimonioUSD = desformatarMoeda(document.getElementById('patrimonioAtualInputUSD').value);
-        
-        if (!bancoId || !dataInput) { alert("Preencha os campos!"); return; }
-        const [ano, mes] = dataInput.split('-');
-        const payload = { banco_id: bancoId, periodo: `${ano}/${mes}`, data_fechamento: dataInput, aportes: aporte, patrimonio: patrimonio, aportes_usd: aporteUSD, patrimonio_usd: patrimonioUSD, is_usd: isUSD };
-        
-        showLoading(true); let error;
-        if (registroId) { const { error: err } = await sb.from('registros').update(payload).eq('id', registroId); error = err; }
-        else { const { error: err } = await sb.from('registros').insert([payload]); error = err; }
-        showLoading(false);
-        if (error) alert('Erro ao salvar'); else { limparCampos(); await carregarTodosRegistros(); await carregarDadosBanco(); }
+    const bancoId = document.getElementById('bancoSelector').value; 
+    if (bancoId.startsWith('consolidado')) return;
+    
+    const registroId = document.getElementById('registroId').value;
+    const dataInput = document.getElementById('dataInput').value;
+    let aporte = desformatarMoeda(document.getElementById('valorAporteInput').value);
+    let patrimonio = desformatarMoeda(document.getElementById('patrimonioAtualInput').value);
+    const banco = bancos.find(b => b.id === bancoId);
+    const isUSD = banco?.is_usd || banco?.nome.toLowerCase().includes('tasty');
+    let aporteUSD = desformatarMoeda(document.getElementById('valorAporteInputUSD').value);
+    let patrimonioUSD = desformatarMoeda(document.getElementById('patrimonioAtualInputUSD').value);
+    
+    // 🔹 Conversão automática entre BRL e USD
+    if (isUSD && dolarFallbackHoje) {
+        // Se digitou BRL mas não digitou USD, converte
+        if (patrimonio > 0 && patrimonioUSD === 0) {
+            patrimonioUSD = patrimonio / dolarFallbackHoje;
+        }
+        if (aporte !== 0 && aporteUSD === 0) {
+            aporteUSD = aporte / dolarFallbackHoje;
+        }
+        // Se digitou USD mas não digitou BRL, converte
+        if (patrimonioUSD > 0 && patrimonio === 0) {
+            patrimonio = patrimonioUSD * dolarFallbackHoje;
+        }
+        if (aporteUSD !== 0 && aporte === 0) {
+            aporte = aporteUSD * dolarFallbackHoje;
+        }
     }
+    
+    if (!bancoId || !dataInput) { 
+        alert("Preencha os campos!"); 
+        return; 
+    }
+    
+    const [ano, mes] = dataInput.split('-');
+    const payload = { 
+        banco_id: bancoId, 
+        periodo: `${ano}/${mes}`, 
+        data_fechamento: dataInput, 
+        aportes: aporte, 
+        patrimonio: patrimonio, 
+        aportes_usd: aporteUSD, 
+        patrimonio_usd: patrimonioUSD, 
+        is_usd: isUSD 
+    };
+    
+    showLoading(true); 
+    let error;
+    if (registroId) { 
+        const { error: err } = await sb.from('registros').update(payload).eq('id', registroId); 
+        error = err; 
+    } else { 
+        const { error: err } = await sb.from('registros').insert([payload]); 
+        error = err; 
+    }
+    showLoading(false);
+    
+    if (error) alert('Erro ao salvar'); 
+    else { 
+        limparCampos(); 
+        await carregarTodosRegistros(); 
+        await carregarDadosBanco(); 
+    }
+}
 
     function formatarMoeda(v, moeda = 'BRL') {
         return v.toLocaleString('pt-BR', { style: 'currency', currency: moeda, minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -583,8 +623,9 @@ function atualizarFiltroAnos() {
 
             mesesAgrupados[r.periodo].regs.push(r);
             
-            if (r.patrimonio > 0 && !r.is_usd) {
-                mesesAgrupados[r.periodo].patrimonioFinal += r.patrimonio;
+if (r.patrimonio > 0) {
+    mesesAgrupados[r.periodo].patrimonioFinal += r.patrimonio;
+
                 if (!mesesAgrupados[r.periodo].dataUltimoFechado || new Date(r.data_fechamento) > new Date(mesesAgrupados[r.periodo].dataUltimoFechado)) {
                     mesesAgrupados[r.periodo].dataUltimoFechado = r.data_fechamento;
                 }
@@ -646,12 +687,18 @@ function atualizarFiltroAnos() {
             if (anoSelecionado === 'todos' || anoSelecionado === anoReg) {
                 let rowHTML = `<td>${mesAno}</td>`;
                 const hideClass = privacidadeAtiva ? 'hidden-value' : '';
+
+
+
                 if (isUSD) {
                     const saldoUSD = dadosMes.patrimonioFinalUSD - patAnteriorUSD - totalAporteUSD;
                     const crescUSD = basePonderadaUSD > 0 ? (saldoUSD / basePonderadaUSD) * 100 : 0;
                     rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinal)}</td><td class="${hideClass}">${formatarMoeda(totalAporteUSD, 'USD')}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinalUSD, 'USD')}</td><td class="${saldoUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoUSD, 'USD')}</td><td class="${crescUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescUSD.toFixed(2)}%</td>`;
                     patAnteriorUSD = dadosMes.patrimonioFinalUSD;
-                } else if (bancoId === 'consolidado_total') {
+                } 
+
+
+else if (bancoId === 'consolidado_total') {
                     const patrimonioTotal = dadosMes.patrimonioFinal + (dadosMes.patrimonioFinalUSDconvertido || 0);
                     const saldoTotalBRL = patrimonioTotal - (patAnteriorBRL + patAnteriorUSD) - totalAporteBRL;
                     const saldoTotalUSD = dadosMes.patrimonioFinalUSD - patAnteriorUSD - totalAporteUSD;
@@ -1816,6 +1863,7 @@ async function atualizarFiltroAnoEDados() {
 </script>
 </body>
 </html>
+
 
 
 
