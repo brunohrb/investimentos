@@ -250,21 +250,34 @@
 
     </header>
     
-    <div class="dashboard-grid">
+<!-- Dashboard NORMAL -->
+<div class="dashboard-grid" id="dashboardNormal">
+    <div class="total-card"><h3>Patrimônio do Banco</h3><p id="patrimonioTotalGeral" class="hidden-value">R$ 0,00</p><p id="patrimonioTotalGeralUSD" class="hidden-value" style="display:none; font-size:0.85em; margin-top:5px; color:#666;">US$ 0,00 / R$ 0,00</p></div>
+    <div class="stats-card"><h4>Rentabilidade Acumulada</h4><p id="rendimentoMedio" class="hidden-value">0,00%</p></div>
+    <div class="stats-card"><h4>Total Aportado (Banco)</h4><p id="totalAportado" class="hidden-value">R$ 0,00</p></div>
+    <div class="stats-card" id="indicadorDolarComprado" style="display:none;"><h4>Dolar Comprado</h4><p id="valorDolarComprado" style="color:#28a745; font-size:20px; font-weight:bold;">R$ 0,00</p></div>
+    <div class="stats-card" id="indicadorDolarComLucro" style="display:none;"><h4>Dolar com Lucro</h4><p id="valorDolarComLucro" style="color:#007bff; font-size:20px; font-weight:bold;">R$ 0,00</p></div>
+</div>
 
-        <div class="total-card"><h3>Patrimônio do Banco</h3><p id="patrimonioTotalGeral" class="hidden-value">R$ 0,00</p><p id="patrimonioTotalGeralUSD" class="hidden-value" style="display:none; font-size:0.85em; margin-top:5px; color:#666;">US$ 0,00 / R$ 0,00</p></div>
-        <div class="stats-card"><h4>Rentabilidade Acumulada</h4><p id="rendimentoMedio" class="hidden-value">0,00%</p></div>
-        <div class="stats-card"><h4>Total Aportado (Banco)</h4><p id="totalAportado" class="hidden-value">R$ 0,00</p></div>
-        <div class="stats-card" id="indicadorDolarComprado" style="display:none;"><h4>Dolar Comprado</h4><p id="valorDolarComprado" style="color:#28a745; font-size:20px; font-weight:bold;">R$ 0,00</p></div>
-        <div class="stats-card" id="indicadorDolarComLucro" style="display:none;"><h4>Dolar com Lucro</h4><p id="valorDolarComLucro" style="color:#007bff; font-size:20px; font-weight:bold;">R$ 0,00</p></div>
-    </div>
+<!-- Dashboard CONSOLIDADO TOTAL -->
+<div class="dashboard-grid" id="dashboardConsolidadoTotal" style="display:none;">
+    <div class="total-card" style="background: linear-gradient(135deg, #28a745, #20c997);"><h3>💰 Brasil</h3><p id="patrimonioBRL" class="hidden-value">R$ 0,00</p></div>
+    <div class="total-card" style="background: linear-gradient(135deg, #007bff, #00bfff);"><h3>💵 USD</h3><p id="patrimonioUSD" class="hidden-value">US$ 0,00</p></div>
+    <div class="total-card" style="background: linear-gradient(135deg, #6f42c1, #e83e8c);"><h3>🌍 Total</h3><p id="patrimonioTotal" class="hidden-value">R$ 0,00</p></div>
+    <div class="stats-card"><h4>Rentabilidade</h4><p id="rendimentoMedioTotal" class="hidden-value">0,00%</p></div>
+    <div class="stats-card"><h4>Aportado BRL</h4><p id="totalAportadoBRL" class="hidden-value">R$ 0,00</p></div>
+    <div class="stats-card"><h4>Aportado USD</h4><p id="totalAportadoUSD" class="hidden-value">US$ 0,00</p></div>
+</div>
 
 <div class="controls">
     <div class="controls-row">
-        <select id="carteiraSelector" onchange="carteiraMudou()">
-            <option value="br">🇧🇷 Carteira Brasil (R$)</option>
-            <option value="int">🌎 Carteira Internacional (USD)</option>
-        </select>
+<select id="carteiraSelector" onchange="carteiraMudou()">
+    <option value="consolidado_total">🌍 Consolidado Total</option>
+    <option value="br">🇧🇷 Carteira Brasil</option>
+    <option value="int">🌎 Carteira Internacional</option>
+    <option value="consolidado_br">📊 Consolidado Brasil</option>
+    <option value="consolidado_usd">📊 Consolidado Internacional</option>
+</select>
     </div>
 
     <div class="controls-row">
@@ -319,31 +332,52 @@ let dolarFallbackHoje = null;
     let privacidadeAtiva = true;
 let modoExcluirBanco = false;
 
-    function login() {
-        if (document.getElementById('mainPassword').value === senhaMestra) {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainContainer').style.display = 'block';
-            inicializarSistema();
-        } else { alert('Senha incorreta!'); }
+async function login() {
+    const senhaDigitada = document.getElementById('mainPassword').value;
+    
+    showLoading(true);
+    const { data, error } = await sb
+        .from('usuarios')
+        .select('senha_hash')
+        .eq('username', 'bruno')
+        .single();
+    showLoading(false);
+    
+    if (error || !data) {
+        alert('Erro ao verificar senha');
+        return;
     }
+    
+    if (data.senha_hash === senhaDigitada) {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainContainer').style.display = 'block';
+        inicializarSistema();
+    } else {
+        alert('Senha incorreta!');
+    }
+}
 
-        async function inicializarSistema() {
+ async function inicializarSistema() {
     await carregarBancos();
     await carregarTodosRegistros();
     carregarCotacoesHoje();
+    carteiraMudou(); // 🔥 Força atualização na inicialização
 }
 
 
-    function togglePrivacy() {
-        privacidadeAtiva = !privacidadeAtiva;
-        atualizarTabela();
-        const dashboardEls = document.querySelectorAll('#patrimonioTotalGeral, #rendimentoMedio, #totalAportado');
-        dashboardEls.forEach(el => {
-            if (privacidadeAtiva) el.classList.add('hidden-value');
-            else el.classList.remove('hidden-value');
-        });
-        document.getElementById('privacyBtn').innerHTML = privacidadeAtiva ? '👁️' : '🙈';
-    }
+function togglePrivacy() {
+    privacidadeAtiva = !privacidadeAtiva;
+    atualizarTabela();
+    
+    // 🔹 Seleciona TODOS os elementos com hidden-value
+    const dashboardEls = document.querySelectorAll('.hidden-value');
+    dashboardEls.forEach(el => {
+        if (privacidadeAtiva) el.classList.add('hidden-value');
+        else el.classList.remove('hidden-value');
+    });
+    
+    document.getElementById('privacyBtn').innerHTML = privacidadeAtiva ? '👁️' : '🙈';
+}
 
     function mascaraMoeda(i, moeda) {
         let v = i.value.replace(/[^\d-]/g,'');
@@ -369,10 +403,46 @@ let modoExcluirBanco = false;
 }
 
     function fecharConfig() { document.getElementById('configModal').style.display = 'none'; }
-    function mudarSenha() {
-        const nova = prompt('Digite a nova senha:');
-        if (nova) { senhaMestra = nova; localStorage.setItem('investflow_pass', nova); alert('Senha alterada!'); }
+    
+async function mudarSenha() {
+    const senhaAtual = prompt('Digite a senha atual:');
+    if (!senhaAtual) return;
+    
+    showLoading(true);
+    const { data, error } = await sb
+        .from('usuarios')
+        .select('senha_hash')
+        .eq('username', 'bruno')
+        .single();
+    showLoading(false);
+    
+    if (error || !data || data.senha_hash !== senhaAtual) {
+        alert('Senha atual incorreta!');
+        return;
     }
+    
+    const novaSenha = prompt('Digite a nova senha:');
+    if (!novaSenha) return;
+    
+    const confirmacao = prompt('Confirme a nova senha:');
+    if (novaSenha !== confirmacao) {
+        alert('As senhas não coincidem!');
+        return;
+    }
+    
+    showLoading(true);
+    const { error: errUpdate } = await sb
+        .from('usuarios')
+        .update({ senha_hash: novaSenha })
+        .eq('username', 'bruno');
+    showLoading(false);
+    
+    if (errUpdate) {
+        alert('Erro ao atualizar senha!');
+    } else {
+        alert('Senha alterada com sucesso!');
+    }
+}
 
     function toggleTheme(init = false) {
         const body = document.body; const btn = document.getElementById('themeBtn');
@@ -393,9 +463,10 @@ let modoExcluirBanco = false;
         if (error) return; 
     todosBancos = data;   // 👈 GUARDA TODOS
     bancos = data;
-       const selector = document.getElementById('bancoSelector');
-selector.innerHTML = '';
+      
 
+ const selector = document.getElementById('bancoSelector');
+selector.innerHTML = '';
 const carteira = document.getElementById('carteiraSelector')?.value || 'br';
 
 const bancosFiltrados = bancos.filter(b => carteira === 'br' ? !b.is_usd : b.is_usd);
@@ -728,8 +799,18 @@ else if (bancoId === 'consolidado_total') {
 
 async function atualizarDashboardBanco() {
     console.clear();
-
+    
     const bancoSelecionadoId = document.getElementById('bancoSelector').value;
+
+    // Mostra/esconde o dashboard correto
+    if (bancoSelecionadoId === 'consolidado_total') {
+        document.getElementById('dashboardNormal').style.display = 'none';
+        document.getElementById('dashboardConsolidadoTotal').style.display = 'grid';
+    } else {
+        document.getElementById('dashboardNormal').style.display = 'grid';
+        document.getElementById('dashboardConsolidadoTotal').style.display = 'none';
+    }
+
     const carteiraAtual = document.getElementById('carteiraSelector')?.value || 'br';
 
     const hoje = new Date();
@@ -839,9 +920,37 @@ async function atualizarDashboardBanco() {
 
     document.getElementById('patrimonioTotalGeralUSD').style.display = 'none';
 
-    // =========================
-    // 🔥 ESSA LINHA É A CORREÇÃO
-    // =========================
+ // 🔹 Se for Consolidado Total, preenche os 3 cards especiais
+if (bancoSelecionadoId === 'consolidado_total') {
+    let patrimonioBRL = 0;
+    let patrimonioUSD = 0;
+    
+    // Recalcula separando BRL e USD
+    for (const banco of bancosParaCalculo) {
+        const regsBanco = registrosAtuais.filter(r => r.banco_id === banco.id)
+            .sort((a, b) => new Date(a.data_fechamento) - new Date(b.data_fechamento));
+        
+        if (regsBanco.length === 0) continue;
+        
+        const ultimoFechado = [...regsBanco].reverse()
+            .find(r => banco.is_usd ? r.patrimonio_usd > 0 : r.patrimonio > 0);
+        
+        if (!ultimoFechado) continue;
+        
+        if (banco.is_usd) {
+            patrimonioUSD += ultimoFechado.patrimonio_usd;
+        } else {
+            patrimonioBRL += ultimoFechado.patrimonio;
+        }
+    }
+    
+    const patrimonioTotalConvertido = patrimonioBRL + (patrimonioUSD * (dolarFallbackHoje || 0));
+    
+    document.getElementById('patrimonioBRL').textContent = formatarMoeda(patrimonioBRL);
+    document.getElementById('patrimonioUSD').textContent = patrimonioUSD.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    document.getElementById('patrimonioTotal').textContent = formatarMoeda(patrimonioTotalConvertido);
+}
+
     atualizarCardsAportesERentabilidade(patrimonioAtual);
 calcularRentabilidadeAcumuladaSimples(patrimonioAtual);
 
@@ -1026,9 +1135,21 @@ async function consolidarPatrimonioHistorico() {
     }
 
 function carteiraMudou() {
-    carregarBancos();
+    const carteira = document.getElementById('carteiraSelector').value;
+    const bancoSelector = document.getElementById('bancoSelector');
+    
+    // Se selecionou consolidado, esconde o dropdown de bancos
+    if (carteira.startsWith('consolidado')) {
+        bancoSelector.style.display = 'none';
+        bancoSelector.innerHTML = `<option value="${carteira}">${carteira}</option>`;
+        bancoSelector.value = carteira;
+        carregarDadosBanco();
+    } else {
+        // Mostra o dropdown de bancos
+        bancoSelector.style.display = 'block';
+        carregarBancos();
+    }
 }
-
 function calcularDolarIndicadores() {
     const carteiraAtual = document.getElementById('carteiraSelector')?.value || 'br';
     const indicadorComprado = document.getElementById('indicadorDolarComprado');
