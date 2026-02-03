@@ -123,10 +123,29 @@
     <div class="login-box">
         <h1>Investimentos</h1>
         <p>Sistema de Fechamento Mensal</p>
-        <input type="password" id="mainPassword" placeholder="Senha (Padrão: 1234)">
-        <button onclick="login()">Entrar Agora</button>
+        <form id="loginForm" onsubmit="event.preventDefault(); login();" autocomplete="on" method="post">
+            <input 
+                type="text" 
+                id="mainUsername"
+                name="username"
+                value="bruno"
+                autocomplete="username"
+                readonly
+                style="text-align: center; background: #f5f5f5; cursor: not-allowed;"
+                placeholder="Usuário">
+            <input 
+                type="password" 
+                id="mainPassword" 
+                name="password"
+                placeholder="Digite sua senha"
+                autocomplete="current-password"
+                autofocus
+                required>
+            <button type="submit">Entrar Agora</button>
+        </form>
     </div>
 </div>
+
 
 <div id="configModal" class="modal">
     <div class="modal-content">
@@ -241,11 +260,18 @@
     </div>
 
     <button class="btn-icon" onclick="togglePrivacy()" id="privacyBtn">👁️</button>
-    <button class="btn-icon" onclick="abrirModalPortabilidade()" title="Portabilidade BRL">🔄</button>
-    <button class="btn-icon" onclick="abrirModalPortabilidadeUSD()" title="Portabilidade USD">💱</button>
-    <button class="btn-icon" onclick="abrirModalPortabilidadeBrlUsd()" title="Portabilidade BRL→USD">🌐</button>
-    <button class="btn-icon" onclick="abrirModalPortabilidadeUsdBrl()" title="Portabilidade USD→BRL">🔙</button>
-    <button class="btn-icon" onclick="abrirConfig()">⚙️</button>
+
+<div style="position: relative;">
+    <button class="btn-icon" onclick="toggleMenuPortabilidade()" title="Portabilidades">💱</button>
+    <div id="menuPortabilidade" style="display: none; position: absolute; right: 0; top: 50px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--card-shadow); padding: 8px; z-index: 1000; min-width: 200px;">
+        <button onclick="abrirModalPortabilidade(); toggleMenuPortabilidade();" style="width: 100%; padding: 10px; margin-bottom: 5px; background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; text-align: left; font-size: 14px;">🔄 BRL → BRL</button>
+        <button onclick="abrirModalPortabilidadeUSD(); toggleMenuPortabilidade();" style="width: 100%; padding: 10px; margin-bottom: 5px; background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; text-align: left; font-size: 14px;">💵 USD → USD</button>
+        <button onclick="abrirModalPortabilidadeBrlUsd(); toggleMenuPortabilidade();" style="width: 100%; padding: 10px; margin-bottom: 5px; background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; text-align: left; font-size: 14px;">🌎 BRL → USD</button>
+        <button onclick="abrirModalPortabilidadeUsdBrl(); toggleMenuPortabilidade();" style="width: 100%; padding: 10px; background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; text-align: left; font-size: 14px;">🔙 USD → BRL</button>
+    </div>
+</div>
+
+<button class="btn-icon" onclick="abrirConfig()">⚙️</button>
 </div>
 
     </header>
@@ -533,7 +559,7 @@ function atualizarFiltroAnos() {
             registrosAtuais = [];
         }
     } else {
-        document.getElementById('tituloSistema').textContent = 'InvestFlow Pro';
+        document.getElementById('tituloSistema').textContent = 'HRB Invest';
         document.getElementById('valorAporteInput').parentElement.style.display = 'grid';
 
         showLoading(true);
@@ -1980,6 +2006,20 @@ async function atualizarFiltroAnoEDados() {
     }
 }
 
+function toggleMenuPortabilidade() {
+    const menu = document.getElementById('menuPortabilidade');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+// Fecha o menu se clicar fora dele
+document.addEventListener('click', function(event) {
+    const menu = document.getElementById('menuPortabilidade');
+    const botao = event.target.closest('[onclick*="toggleMenuPortabilidade"]');
+    
+    if (!botao && !menu.contains(event.target)) {
+        menu.style.display = 'none';
+    }
+});
 
 </script>
 </body>
