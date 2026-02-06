@@ -180,7 +180,44 @@
     .chart-container {
         height: 260px;
     }
+    /* ===========================
+       📱 TABELA – AÇÕES NO MOBILE
+       =========================== */
+
+    /* Coluna de ações vira vertical */
+    .actions-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 180px;
+    }
+
+    /* Cada aporte vira um "card" */
+    .actions-cell > div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        background: rgba(0,0,0,0.04);
+        padding: 6px 8px;
+        border-radius: 6px;
+
+        font-size: 12px;
+        white-space: normal;
+    }
+
+    /* Botões menores no iPhone */
+    .btn-edit,
+    .btn-delete {
+        padding: 4px 6px !important;
+        font-size: 12px !important;
+    }
+
+
+
 }
+
+
 
     </style>
 </head>
