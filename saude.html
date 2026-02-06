@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>VitalTrack Pro - Personal AI</title>
+    <title>BHR Treinos</title>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -520,7 +520,7 @@
 <body>
     <header>
         <div class="header-content">
-            <div class="logo">VitalTrack Pro</div>
+            <div class="logo">BHR Treinos</div>
             <div style="font-size: 0.8rem; color: var(--text-muted);">🤖 AI Powered</div>
         </div>
     </header>
@@ -1302,32 +1302,36 @@ RETORNE APENAS JSON válido (sem texto antes ou depois):
         `;
     }
 
-    function loadTreinos() {
-        const list = load(DB.treinos);
-        const container = document.getElementById('treinosList');
+   function loadTreinos() {
+    const list = load(DB.treinos);
+    const container = document.getElementById('treinosList');
 
-        if (list.length === 0) {
-            container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 2rem;">Nenhum treino cadastrado. Clique em "Gerar com IA" para começar! 🚀</p>';
-            return;
-        }
+    if (list.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 2rem;">Nenhum treino cadastrado. Clique em "Gerar com IA" para começar! 🚀</p>';
+        return;
+    }
 
-        container.innerHTML = list.map(treino => {
-            // Normaliza todos os exercícios ao renderizar (garante formato consistente)
-            const exercicios = (treino.exercicios || []).map(normalizarExercicio);
-            const totalExercicios = exercicios.length;
-            const concluidos = Object.values(treino.progresso || {}).filter(Boolean).length;
-            const percentual = totalExercicios > 0 ? Math.round((concluidos / totalExercicios) * 100) : 0;
+    container.innerHTML = list.map(treino => {
+        // Normaliza todos os exercícios ao renderizar (garante formato consistente)
+        const exercicios = (treino.exercicios || []).map(normalizarExercicio);
+        const totalExercicios = exercicios.length;
+        const concluidos = Object.values(treino.progresso || {}).filter(Boolean).length;
+        const percentual = totalExercicios > 0 ? Math.round((concluidos / totalExercicios) * 100) : 0;
 
-            return `
-                <div class="workout-card">
-                    <div class="workout-header">
-                        <div class="workout-title">${treino.nome}</div>
-                        <div class="workout-actions">
-                            <span class="workout-badge">${treino.tipo || 'Manual'}</span>
-                            ${treino.foco ? `<span class="workout-badge" style="background: var(--gradient-free);">${treino.foco}</span>` : ''}
-                        </div>
+        return `
+            <div class="workout-card" id="treino-${treino.id}">
+                <div class="workout-header">
+                    <div class="workout-title">${treino.nome}</div>
+                    <div class="workout-actions">
+                        <span class="workout-badge">${treino.tipo || 'Manual'}</span>
+                        ${treino.foco ? `<span class="workout-badge" style="background: var(--gradient-free);">${treino.foco}</span>` : ''}
+                        <button class="btn btn-small" style="background: rgba(255,255,255,0.1); padding: 0.4rem 0.8rem;" onclick="toggleTreino(${treino.id})">
+                            <span id="toggle-icon-${treino.id}">➖</span>
+                        </button>
                     </div>
+                </div>
 
+                <div id="treino-content-${treino.id}">
                     ${treino.config ? `
                         <div style="background: rgba(0,217,177,0.05); padding: 0.75rem; border-radius: 12px; margin-bottom: 1rem; font-size: 0.85rem;">
                             📋 ${treino.config.frequencia}x/semana • ${treino.config.duracao}min • ${treino.config.nivel}
@@ -1355,8 +1359,11 @@ RETORNE APENAS JSON válido (sem texto antes ou depois):
                                             <div class="exercise-details">${ex.series}</div>
                                             ${ex.observacao ? `<div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">💡 ${ex.observacao}</div>` : ''}
                                         </div>
-                                        <div class="exercise-check ${isCompleted ? 'checked' : ''}" onclick="toggleExercicio(${treino.id}, ${idx})">
-                                            ${isCompleted ? '✓' : ''}
+                                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                            <button class="btn btn-danger btn-small" style="padding: 0.5rem 0.7rem; min-height: 36px;" onclick="deleteExercicio(${treino.id}, ${idx}, '${ex.nome.replace(/'/g, "\\'")}')">🗑️</button>
+                                            <div class="exercise-check ${isCompleted ? 'checked' : ''}" onclick="toggleExercicio(${treino.id}, ${idx})">
+                                                ${isCompleted ? '✓' : ''}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -1382,12 +1389,19 @@ RETORNE APENAS JSON válido (sem texto antes ou depois):
 
                     <div class="workout-controls">
                         <button class="btn btn-success" onclick="iniciarCronometro(${treino.id}, '${treino.nome.replace(/'/g, "\\'")}')">⏱️ Iniciar</button>
-                        <button class="btn btn-danger" onclick="deleteTreino(${treino.id})">🗑️ Excluir</button>
+                        <button class="btn btn-danger" onclick="deleteTreino(${treino.id})">🗑️ Excluir Treino</button>
                     </div>
                 </div>
-            `;
-        }).join('');
-    }
+            </div>
+        `;
+    }).join('') + `
+        <div style="margin-top: 1.5rem; text-align: center;">
+            <button class="btn btn-danger" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: white; padding: 1rem 2rem; font-size: 1rem;" onclick="deleteAllTreinos()">
+                🗑️ EXCLUIR TODOS OS TREINOS
+            </button>
+        </div>
+    `;
+}
 
     function toggleExercicio(treinoId, exercicioIdx) {
         const list = load(DB.treinos);
@@ -1400,13 +1414,73 @@ RETORNE APENAS JSON válido (sem texto antes ou depois):
         }
     }
 
-    function deleteTreino(id) {
-        if (confirm('Deseja realmente excluir este treino? ❌')) {
-            save(DB.treinos, load(DB.treinos).filter(t => t.id !== id));
+    // NOVA FUNÇÃO 1: Minimizar/Expandir treino
+function toggleTreino(treinoId) {
+    const content = document.getElementById(`treino-content-${treinoId}`);
+    const icon = document.getElementById(`toggle-icon-${treinoId}`);
+    
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.textContent = '➖';
+    } else {
+        content.style.display = 'none';
+        icon.textContent = '➕';
+    }
+}
+
+// NOVA FUNÇÃO 2: Excluir exercício individual
+function deleteExercicio(treinoId, exercicioIdx, nomeExercicio) {
+    if (confirm(`Deseja realmente excluir o exercício "${nomeExercicio}"? ❌`)) {
+        const list = load(DB.treinos);
+        const treino = list.find(t => t.id === treinoId);
+        
+        if (treino) {
+            // Remove o exercício
+            treino.exercicios.splice(exercicioIdx, 1);
+            
+            // Reorganiza o progresso
+            const novoProgresso = {};
+            Object.keys(treino.progresso || {}).forEach(key => {
+                const keyNum = parseInt(key);
+                if (keyNum < exercicioIdx) {
+                    novoProgresso[keyNum] = treino.progresso[key];
+                } else if (keyNum > exercicioIdx) {
+                    novoProgresso[keyNum - 1] = treino.progresso[key];
+                }
+            });
+            treino.progresso = novoProgresso;
+            
+            // Se não sobrou nenhum exercício, remove o treino
+            if (treino.exercicios.length === 0) {
+                save(DB.treinos, list.filter(t => t.id !== treinoId));
+                notify('Treino excluído (não tinha mais exercícios)! 🗑️');
+            } else {
+                save(DB.treinos, list);
+                notify('Exercício excluído! 🗑️');
+            }
+            
             loadTreinos();
-            notify('Treino excluído! 🗑️');
         }
     }
+}
+
+// NOVA FUNÇÃO 3: Excluir TODOS os treinos
+function deleteAllTreinos() {
+    const list = load(DB.treinos);
+    
+    if (list.length === 0) {
+        alert('Não há treinos para excluir! 📋');
+        return;
+    }
+    
+    if (confirm(`⚠️ ATENÇÃO!\n\nVocê vai excluir TODOS OS ${list.length} TREINO(S) permanentemente!\n\nEssa ação NÃO pode ser desfeita!\n\nTem certeza?`)) {
+        if (confirm('Confirma NOVAMENTE a exclusão de TODOS os treinos? 🗑️')) {
+            save(DB.treinos, []);
+            loadTreinos();
+            notify('✅ Todos os treinos foram excluídos!');
+        }
+    }
+}
 
     function saveTreinoManual(e) {
         e.preventDefault();
