@@ -1067,6 +1067,116 @@ if (bancoSelecionadoId === 'consolidado_usd') {
         formatarMoeda(patrimonioAtual);
 }
 
+// 🔹 Se for Consolidado Total, preenche os 3 cards especiais
+if (bancoSelecionadoId === 'consolidado_total') {
+    // 🔥 CALCULA OS VALORES DOS CONSOLIDADOS BRASIL E USD
+    
+    // 1️⃣ PATRIMÔNIO BRASIL (mesma lógica do consolidado_br)
+    let patrimonioBrasil = 0;
+    const bancosBR = todosBancos.filter(b => !b.is_usd);
+    
+    for (const banco of bancosBR) {
+        const regsBanco = todosRegistros
+            .filter(r => r.banco_id === banco.id)
+            .sort((a, b) => new Date(a.data_fechamento) - new Date(b.data_fechamento));
+        
+        if (regsBanco.length === 0) continue;
+        
+        const ultimoFechado = [...regsBanco].reverse()
+            .find(r => r.patrimonio > 0);
+        
+        if (!ultimoFechado) continue;
+        
+        let patrimonioBase = ultimoFechado.patrimonio;
+        
+        // Adiciona aportes do mês atual se não tiver fechamento
+        const temFechamentoMesAtual = regsBanco.some(r => {
+            const d = new Date(r.data_fechamento);
+            return (
+                d.getMonth() === mesAtual &&
+                d.getFullYear() === anoAtual &&
+                r.patrimonio > 0
+            );
+        });
+        
+        if (!temFechamentoMesAtual) {
+            regsBanco.forEach(r => {
+                const d = new Date(r.data_fechamento);
+                if (d.getMonth() === mesAtual && d.getFullYear() === anoAtual) {
+                    patrimonioBase += r.aportes || 0;
+                }
+            });
+        }
+        
+        patrimonioBrasil += patrimonioBase;
+    }
+    
+    // 2️⃣ PATRIMÔNIO USD (mesma lógica do consolidado_usd)
+    let patrimonioUSD = 0;
+    const bancosUSD = todosBancos.filter(b => b.is_usd);
+    
+    for (const banco of bancosUSD) {
+        const regsBanco = todosRegistros
+            .filter(r => r.banco_id === banco.id)
+            .sort((a, b) => new Date(a.data_fechamento) - new Date(b.data_fechamento));
+        
+        if (regsBanco.length === 0) continue;
+        
+        const ultimoFechado = [...regsBanco].reverse()
+            .find(r => r.patrimonio_usd > 0);
+        
+        if (!ultimoFechado) continue;
+        
+        let patrimonioBase = ultimoFechado.patrimonio_usd;
+        
+        // Adiciona aportes do mês atual se não tiver fechamento
+        const temFechamentoMesAtual = regsBanco.some(r => {
+            const d = new Date(r.data_fechamento);
+            return (
+                d.getMonth() === mesAtual &&
+                d.getFullYear() === anoAtual &&
+                r.patrimonio_usd > 0
+            );
+        });
+        
+        if (!temFechamentoMesAtual) {
+            regsBanco.forEach(r => {
+                const d = new Date(r.data_fechamento);
+                if (d.getMonth() === mesAtual && d.getFullYear() === anoAtual) {
+                    patrimonioBase += r.aportes_usd || 0;
+                }
+            });
+        }
+        
+        patrimonioUSD += patrimonioBase;
+    }
+    
+    // 3️⃣ PATRIMÔNIO TOTAL = BRASIL + USD (convertido)
+    const patrimonioTotal = patrimonioBrasil + (patrimonioUSD * (dolarFallbackHoje || 0));
+    
+    // 4️⃣ ATUALIZA OS CARDS
+    document.getElementById('patrimonioBRL').textContent = formatarMoeda(patrimonioBrasil);
+    document.getElementById('patrimonioUSD').textContent = patrimonioUSD.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    document.getElementById('patrimonioTotal').textContent = formatarMoeda(patrimonioTotal);
+    
+    // 5️⃣ TOTAL APORTADO
+    let aportadoBRL = 0;
+    let aportadoUSD = 0;
+    
+    todosBancos.forEach(banco => {
+        todosRegistros.filter(r => r.banco_id === banco.id).forEach(r => {
+            if (banco.is_usd) {
+                aportadoUSD += r.aportes_usd || 0;
+                aportadoBRL += r.aportes || 0;
+            } else {
+                aportadoBRL += r.aportes || 0;
+            }
+        });
+    });
+    
+    document.getElementById('totalAportadoBRL').textContent = formatarMoeda(aportadoBRL);
+    document.getElementById('totalAportadoUSD').textContent = aportadoUSD.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+}
 
     atualizarCardsAportesERentabilidade(patrimonioAtual);
     calcularRentabilidadeAcumuladaSimples(patrimonioAtual);
@@ -1414,7 +1524,6 @@ async function buscarDolarFimDoMes(ano, mes) {
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-
 
 async function converterUSDParaBRL(valorUSD, ano, mes) {
     const dolarPTAX = await buscarDolarFimDoMes(ano, mes);
