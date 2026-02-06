@@ -115,6 +115,73 @@
     box-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
+/* ===========================
+   📱 AJUSTES PARA iPHONE
+   =========================== */
+@media (max-width: 768px) {
+
+    /* Grid do dashboard vira 1 coluna */
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    /* Card azul ocupa largura total */
+    .total-card {
+        min-height: auto;
+        padding: 22px;
+    }
+
+    /* Tamanho do valor principal */
+    .total-card p {
+        font-size: 26px;
+    }
+
+    /* Cards brancos */
+    .stats-card {
+        padding: 18px;
+    }
+
+    .stats-card p {
+        font-size: 18px;
+    }
+
+    /* Header não quebra */
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    /* Controles */
+    .controls {
+        padding: 12px;
+    }
+
+    .controls-row {
+        width: 100%;
+    }
+
+    select, input, button {
+        font-size: 16px; /* evita zoom automático no iOS */
+    }
+
+    /* Tabela com scroll horizontal suave */
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 700px;
+    }
+
+    /* Gráficos */
+    .chart-container {
+        height: 260px;
+    }
+}
+
     </style>
 </head>
 <body>
