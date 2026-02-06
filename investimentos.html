@@ -52,7 +52,36 @@
 
         .pos { color: #28a745; font-weight: bold; }
         .neg { color: #dc3545; font-weight: bold; }
-        .actions-cell { display: flex; gap: 5px; }
+        /* ===========================
+   💻 AÇÕES – PADRÃO (DESKTOP)
+   =========================== */
+/* COMPUTADOR – AÇÕES UMA ABAIXO DA OUTRA */
+.actions-cell {
+    display: flex;
+    flex-direction: column;   /* 👈 ISSO resolve */
+    gap: 6px;
+}
+
+    max-height: 90px;         /* 👈 limite de altura */
+    overflow-y: auto;         /* 👈 scroll vertical */
+
+    align-content: flex-start;
+}
+
+.actions-cell > div {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    background: rgba(0,0,0,0.04);
+    padding: 4px 6px;
+    border-radius: 6px;
+
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+
         .btn-edit, .btn-delete { padding: 8px; font-size: 11px; border: none; color: white; cursor: pointer; border-radius: 4px; width: auto; flex: 1; }
         .btn-edit { background-color: #007bff; }
         .btn-delete { background-color: #dc3545; }
