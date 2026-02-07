@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
@@ -515,6 +516,338 @@
             .workout-title { font-size: 1.1rem; }
             .stat-value { font-size: 1.5rem; }
         }
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 20, 25, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-overlay.active {
+    display: flex;
+}
+
+.loading-content {
+    background: var(--dark-card);
+    border: 2px solid var(--primary);
+    border-radius: 24px;
+    padding: 3rem 2rem;
+    text-align: center;
+    max-width: 400px;
+    box-shadow: 0 8px 32px rgba(0, 217, 177, 0.3);
+}
+
+.loading-content .ai-loading {
+    width: 60px;
+    height: 60px;
+    border-width: 5px;
+    margin: 0 auto 1.5rem;
+}
+
+.loading-content h3 {
+    color: var(--primary);
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    font-family: 'Archivo Black', sans-serif;
+}
+
+.loading-content p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.workout-version-group {
+    background: rgba(0, 217, 177, 0.05);
+    border: 2px solid rgba(0, 217, 177, 0.3);
+    border-radius: 24px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.version-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(0, 217, 177, 0.2);
+}
+
+.version-group-title {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.4rem;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.version-badge {
+    background: var(--gradient-ai);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.version-group-controls {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.version-group-content {
+    display: grid;
+    gap: 1rem;
+}
+
+.version-group-content.collapsed {
+    display: none;
+}
+
+/* Bioimpedância Avançada */
+.bio-dashboard {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.bio-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.bio-metric-card {
+    background: linear-gradient(135deg, rgba(0, 217, 177, 0.1) 0%, rgba(0, 184, 148, 0.05) 100%);
+    border: 2px solid rgba(0, 217, 177, 0.3);
+    border-radius: 16px;
+    padding: 1.25rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.bio-metric-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(0, 217, 177, 0.1) 0%, transparent 70%);
+    animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.bio-metric-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.bio-metric-value {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.8rem;
+    color: var(--primary);
+    margin: 0.5rem 0;
+}
+
+.bio-metric-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.bio-metric-change {
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    display: inline-block;
+}
+
+.bio-metric-change.positive {
+    background: rgba(74, 222, 128, 0.2);
+    color: var(--success);
+}
+
+.bio-metric-change.negative {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--error);
+}
+
+.bio-body-composition {
+    background: var(--dark-card);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 2px solid rgba(0, 217, 177, 0.2);
+}
+
+.body-visual {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem 0;
+    position: relative;
+}
+
+.body-svg {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+}
+
+.body-parts {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.body-part {
+    background: rgba(0, 217, 177, 0.05);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 217, 177, 0.2);
+}
+
+.body-part-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.body-part-bar {
+    background: rgba(255, 255, 255, 0.1);
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.body-part-fill {
+    height: 100%;
+    background: var(--gradient-1);
+    transition: width 0.5s ease;
+}
+
+.body-part-value {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-top: 0.5rem;
+}
+
+.bio-analysis-section {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.05) 100%);
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-top: 1.5rem;
+}
+
+.analysis-grid {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.analysis-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.analysis-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.analysis-content h4 {
+    color: var(--primary);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.analysis-content p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.comparison-chart {
+    background: var(--dark-lighter);
+    padding: 1.5rem;
+    border-radius: 16px;
+    margin-top: 1rem;
+}
+
+.progress-rings {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.progress-ring-container {
+    text-align: center;
+}
+
+.progress-ring {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.progress-ring svg {
+    transform: rotate(-90deg);
+}
+
+.progress-ring-circle {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 8;
+}
+
+.progress-ring-progress {
+    fill: none;
+    stroke: url(#gradient);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.5s ease;
+}
+
+.progress-ring-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.5rem;
+    color: var(--primary);
+}
+
+.progress-ring-label {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
     </style>
 </head>
 <body>
@@ -925,6 +1258,15 @@
         </div>
     </div>
 
+   <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <span class="ai-loading"></span>
+            <h3 id="loadingTitle">🤖 Gerando treino com IA...</h3>
+            <p id="loadingMessage">Estamos criando seu treino personalizado.<br>Isso pode levar alguns segundos. Aguarde! ⏳</p>
+        </div>
+    </div>
+
     <script>
     // =====================================================
     // DATABASE
@@ -946,19 +1288,34 @@
     // =====================================================
     // NAVEGAÇÃO
     // =====================================================
-    function switchTab(tab) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(tab).classList.add('active');
-        event.target.classList.add('active');
+function switchTab(tab) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(tab).classList.add('active');
+    
+    // Ativa o botão correto da navegação
+    const navButtons = document.querySelectorAll('.nav-tab');
+    navButtons.forEach(btn => {
+        if (btn.textContent.includes(
+            tab === 'inicio' ? '🏠' :
+            tab === 'treinos' ? '💪' :
+            tab === 'atividades' ? '🏃' :
+            tab === 'bio' ? '📊' :
+            tab === 'exames' ? '🩺' :
+            tab === 'relatorio' ? '📈' :
+            tab === 'perfil' ? '⚙️' : ''
+        )) {
+            btn.classList.add('active');
+        }
+    });
 
-        if (tab === 'inicio') updateDashboard();
-        if (tab === 'bio') loadBio();
-        if (tab === 'exames') loadExames();
-        if (tab === 'treinos') loadTreinos();
-        if (tab === 'atividades') loadAtividades();
-        if (tab === 'relatorio') gerarRelatorio();
-    }
+    if (tab === 'inicio') updateDashboard();
+    if (tab === 'bio') loadBio();
+    if (tab === 'exames') loadExames();
+    if (tab === 'treinos') loadTreinos();
+    if (tab === 'atividades') loadAtividades();
+    if (tab === 'relatorio') gerarRelatorio();
+}
 
     // =====================================================
     // MODAL
@@ -1183,16 +1540,19 @@
         const bioData = load(DB.bio);
         const bioRecente = bioData.length > 0 ? bioData[bioData.length - 1] : null;
 
-        closeModal('gerarTreinoModal');
-        notify('Gerando treino personalizado com IA... 🤖⏳');
+closeModal('gerarTreinoModal');
+        
+        // Mostra loading fixo na tela
+        document.getElementById('loadingOverlay').classList.add('active');
+        document.getElementById('loadingTitle').textContent = '🤖 Gerando treino com IA...';
+        document.getElementById('loadingMessage').innerHTML = 'Estamos criando seu treino personalizado.<br>Isso pode levar alguns segundos. Aguarde! ⏳';
 
         try {
             const prompt = `Crie um treino personalizado COMPLETO baseado em:
 
 OBJETIVO: ${objetivo}
 NÍVEL: ${nivel}
-FOCO: ${focoTreino === 'superior' ? 'Superior' : focoTreino === 'inferior' ? 'Inferior' : 'Corpo Todo'}
-FREQUÊNCIA: ${frequencia}x por semana
+FOCO: ${focoTreino === 'superior' ? 'Maior ênfase em membros superiores (mas SEMPRE incluir pernas para manutenção)' : focoTreino === 'inferior' ? 'Maior ênfase em membros inferiores (mas SEMPRE incluir superiores para manutenção)' : 'Corpo Todo equilibrado'}
 DURAÇÃO: ${duracao} minutos
 EQUIPAMENTOS: ${equipamentos.join(', ')}
 ${outrasAtividades === 'sim' ? `OUTRAS ATIVIDADES: ${detalhesAtividades}` : ''}
@@ -1205,6 +1565,11 @@ IMPORTANTE:
 2. NÃO INCLUA LINKS DO YOUTUBE
 3. Seja específico nos exercícios, séries e repetições
 4. Inclua dicas técnicas importantes
+5. REGRA DO FOCO: 
+   - Se FOCO for "superior": 70-80% dos exercícios para membros superiores + 20-30% para inferiores (manutenção)
+   - Se FOCO for "inferior": 70-80% dos exercícios para membros inferiores + 20-30% para superiores (manutenção)
+   - NUNCA exclua completamente um grupo muscular, apenas PRIORIZE o foco solicitado
+
 
 RETORNE APENAS JSON válido (sem texto antes ou depois):
 [
@@ -1261,20 +1626,25 @@ RETORNE APENAS JSON válido (sem texto antes ou depois):
                 });
             });
 
-            save(DB.treinos, listaTreinos);
+save(DB.treinos, listaTreinos);
             document.getElementById('formGerarTreino').reset();
             loadTreinos();
+            
+            // Esconde loading
+            document.getElementById('loadingOverlay').classList.remove('active');
+            
             switchTab('treinos');
             notify(`✅ ${treinos.length} treino(s) criado(s)! ${videosEncontrados} vídeo(s) adicionado(s) 💪🔥`);
 
         } catch (error) {
             notify('❌ Erro ao gerar treino: ' + error.message);
-            console.error(error);
+            console.error('ERRO COMPLETO:', error);
+            alert('ERRO DETALHADO:\n\n' + error.message + '\n\nVerifique:\n1. Chave da API está correta?\n2. Tem créditos na OpenAI?\n3. Abra o Console (F12) para mais detalhes');
         }
     }
 
     // =====================================================
-    // TREINOS - LOAD & RENDER
+            // TREINOS - LOAD & RENDER
     // =====================================================
     function getHistoricoTreinoDia(treinoId) {
         const sessoes = load(DB.sessoes);
@@ -1302,7 +1672,7 @@ RETORNE APENAS JSON válido (sem texto antes ou depois):
         `;
     }
 
-   function loadTreinos() {
+  function loadTreinos() {
     const list = load(DB.treinos);
     const container = document.getElementById('treinosList');
 
@@ -1311,96 +1681,189 @@ RETORNE APENAS JSON válido (sem texto antes ou depois):
         return;
     }
 
-    container.innerHTML = list.map(treino => {
-        // Normaliza todos os exercícios ao renderizar (garante formato consistente)
-        const exercicios = (treino.exercicios || []).map(normalizarExercicio);
-        const totalExercicios = exercicios.length;
-        const concluidos = Object.values(treino.progresso || {}).filter(Boolean).length;
-        const percentual = totalExercicios > 0 ? Math.round((concluidos / totalExercicios) * 100) : 0;
+    // Agrupar treinos por versão (baseado na data de criação + config)
+    const versoes = {};
+    list.forEach(treino => {
+        // Cria uma chave única para cada versão baseada na config
+        const chaveVersao = treino.config 
+            ? `${treino.config.objetivo}_${treino.config.nivel}_${treino.config.focoTreino}_${treino.config.frequencia}_${new Date(treino.dataCriacao).toLocaleDateString('pt-BR')}`
+            : `manual_${treino.id}`;
+        
+        if (!versoes[chaveVersao]) {
+            versoes[chaveVersao] = {
+                treinos: [],
+                config: treino.config,
+                dataCriacao: treino.dataCriacao,
+                tipo: treino.tipo
+            };
+        }
+        versoes[chaveVersao].treinos.push(treino);
+    });
 
-        return `
-            <div class="workout-card" id="treino-${treino.id}">
-                <div class="workout-header">
-                    <div class="workout-title">${treino.nome}</div>
-                    <div class="workout-actions">
-                        <span class="workout-badge">${treino.tipo || 'Manual'}</span>
-                        ${treino.foco ? `<span class="workout-badge" style="background: var(--gradient-free);">${treino.foco}</span>` : ''}
-                        <button class="btn btn-small" style="background: rgba(255,255,255,0.1); padding: 0.4rem 0.8rem;" onclick="toggleTreino(${treino.id})">
-                            <span id="toggle-icon-${treino.id}">➖</span>
+    // Renderizar versões agrupadas
+    let html = '';
+    Object.keys(versoes).forEach((chaveVersao, versaoIdx) => {
+        const versao = versoes[chaveVersao];
+        const isManual = !versao.config;
+        const nomeVersao = isManual 
+            ? `Treinos Manuais` 
+            : `${versao.config.objetivo.charAt(0).toUpperCase() + versao.config.objetivo.slice(1)} - ${versao.config.focoTreino} - ${versao.config.nivel}`;
+        
+        const dataVersao = new Date(versao.dataCriacao).toLocaleString('pt-BR');
+        const totalTreinos = versao.treinos.length;
+
+        html += `
+            <div class="workout-version-group" id="version-group-${versaoIdx}">
+                <div class="version-group-header">
+                    <div class="version-group-title">
+                        <span>${nomeVersao}</span>
+                        <span class="version-badge">${totalTreinos} treino(s)</span>
+                        <span class="version-badge" style="background: var(--gradient-free);">${versao.tipo}</span>
+                    </div>
+                    <div class="version-group-controls">
+                        <button class="btn btn-small" style="background: rgba(255,255,255,0.1);" onclick="toggleVersionGroup(${versaoIdx})">
+                            <span id="version-toggle-icon-${versaoIdx}">➖</span> Minimizar
+                        </button>
+                        <button class="btn btn-danger btn-small" onclick="deleteVersionGroup('${chaveVersao}', ${totalTreinos})">
+                            🗑️ Excluir Versão
                         </button>
                     </div>
                 </div>
-
-                <div id="treino-content-${treino.id}">
-                    ${treino.config ? `
-                        <div style="background: rgba(0,217,177,0.05); padding: 0.75rem; border-radius: 12px; margin-bottom: 1rem; font-size: 0.85rem;">
-                            📋 ${treino.config.frequencia}x/semana • ${treino.config.duracao}min • ${treino.config.nivel}
-                        </div>
-                    ` : ''}
-
-                    <div style="background: var(--dark-lighter); padding: 0.75rem 1rem; border-radius: 12px; margin-bottom: 1rem;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <span style="font-size: 0.85rem; color: var(--text-muted);">Progresso</span>
-                            <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary);">${percentual}%</span>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden;">
-                            <div style="background: var(--gradient-1); height: 100%; width: ${percentual}%; transition: width 0.3s;"></div>
-                        </div>
+                
+                ${versao.config ? `
+                    <div style="background: rgba(0,217,177,0.1); padding: 1rem; border-radius: 12px; margin-bottom: 1rem; font-size: 0.9rem;">
+                        📅 Criado em: ${dataVersao}<br>
+                        📋 ${versao.config.frequencia}x/semana • ${versao.config.duracao}min • ${versao.config.nivel}
                     </div>
+                ` : ''}
 
-                    <div class="exercise-list">
-                        ${exercicios.map((ex, idx) => {
-                            const isCompleted = treino.progresso && treino.progresso[idx];
-                            return `
-                                <div class="exercise-item ${isCompleted ? 'completed' : ''}" style="flex-direction: column; align-items: stretch;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <div class="exercise-info" style="flex: 1;">
-                                            <div class="exercise-name">${ex.nome}</div>
-                                            <div class="exercise-details">${ex.series}</div>
-                                            ${ex.observacao ? `<div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">💡 ${ex.observacao}</div>` : ''}
-                                        </div>
-                                        <div style="display: flex; gap: 0.5rem; align-items: center;">
-                                            <button class="btn btn-danger btn-small" style="padding: 0.5rem 0.7rem; min-height: 36px;" onclick="deleteExercicio(${treino.id}, ${idx}, '${ex.nome.replace(/'/g, "\\'")}')">🗑️</button>
-                                            <div class="exercise-check ${isCompleted ? 'checked' : ''}" onclick="toggleExercicio(${treino.id}, ${idx})">
-                                                ${isCompleted ? '✓' : ''}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(ex.nome + ' tutorial execução correta')}"
-                                       target="_blank" rel="noopener noreferrer"
-                                       style="display:flex; align-items:center; gap:0.75rem; margin-top:0.75rem; border-radius:10px; background:linear-gradient(135deg,#1a1a2e,#16213e); border:1px solid rgba(255,0,0,0.3); padding:0.7rem 0.85rem; text-decoration:none; transition:border-color 0.2s;"
-                                       onmouseover="this.style.borderColor='rgba(255,0,0,0.7)'"
-                                       onmouseout="this.style.borderColor='rgba(255,0,0,0.3)'">
-                                        <div style="flex-shrink:0; width:38px; height:38px; background:#FF0000; border-radius:8px; display:flex; align-items:center; justify-content:center;">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"></polygon></svg>
-                                        </div>
-                                        <div style="flex:1; min-width:0;">
-                                            <div style="font-size:0.78rem; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.nome}</div>
-                                            <div style="font-size:0.68rem; color:rgba(255,255,255,0.4); margin-top:1px;">Buscar no YouTube ↗</div>
-                                        </div>
-                                    </a>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-
-                    ${getHistoricoTreinoDia(treino.id)}
-
-                    <div class="workout-controls">
-                        <button class="btn btn-success" onclick="iniciarCronometro(${treino.id}, '${treino.nome.replace(/'/g, "\\'")}')">⏱️ Iniciar</button>
-                        <button class="btn btn-danger" onclick="deleteTreino(${treino.id})">🗑️ Excluir Treino</button>
-                    </div>
+                <div class="version-group-content" id="version-content-${versaoIdx}">
+                    ${versao.treinos.map(treino => renderTreino(treino)).join('')}
                 </div>
             </div>
         `;
-    }).join('') + `
+    });
+
+    // Botão de excluir todos
+    html += `
         <div style="margin-top: 1.5rem; text-align: center;">
             <button class="btn btn-danger" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: white; padding: 1rem 2rem; font-size: 1rem;" onclick="deleteAllTreinos()">
                 🗑️ EXCLUIR TODOS OS TREINOS
             </button>
         </div>
     `;
+
+    container.innerHTML = html;
+}
+
+// Função auxiliar para renderizar um treino individual
+function renderTreino(treino) {
+    const exercicios = (treino.exercicios || []).map(normalizarExercicio);
+    const totalExercicios = exercicios.length;
+    const concluidos = Object.values(treino.progresso || {}).filter(Boolean).length;
+    const percentual = totalExercicios > 0 ? Math.round((concluidos / totalExercicios) * 100) : 0;
+
+    return `
+        <div class="workout-card" id="treino-${treino.id}">
+            <div class="workout-header">
+                <div class="workout-title">${treino.nome}</div>
+                <div class="workout-actions">
+                    <button class="btn btn-small" style="background: rgba(255,255,255,0.1); padding: 0.4rem 0.8rem;" onclick="toggleTreino(${treino.id})">
+                        <span id="toggle-icon-${treino.id}">➖</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="treino-content-${treino.id}">
+                <div style="background: var(--dark-lighter); padding: 0.75rem 1rem; border-radius: 12px; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">Progresso</span>
+                        <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary);">${percentual}%</span>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="background: var(--gradient-1); height: 100%; width: ${percentual}%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+
+                <div class="exercise-list">
+                    ${exercicios.map((ex, idx) => {
+                        const isCompleted = treino.progresso && treino.progresso[idx];
+                        return `
+                            <div class="exercise-item ${isCompleted ? 'completed' : ''}" style="flex-direction: column; align-items: stretch;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div class="exercise-info" style="flex: 1;">
+                                        <div class="exercise-name">${ex.nome}</div>
+                                        <div class="exercise-details">${ex.series}</div>
+                                        ${ex.observacao ? `<div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">💡 ${ex.observacao}</div>` : ''}
+                                    </div>
+                                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                        <button class="btn btn-danger btn-small" style="padding: 0.5rem 0.7rem; min-height: 36px;" onclick="deleteExercicio(${treino.id}, ${idx}, '${ex.nome.replace(/'/g, "\\'")}')">🗑️</button>
+                                        <div class="exercise-check ${isCompleted ? 'checked' : ''}" onclick="toggleExercicio(${treino.id}, ${idx})">
+                                            ${isCompleted ? '✓' : ''}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <a href="https://www.youtube.com/results?search_query=${encodeURIComponent(ex.nome + ' tutorial execução correta')}"
+                                   target="_blank" rel="noopener noreferrer"
+                                   style="display:flex; align-items:center; gap:0.75rem; margin-top:0.75rem; border-radius:10px; background:linear-gradient(135deg,#1a1a2e,#16213e); border:1px solid rgba(255,0,0,0.3); padding:0.7rem 0.85rem; text-decoration:none; transition:border-color 0.2s;"
+                                   onmouseover="this.style.borderColor='rgba(255,0,0,0.7)'"
+                                   onmouseout="this.style.borderColor='rgba(255,0,0,0.3)'">
+                                    <div style="flex-shrink:0; width:38px; height:38px; background:#FF0000; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"></polygon></svg>
+                                    </div>
+                                    <div style="flex:1; min-width:0;">
+                                        <div style="font-size:0.78rem; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.nome}</div>
+                                        <div style="font-size:0.68rem; color:rgba(255,255,255,0.4); margin-top:1px;">Buscar no YouTube ↗</div>
+                                    </div>
+                                </a>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+
+                ${getHistoricoTreinoDia(treino.id)}
+
+                <div class="workout-controls">
+                    <button class="btn btn-success" onclick="iniciarCronometro(${treino.id}, '${treino.nome.replace(/'/g, "\\'")}')">⏱️ Iniciar</button>
+                    <button class="btn btn-danger" onclick="deleteTreino(${treino.id})">🗑️ Excluir Treino</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Minimizar/Expandir grupo de versão
+function toggleVersionGroup(versaoIdx) {
+    const content = document.getElementById(`version-content-${versaoIdx}`);
+    const icon = document.getElementById(`version-toggle-icon-${versaoIdx}`);
+    
+    if (content.classList.contains('collapsed')) {
+        content.classList.remove('collapsed');
+        icon.textContent = '➖';
+    } else {
+        content.classList.add('collapsed');
+        icon.textContent = '➕';
+    }
+}
+
+// Excluir versão completa de treinos
+function deleteVersionGroup(chaveVersao, totalTreinos) {
+    if (confirm(`⚠️ ATENÇÃO!\n\nVocê vai excluir uma VERSÃO COMPLETA com ${totalTreinos} TREINO(S)!\n\nEssa ação NÃO pode ser desfeita!\n\nTem certeza?`)) {
+        const list = load(DB.treinos);
+        
+        // Filtrar treinos que pertencem a essa versão
+        const novaLista = list.filter(treino => {
+            const chave = treino.config 
+                ? `${treino.config.objetivo}_${treino.config.nivel}_${treino.config.focoTreino}_${treino.config.frequencia}_${new Date(treino.dataCriacao).toLocaleDateString('pt-BR')}`
+                : `manual_${treino.id}`;
+            return chave !== chaveVersao;
+        });
+        
+        save(DB.treinos, novaLista);
+        loadTreinos();
+        notify(`✅ Versão com ${totalTreinos} treino(s) excluída!`);
+    }
 }
 
     function toggleExercicio(treinoId, exercicioIdx) {
@@ -1675,39 +2138,297 @@ function deleteAllTreinos() {
     // =====================================================
     let bioChart = null;
 
-    function loadBio() {
-        const list = load(DB.bio).sort((a, b) => new Date(a.data) - new Date(b.data));
-        const container = document.getElementById('bioList');
+   function loadBio() {
+    const list = load(DB.bio).sort((a, b) => new Date(a.data) - new Date(b.data));
+    const container = document.getElementById('bioList');
 
-        updateBioChart(list);
+    updateBioChart(list);
 
-        if (list.length === 0) {
-            container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 2rem;">Nenhuma medição registrada ainda.</p>';
-            return;
-        }
+    if (list.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 2rem;">Nenhuma medição registrada ainda.</p>';
+        return;
+    }
 
-        container.innerHTML = `
-            <div style="margin-bottom: 1rem;">
-                <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 1rem;">📋 Histórico de Medições</h3>
-                ${[...list].reverse().map(bio => `
-                    <div class="item">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
-                            <div style="font-weight: 700; font-size: 1.1rem;">${new Date(bio.data).toLocaleDateString('pt-BR')}</div>
-                            <button class="btn btn-danger btn-small" onclick="deleteBio(${bio.id})">🗑️</button>
+    const ultima = list[list.length - 1];
+    const penultima = list.length > 1 ? list[list.length - 2] : null;
+
+    // Calcular mudanças
+    const mudancas = penultima ? {
+        peso: ultima.peso - penultima.peso,
+        gordura: ultima.gordura - penultima.gordura,
+        massa: ultima.massa - penultima.massa,
+        agua: ultima.agua - penultima.agua
+    } : null;
+
+    // Calcular percentuais do corpo
+    const pesoTotal = ultima.peso;
+    const massaMuscular = ultima.massa;
+    const gorduraKg = (pesoTotal * ultima.gordura) / 100;
+    const aguaKg = (pesoTotal * ultima.agua) / 100;
+    const ossos = pesoTotal - massaMuscular - gorduraKg - aguaKg;
+
+    // Composição corporal estimada por região (baseado em estudos)
+    const composicao = {
+        bracos: Math.round((massaMuscular * 0.15) / pesoTotal * 100),
+        peito: Math.round((massaMuscular * 0.25) / pesoTotal * 100),
+        abdomen: Math.round((massaMuscular * 0.20) / pesoTotal * 100),
+        pernas: Math.round((massaMuscular * 0.40) / pesoTotal * 100)
+    };
+
+    // Classificações
+    const imcClass = ultima.imc < 18.5 ? 'Abaixo do peso' : 
+                     ultima.imc < 25 ? 'Peso normal' :
+                     ultima.imc < 30 ? 'Sobrepeso' : 'Obesidade';
+    
+    const gorduraClass = ultima.gordura < 15 ? 'Muito baixa' :
+                        ultima.gordura < 25 ? 'Ideal' :
+                        ultima.gordura < 32 ? 'Acima do ideal' : 'Alta';
+
+    container.innerHTML = `
+        <!-- Dashboard Principal -->
+        <div class="bio-dashboard">
+            <!-- Cards de Métricas -->
+            <div class="bio-cards-grid">
+                <div class="bio-metric-card">
+                    <div class="bio-metric-icon">⚖️</div>
+                    <div class="bio-metric-value">${ultima.peso}<small style="font-size:0.6em">kg</small></div>
+                    <div class="bio-metric-label">Peso</div>
+                    ${mudancas ? `<div class="bio-metric-change ${mudancas.peso >= 0 ? 'positive' : 'negative'}">${mudancas.peso >= 0 ? '+' : ''}${mudancas.peso.toFixed(1)}kg</div>` : ''}
+                </div>
+
+                <div class="bio-metric-card">
+                    <div class="bio-metric-icon">📊</div>
+                    <div class="bio-metric-value">${ultima.imc}</div>
+                    <div class="bio-metric-label">IMC</div>
+                    <div style="font-size:0.75rem; margin-top:0.5rem; color:var(--text-muted);">${imcClass}</div>
+                </div>
+
+                <div class="bio-metric-card">
+                    <div class="bio-metric-icon">💧</div>
+                    <div class="bio-metric-value">${ultima.gordura}<small style="font-size:0.6em">%</small></div>
+                    <div class="bio-metric-label">Gordura</div>
+                    ${mudancas ? `<div class="bio-metric-change ${mudancas.gordura <= 0 ? 'positive' : 'negative'}">${mudancas.gordura >= 0 ? '+' : ''}${mudancas.gordura.toFixed(1)}%</div>` : ''}
+                </div>
+
+                <div class="bio-metric-card">
+                    <div class="bio-metric-icon">💪</div>
+                    <div class="bio-metric-value">${ultima.massa}<small style="font-size:0.6em">kg</small></div>
+                    <div class="bio-metric-label">Massa Muscular</div>
+                    ${mudancas ? `<div class="bio-metric-change ${mudancas.massa >= 0 ? 'positive' : 'negative'}">${mudancas.massa >= 0 ? '+' : ''}${mudancas.massa.toFixed(1)}kg</div>` : ''}
+                </div>
+
+                <div class="bio-metric-card">
+                    <div class="bio-metric-icon">💦</div>
+                    <div class="bio-metric-value">${ultima.agua}<small style="font-size:0.6em">%</small></div>
+                    <div class="bio-metric-label">Água</div>
+                    ${mudancas ? `<div class="bio-metric-change ${mudancas.agua >= 0 ? 'positive' : 'negative'}">${mudancas.agua >= 0 ? '+' : ''}${mudancas.agua.toFixed(1)}%</div>` : ''}
+                </div>
+
+                <div class="bio-metric-card">
+                    <div class="bio-metric-icon">🦴</div>
+                    <div class="bio-metric-value">${ossos.toFixed(1)}<small style="font-size:0.6em">kg</small></div>
+                    <div class="bio-metric-label">Ossos/Outros</div>
+                </div>
+            </div>
+
+            <!-- Composição Corporal Visual -->
+            <div class="bio-body-composition">
+                <h3 style="color: var(--primary); font-size: 1.2rem; margin-bottom: 1.5rem; text-align: center;">
+                    🧍 Composição Corporal por Região
+                </h3>
+
+                <!-- Anéis de Progresso -->
+                <div class="progress-rings">
+                    <div class="progress-ring-container">
+                        <div class="progress-ring">
+                            <svg width="120" height="120">
+                                <defs>
+                                    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#00D9B1;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#00B894;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                                <circle class="progress-ring-circle" cx="60" cy="60" r="52"></circle>
+                                <circle class="progress-ring-progress" cx="60" cy="60" r="52"
+                                    stroke-dasharray="${2 * Math.PI * 52}"
+                                    stroke-dashoffset="${2 * Math.PI * 52 * (1 - composicao.bracos / 100)}"
+                                    stroke="url(#gradient1)"></circle>
+                            </svg>
+                            <div class="progress-ring-text">${composicao.bracos}%</div>
                         </div>
-                        ${bio.arquivo ? `<div style="font-size: 0.9rem; color: var(--primary); margin-bottom: 0.75rem;">📎 ${bio.arquivo}</div>` : ''}
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; font-size: 0.9rem;">
-                            <div>⚖️ Peso: <strong>${bio.peso}kg</strong></div>
-                            <div>📊 IMC: <strong>${bio.imc}</strong></div>
-                            <div>💧 Gordura: <strong>${bio.gordura}%</strong></div>
-                            <div>💪 Massa: <strong>${bio.massa}kg</strong></div>
-                            ${bio.agua > 0 ? `<div>💦 Água: <strong>${bio.agua}%</strong></div>` : ''}
+                        <div class="progress-ring-label">💪 Braços</div>
+                    </div>
+
+                    <div class="progress-ring-container">
+                        <div class="progress-ring">
+                            <svg width="120" height="120">
+                                <circle class="progress-ring-circle" cx="60" cy="60" r="52"></circle>
+                                <circle class="progress-ring-progress" cx="60" cy="60" r="52"
+                                    stroke-dasharray="${2 * Math.PI * 52}"
+                                    stroke-dashoffset="${2 * Math.PI * 52 * (1 - composicao.peito / 100)}"
+                                    stroke="url(#gradient1)"></circle>
+                            </svg>
+                            <div class="progress-ring-text">${composicao.peito}%</div>
+                        </div>
+                        <div class="progress-ring-label">🫁 Peito/Costas</div>
+                    </div>
+
+                    <div class="progress-ring-container">
+                        <div class="progress-ring">
+                            <svg width="120" height="120">
+                                <circle class="progress-ring-circle" cx="60" cy="60" r="52"></circle>
+                                <circle class="progress-ring-progress" cx="60" cy="60" r="52"
+                                    stroke-dasharray="${2 * Math.PI * 52}"
+                                    stroke-dashoffset="${2 * Math.PI * 52 * (1 - composicao.abdomen / 100)}"
+                                    stroke="url(#gradient1)"></circle>
+                            </svg>
+                            <div class="progress-ring-text">${composicao.abdomen}%</div>
+                        </div>
+                        <div class="progress-ring-label">🔥 Abdômen</div>
+                    </div>
+
+                    <div class="progress-ring-container">
+                        <div class="progress-ring">
+                            <svg width="120" height="120">
+                                <circle class="progress-ring-circle" cx="60" cy="60" r="52"></circle>
+                                <circle class="progress-ring-progress" cx="60" cy="60" r="52"
+                                    stroke-dasharray="${2 * Math.PI * 52}"
+                                    stroke-dashoffset="${2 * Math.PI * 52 * (1 - composicao.pernas / 100)}"
+                                    stroke="url(#gradient1)"></circle>
+                            </svg>
+                            <div class="progress-ring-text">${composicao.pernas}%</div>
+                        </div>
+                        <div class="progress-ring-label">🦵 Pernas</div>
+                    </div>
+                </div>
+
+                <!-- Barras de Composição -->
+                <div class="body-parts">
+                    <div class="body-part">
+                        <div class="body-part-label">Massa Muscular</div>
+                        <div class="body-part-bar">
+                            <div class="body-part-fill" style="width: ${(massaMuscular/pesoTotal)*100}%"></div>
+                        </div>
+                        <div class="body-part-value">${massaMuscular.toFixed(1)}kg (${((massaMuscular/pesoTotal)*100).toFixed(1)}%)</div>
+                    </div>
+
+                    <div class="body-part">
+                        <div class="body-part-label">Gordura Corporal</div>
+                        <div class="body-part-bar">
+                            <div class="body-part-fill" style="width: ${ultima.gordura}%; background: linear-gradient(135deg, #FF6B9D 0%, #F56565 100%);"></div>
+                        </div>
+                        <div class="body-part-value">${gorduraKg.toFixed(1)}kg (${ultima.gordura}%)</div>
+                    </div>
+
+                    <div class="body-part">
+                        <div class="body-part-label">Água Corporal</div>
+                        <div class="body-part-bar">
+                            <div class="body-part-fill" style="width: ${ultima.agua}%; background: linear-gradient(135deg, #4299E1 0%, #3182CE 100%);"></div>
+                        </div>
+                        <div class="body-part-value">${aguaKg.toFixed(1)}kg (${ultima.agua}%)</div>
+                    </div>
+
+                    <div class="body-part">
+                        <div class="body-part-label">Ossos/Outros</div>
+                        <div class="body-part-bar">
+                            <div class="body-part-fill" style="width: ${(ossos/pesoTotal)*100}%; background: linear-gradient(135deg, #A0AEC0 0%, #718096 100%);"></div>
+                        </div>
+                        <div class="body-part-value">${ossos.toFixed(1)}kg (${((ossos/pesoTotal)*100).toFixed(1)}%)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Análise Detalhada -->
+            <div class="bio-analysis-section">
+                <h3 style="color: var(--primary); font-size: 1.2rem; margin-bottom: 1rem;">📋 Análise Detalhada</h3>
+                
+                <div class="analysis-grid">
+                    <div class="analysis-item">
+                        <div class="analysis-icon">📊</div>
+                        <div class="analysis-content">
+                            <h4>Índice de Massa Corporal (IMC)</h4>
+                            <p>Seu IMC é <strong>${ultima.imc}</strong>, classificado como <strong>${imcClass}</strong>. 
+                            ${ultima.imc >= 18.5 && ultima.imc < 25 ? 'Parabéns! Você está na faixa ideal!' : 
+                              ultima.imc < 18.5 ? 'Considere aumentar sua massa muscular.' :
+                              'Foque em reduzir o percentual de gordura mantendo a massa muscular.'}</p>
                         </div>
                     </div>
-                `).join('')}
+
+                    <div class="analysis-item">
+                        <div class="analysis-icon">💧</div>
+                        <div class="analysis-content">
+                            <h4>Percentual de Gordura</h4>
+                            <p>Com <strong>${ultima.gordura}%</strong> de gordura corporal, você está na categoria <strong>${gorduraClass}</strong>. 
+                            ${ultima.gordura < 25 ? 'Excelente! Continue mantendo.' : 'Considere ajustar dieta e treino para redução.'}
+                            Gordura atual: ${gorduraKg.toFixed(1)}kg</p>
+                        </div>
+                    </div>
+
+                    <div class="analysis-item">
+                        <div class="analysis-icon">💪</div>
+                        <div class="analysis-content">
+                            <h4>Massa Muscular</h4>
+                            <p>Sua massa muscular é de <strong>${ultima.massa}kg</strong>, representando <strong>${((massaMuscular/pesoTotal)*100).toFixed(1)}%</strong> do seu peso total.
+                            ${mudancas && mudancas.massa > 0 ? `🔥 Ganho de ${mudancas.massa.toFixed(1)}kg desde a última medição!` :
+                              mudancas && mudancas.massa < 0 ? `⚠️ Perda de ${Math.abs(mudancas.massa).toFixed(1)}kg. Revise seu treino e dieta.` :
+                              'Mantenha o treino de força para preservar e ganhar massa.'}</p>
+                        </div>
+                    </div>
+
+                    <div class="analysis-item">
+                        <div class="analysis-icon">💦</div>
+                        <div class="analysis-content">
+                            <h4>Hidratação Corporal</h4>
+                            <p>Sua taxa de água corporal está em <strong>${ultima.agua}%</strong>.
+                            ${ultima.agua >= 55 && ultima.agua <= 65 ? '✅ Excelente hidratação!' :
+                              ultima.agua < 55 ? '⚠️ Baixa hidratação. Beba mais água!' :
+                              '⚠️ Pode indicar excesso de água. Consulte um profissional.'}</p>
+                        </div>
+                    </div>
+
+                    ${mudancas ? `
+                        <div class="analysis-item">
+                            <div class="analysis-icon">📈</div>
+                            <div class="analysis-content">
+                                <h4>Evolução desde última medição</h4>
+                                <p>
+                                    Peso: <strong>${mudancas.peso >= 0 ? '+' : ''}${mudancas.peso.toFixed(1)}kg</strong><br>
+                                    Gordura: <strong>${mudancas.gordura >= 0 ? '+' : ''}${mudancas.gordura.toFixed(1)}%</strong><br>
+                                    Massa: <strong>${mudancas.massa >= 0 ? '+' : ''}${mudancas.massa.toFixed(1)}kg</strong><br>
+                                    ${mudancas.massa > 0 && mudancas.gordura < 0 ? '🔥 Evolução ideal: ganho de massa e perda de gordura!' :
+                                      mudancas.massa > 0 && mudancas.gordura > 0 ? '⚠️ Ganho de peso com aumento de gordura. Ajuste a dieta.' :
+                                      mudancas.massa < 0 && mudancas.gordura < 0 ? '⚠️ Perda de peso com perda de massa. Aumente proteínas e treino de força.' :
+                                      'Continue monitorando sua evolução.'}
+                                </p>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
             </div>
-        `;
-    }
+        </div>
+
+        <!-- Histórico -->
+        <div style="margin-top: 2rem;">
+            <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 1rem;">📋 Histórico de Medições</h3>
+            ${[...list].reverse().map(bio => `
+                <div class="item">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                        <div style="font-weight: 700; font-size: 1.1rem;">${new Date(bio.data).toLocaleDateString('pt-BR')}</div>
+                        <button class="btn btn-danger btn-small" onclick="deleteBio(${bio.id})">🗑️</button>
+                    </div>
+                    ${bio.arquivo ? `<div style="font-size: 0.9rem; color: var(--primary); margin-bottom: 0.75rem;">📎 ${bio.arquivo}</div>` : ''}
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; font-size: 0.9rem;">
+                        <div>⚖️ Peso: <strong>${bio.peso}kg</strong></div>
+                        <div>📊 IMC: <strong>${bio.imc}</strong></div>
+                        <div>💧 Gordura: <strong>${bio.gordura}%</strong></div>
+                        <div>💪 Massa: <strong>${bio.massa}kg</strong></div>
+                        ${bio.agua > 0 ? `<div>💦 Água: <strong>${bio.agua}%</strong></div>` : ''}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
 
     function updateBioChart(list) {
         const ctx = document.getElementById('bioChart');
@@ -1861,7 +2582,7 @@ Retorne APENAS JSON válido:
             notify('✅ Bioimpedância analisada e salva!');
             setTimeout(() => { closeModal('bioModal'); fileInput.value = ''; }, 5000);
 
-        } catch (error) {
+} catch (error) {
             console.error(error);
             statusDiv.innerHTML = `<div class="warning-box">❌ <strong>ERRO:</strong> ${error.message}</div>`;
         }
