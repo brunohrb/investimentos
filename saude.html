@@ -62,11 +62,13 @@ body {
 }
 
 
-        .container { 
-            width: 100%; 
-            max-width: 100%; 
-            padding: 0 1rem; 
-        }
+.container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 1rem;
+    overflow-x: hidden;
+}
+
 
         header {
             position: fixed;
@@ -580,12 +582,11 @@ body {
 }
 
 .workout-version-group {
-    background: rgba(0, 217, 177, 0.05);
-    border: 2px solid rgba(0, 217, 177, 0.3);
-    border-radius: 24px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
 }
+
 
 .version-group-header {
     display: flex;
@@ -862,6 +863,12 @@ body {
     font-size: 0.85rem;
     color: var(--text-muted);
 }
+
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
     </style>
 </head>
 <body>
