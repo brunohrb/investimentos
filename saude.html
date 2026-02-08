@@ -38,15 +38,29 @@
             touch-action: manipulation;
         }
         
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--dark);
-            color: var(--text);
-            line-height: 1.6;
-            padding-top: 130px;
-            padding-bottom: 1rem;
-            overflow-x: hidden;
-        }
+body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--dark);
+    color: var(--text);
+    line-height: 1.6;
+
+    /* Safe area (iPhone com notch e barra inferior) */
+    padding-top: calc(130px + env(safe-area-inset-top));
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+
+    overflow-x: hidden;
+
+    /* Melhor toque no mobile */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+
+    /* Performance */
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
 
         .container { 
             width: 100%; 
