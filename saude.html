@@ -44,11 +44,20 @@ body {
     color: var(--text);
     line-height: 1.6;
 
+    /* Altura real do header + nav */
+    padding-top: 110px;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+
+    overflow-x: hidden;
+
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+
     /* Safe area (iPhone com notch e barra inferior) */
     padding-top: calc(130px + env(safe-area-inset-top));
     padding-bottom: calc(1rem + env(safe-area-inset-bottom));
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
 
     overflow-x: hidden;
 
@@ -869,6 +878,11 @@ html, body {
     overflow-x: hidden;
 }
 
+html, body {
+    width: 100vw;
+    overflow-x: hidden;
+}
+
     </style>
 </head>
 <body>
@@ -1578,7 +1592,18 @@ DURAÇÃO: ${duracao} minutos
 EQUIPAMENTOS: ${equipamentos.join(', ')}
 ${outrasAtividades === 'sim' ? `OUTRAS ATIVIDADES: ${detalhesAtividades}` : ''}
 ${restricoes ? `RESTRIÇÕES: ${restricoes}` : ''}
-${observacoes ? `OBSERVAÇÕES: ${observacoes}` : ''}
+${observacoes ? `
+REGRAS OBRIGATÓRIAS DEFINIDAS PELO USUÁRIO (NÃO IGNORAR):
+${observacoes}
+
+IMPORTANTE:
+- Essas regras são PRIORIDADE MÁXIMA
+- NÃO crie exercícios que violem essas regras
+- Se alguma regra conflitar com o objetivo, AJUSTE O TREINO para obedecer à regra
+` : ''}
+
+
+
 ${bioRecente ? `BIOIMPEDÂNCIA: Peso ${bioRecente.peso}kg, Gordura ${bioRecente.gordura}%, Massa ${bioRecente.massa}kg` : ''}
 
 IMPORTANTE:
@@ -1593,6 +1618,9 @@ IMPORTANTE:
 
 
 RETORNE APENAS JSON válido (sem texto antes ou depois):
+ANTES DE RESPONDER:
+- Verifique se TODAS as regras obrigatórias foram cumpridas
+- Se alguma regra não foi cumprida, REFAÇA o treino
 [
   {
     "nome": "Treino A - [Nome Descritivo]",
