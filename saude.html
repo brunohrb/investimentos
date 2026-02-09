@@ -44,15 +44,12 @@ body {
     color: var(--text);
     line-height: 1.6;
 
-    /* Altura real do header + nav */
-    padding-top: 110px;
-    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    padding-top: 64px; /* SOMENTE a altura do header */
+    padding-bottom: 1rem;
 
     overflow-x: hidden;
-
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
 }
+
 
 
     /* Safe area (iPhone com notch e barra inferior) */
@@ -73,23 +70,19 @@ body {
 
 .container {
     width: 100%;
-    max-width: 100%;
     padding: 0 1rem;
-    overflow-x: hidden;
+    margin: 0 auto;
 }
 
 
-        header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            background: rgba(15, 20, 25, 0.98);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(0, 217, 177, 0.2);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        }
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+}
+
 
         .header-content {
             display: flex;
@@ -108,21 +101,22 @@ body {
             background-clip: text;
         }
 
-        .nav-tabs {
-            position: fixed;
-            top: 60px;
-            left: 0;
-            right: 0;
-            z-index: 999;
-            display: flex;
-            gap: 0.25rem;
-            background: var(--dark-card);
-            border-radius: 0;
-            padding: 0.5rem 1rem;
-            overflow-x: auto;
-            scrollbar-width: none;
-            border-bottom: 1px solid rgba(0, 217, 177, 0.1);
-        }
+.nav-tabs {
+    position: relative;   /* ⬅️ AQUI está a correção */
+    top: auto;
+
+    display: flex;
+    gap: 0.25rem;
+
+    padding: 0.5rem;
+    background: var(--dark-card);
+
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    border-bottom: 1px solid rgba(0, 217, 177, 0.1);
+}
+
 
         .nav-tabs::-webkit-scrollbar { display: none; }
 
@@ -536,11 +530,24 @@ body {
             margin-top: 0.25rem;
         }
 
-        @media (max-width: 480px) {
-            .timer-time { font-size: 2.5rem; }
-            .workout-title { font-size: 1.1rem; }
-            .stat-value { font-size: 1.5rem; }
-        }
+@media (max-width: 480px) {
+
+    .version-group-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .version-group-controls {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .version-group-controls .btn {
+        width: 100%;
+    }
+}
+
 
 .loading-overlay {
     position: fixed;
@@ -1551,6 +1558,33 @@ function switchTab(tab) {
     // =====================================================
     // GERAR TREINO COM IA
     // =====================================================
+const MAPA_MUSCULOS = {
+    peito: ['supino', 'crucifixo', 'flexão'],
+    costas: ['remada', 'puxada', 'barra', 'pulldown', 'terra'],
+    ombros: ['desenvolvimento', 'elevação lateral', 'elevação frontal', 'remada alta'],
+    biceps: ['rosca'],
+    triceps: ['tríceps', 'mergulho'],
+    pernas: ['agachamento', 'leg press', 'stiff', 'afundo', 'extensora', 'flexora'],
+    gluteos: ['glúteo', 'afundo'],
+    panturrilha: ['panturrilha'],
+    abdomen: ['abdominal', 'prancha']
+};
+
+function detectarMusculos(exercicios) {
+    const encontrados = new Set();
+
+    exercicios.forEach(ex => {
+        const nome = ex.nome.toLowerCase();
+        for (const musculo in MAPA_MUSCULOS) {
+            if (MAPA_MUSCULOS[musculo].some(k => nome.includes(k))) {
+                encontrados.add(musculo);
+            }
+        }
+    });
+
+    return Array.from(encontrados);
+}
+
     async function gerarTreinoIA(e) {
         e.preventDefault();
 
@@ -1631,24 +1665,38 @@ ANTES DE RESPONDER:
   }
 ]`;
 
-            const resposta = await callIA(prompt);
+           let resposta, treinos;
+let tentativas = 0;
 
-            let treinos;
-            try {
-                const jsonMatch = resposta.match(/\[[\s\S]*\]/);
-                if (jsonMatch) {
-                    treinos = JSON.parse(jsonMatch[0]);
-                } else {
-                    throw new Error('Formato inválido');
-                }
-            } catch {
-                // Fallback se o JSON falhar
-                treinos = [{
-                    nome: `Treino ${objetivo} - ${focoTreino.toUpperCase()}`,
-                    foco: focoTreino,
-                    exercicios: [{ nome: 'Erro ao parsear resposta da IA', series: '-', observacao: resposta.substring(0, 200) }]
-                }];
+while (tentativas < 3) {
+    resposta = await callIA(prompt);
+
+    try {
+        const jsonMatch = resposta.match(/\[[\s\S]*\]/);
+        if (!jsonMatch) throw new Error('JSON não encontrado');
+
+        treinos = JSON.parse(jsonMatch[0]);
+
+        // ===== VALIDAÇÃO DE MÚSCULOS =====
+        for (const treino of treinos) {
+            const musculos = detectarMusculos(treino.exercicios);
+            if (musculos.length > 2) {
+                throw new Error(
+                    `Treino inválido: ${musculos.length} músculos (${musculos.join(', ')})`
+                );
             }
+        }
+
+        // Se chegou aqui, está válido
+        break;
+
+    } catch (err) {
+        tentativas++;
+        if (tentativas >= 3) {
+            throw new Error('IA não conseguiu gerar treino obedecendo às regras.');
+        }
+    }
+}
 
             // Normalizar todos os exercícios (adiciona youtubeId do banco)
             let videosEncontrados = 0;
@@ -2581,7 +2629,30 @@ Retorne APENAS JSON válido:
   }
 }`;
 
-            const resposta = await callIA(prompt);
+            let resposta, treinos;
+let tentativas = 0;
+
+while (tentativas < 3) {
+    resposta = await callIA(prompt);
+    const jsonMatch = resposta.match(/\[[\s\S]*\]/);
+    treinos = JSON.parse(jsonMatch[0]);
+
+    let valido = true;
+    for (const treino of treinos) {
+        if (detectarMusculos(treino.exercicios).length > 2) {
+            valido = false;
+            break;
+        }
+    }
+
+    if (valido) break;
+    tentativas++;
+}
+
+if (tentativas === 3) {
+    throw new Error('IA não conseguiu gerar treino obedecendo às regras.');
+}
+
             const jsonMatch = resposta.match(/\{[\s\S]*\}/);
             if (!jsonMatch) throw new Error('IA não conseguiu extrair dados.');
 
