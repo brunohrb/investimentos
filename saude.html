@@ -1680,7 +1680,7 @@ while (tentativas < 3) {
         // ===== VALIDAÇÃO DE MÚSCULOS =====
         for (const treino of treinos) {
             const musculos = detectarMusculos(treino.exercicios);
-            if (musculos.length > 2) {
+            if (musculos.length > 4) {
                 throw new Error(
                     `Treino inválido: ${musculos.length} músculos (${musculos.join(', ')})`
                 );
@@ -1734,6 +1734,7 @@ save(DB.treinos, listaTreinos);
             notify(`✅ ${treinos.length} treino(s) criado(s)! ${videosEncontrados} vídeo(s) adicionado(s) 💪🔥`);
 
         } catch (error) {
+            document.getElementById('loadingOverlay').classList.remove('active');
             notify('❌ Erro ao gerar treino: ' + error.message);
             console.error('ERRO COMPLETO:', error);
             alert('ERRO DETALHADO:\n\n' + error.message + '\n\nVerifique:\n1. Chave da API está correta?\n2. Tem créditos na OpenAI?\n3. Abra o Console (F12) para mais detalhes');
