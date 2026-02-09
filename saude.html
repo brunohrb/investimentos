@@ -1406,7 +1406,14 @@ function switchTab(tab) {
         }
     }
 
-    function checkApiKey() { return !!localStorage.getItem(DB.openai); }
+    function checkApiKey() {
+        // Migrar chave antiga (vt_apikey) para nova (vt_openai)
+        const oldKey = localStorage.getItem('vt_apikey');
+        if (oldKey && !localStorage.getItem(DB.openai)) {
+            localStorage.setItem(DB.openai, oldKey);
+        }
+        return !!localStorage.getItem(DB.openai);
+    }
 
     // =====================================================
     // IA - OPENAI
