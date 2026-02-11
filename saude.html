@@ -1045,11 +1045,9 @@ html, body {
                             <input type="number" id="idade" required>
                         </div>
                         <div class="form-group">
-                            <label>🔑 Chave OpenAI (para IA)</label>
-                            <input type="password" id="openaiKey" placeholder="sk-proj-...">
-                            <small style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 0.5rem;">
-                                Obtenha em: <a href="https://platform.openai.com/api-keys" target="_blank" style="color: var(--primary);">platform.openai.com/api-keys</a>
-                            </small>
+                            <label>Chave OpenAI (para IA)</label>
+                            <input type="password" id="openaiKey" placeholder="sk-...">
+                            <small style="color: var(--text-muted); font-size: 0.8rem;">Necessário para análises com IA</small>
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block">💾 Salvar Perfil</button>
@@ -1411,59 +1409,29 @@ function switchTab(tab) {
     function checkApiKey() { return !!localStorage.getItem(DB.openai); }
 
     // =====================================================
-    // IA - OPENAI (GPT-4)
+    // IA - OPENAI
     // =====================================================
     async function callIA(prompt) {
         const apiKey = localStorage.getItem(DB.openai);
-        if (!apiKey) throw new Error('⚠️ Configure sua chave OpenAI na aba Perfil!');
+        if (!apiKey) throw new Error('Chave OpenAI não configurada');
 
-        try {
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: 'gpt-3.5-turbo',
-                    messages: [
-                        { 
-                            role: 'system', 
-                            content: 'Você é um personal trainer e nutricionista experiente. Seja objetivo, motivador e profissional.' 
-                        },
-                        { 
-                            role: 'user', 
-                            content: prompt 
-                        }
-                    ],
-                    temperature: 0.7,
-                    max_tokens: 3000
-                })
-            });
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+            body: JSON.stringify({
+                model: 'gpt-4',
+                messages: [
+                    { role: 'system', content: 'Você é um personal trainer e nutricionista experiente. Seja objetivo, motivador e profissional.' },
+                    { role: 'user', content: prompt }
+                ],
+                temperature: 0.7,
+                max_tokens: 3000
+            })
+        });
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                if (response.status === 401) {
-                    throw new Error('❌ Chave API inválida! Verifique sua chave na aba Perfil.');
-                }
-                if (response.status === 429) {
-                    throw new Error('⚠️ Limite de requisições atingido. Aguarde alguns minutos.');
-                }
-                throw new Error(errorData.error?.message || `Erro: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            
-            if (data.choices && data.choices[0]?.message?.content) {
-                return data.choices[0].message.content;
-            }
-            
-            throw new Error('Resposta vazia da IA');
-            
-        } catch (error) {
-            console.error('Erro completo:', error);
-            throw error;
-        }
+        if (!response.ok) throw new Error('Erro na API OpenAI');
+        const data = await response.json();
+        return data.choices[0].message.content;
     }
 
     // =====================================================
@@ -1685,10 +1653,34 @@ IMPORTANTE:
 2. NÃO INCLUA LINKS DO YOUTUBE
 3. Seja específico nos exercícios, séries e repetições
 4. Inclua dicas técnicas importantes
-5. REGRA DO FOCO (DIRETRIZ FLEXÍVEL):
-   - Use o FOCO apenas como orientação geral.
-   - Se houver OBSERVAÇÕES do usuário, elas podem reduzir, limitar ou remover
-     completamente a aplicação desta regra.
+5. REGRA DO FOCO (OBRIGATÓRIA - NÃO VIOLE):
+   ${focoTreino === 'superior' ? `
+   ⚠️ FOCO SUPERIOR ATIVO:
+   - APENAS exercícios de: Peito, Costas, Ombros, Braços, Abdômen
+   - PROIBIDO COMPLETAMENTE: Agachamento, Leg Press, Stiff, Afundo, Extensora, Flexora, Panturrilha, qualquer exercício de pernas
+   - Máximo 2 grupos musculares superiores por treino (ex: Peito + Tríceps, Costas + Bíceps)
+   - Se colocar algum exercício de perna, o treino será REJEITADO
+   ` : focoTreino === 'inferior' ? `
+   ⚠️ FOCO INFERIOR ATIVO:
+   - APENAS exercícios de: Pernas, Glúteos, Panturrilha, Abdômen
+   - PROIBIDO COMPLETAMENTE: Supino, Remada, Desenvolvimento, Rosca, Tríceps, qualquer exercício de superior
+   - Máximo 2 grupos musculares inferiores por treino (ex: Quadríceps + Glúteos)
+   - Se colocar algum exercício de superior, o treino será REJEITADO
+   ` : `
+   ⚠️ CORPO TODO (FULL BODY):
+   - Pode combinar superior E inferior no mesmo treino
+   - Máximo 2 grupos musculares por treino
+   - Equilíbrio entre membros superiores e inferiores
+   `}
+6. OBSERVAÇÕES DO USUÁRIO (${observacoes ? 'TÊM PRIORIDADE ABSOLUTA' : 'Não fornecidas'}):
+${observacoes ? `
+   ${observacoes}
+   
+   ⚠️ ESTAS REGRAS ACIMA SÃO PRIORITÁRIAS!
+   - Se conflitarem com o foco, AJUSTE o foco
+   - Se não fizerem sentido com bio/exames, AVISE o usuário
+   - NÃO ignore essas regras em hipótese alguma
+` : ''}
 
 
 RETORNE APENAS JSON válido (sem texto antes ou depois):
@@ -1728,6 +1720,40 @@ for (const treino of treinos) {
     }
 }
 
+        // ===== VALIDAÇÃO DE FOCO =====
+        const focoSelecionado = document.getElementById('focoTreino').value;
+
+        for (const treino of treinos) {
+            const grupos = detectarGrupos(treino.exercicios);
+            
+            // Validar foco SUPERIOR
+            if (focoSelecionado === 'superior') {
+                if (grupos.includes('pernas')) {
+                    throw new Error(
+                        `❌ ERRO: Treino "${treino.nome}" tem exercícios de PERNA mas você escolheu foco SUPERIOR! Exercícios: ${treino.exercicios.map(e => e.nome).join(', ')}`
+                    );
+                }
+                if (!grupos.some(g => ['empurrar', 'puxar', 'core'].includes(g))) {
+                    throw new Error(
+                        `❌ ERRO: Treino "${treino.nome}" não tem exercícios de membros superiores!`
+                    );
+                }
+            }
+            
+            // Validar foco INFERIOR  
+            if (focoSelecionado === 'inferior') {
+                if (grupos.some(g => ['empurrar', 'puxar'].includes(g))) {
+                    throw new Error(
+                        `❌ ERRO: Treino "${treino.nome}" tem exercícios de SUPERIOR mas você escolheu foco INFERIOR! Exercícios: ${treino.exercicios.map(e => e.nome).join(', ')}`
+                    );
+                }
+                if (!grupos.includes('pernas')) {
+                    throw new Error(
+                        `❌ ERRO: Treino "${treino.nome}" não tem exercícios de perna sendo que você escolheu foco INFERIOR!`
+                    );
+                }
+            }
+        }
        
         // Se chegou aqui, está válido
         break;
