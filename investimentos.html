@@ -82,14 +82,23 @@
 
 /* Mobile: remove laterais */
 @media (max-width: 1200px) {
+
     .news-sidebar {
-        display: none;
+        display: none !important;
     }
 
     .container {
-        margin: auto;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        max-width: 100% !important;
+        border-radius: 0;
+    }
+
+    body {
+        padding: 0;
     }
 }
+
 
 /* =========================
    📈 TICKER ESTILO CORRETORA
