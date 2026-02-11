@@ -10,6 +10,88 @@
     <style>
 
 /* =========================
+   📰 SIDEBAR NOTÍCIAS
+   ========================= */
+
+.news-sidebar {
+    position: fixed;
+    top: 60px; /* abaixo do ticker */
+    width: 260px;
+    height: calc(100vh - 60px);
+    background: #0f1115;
+    color: #fff;
+    padding: 15px;
+    overflow-y: auto;
+    z-index: 5;
+}
+
+.left-news {
+    left: 0;
+    border-right: 1px solid #222;
+}
+
+.right-news {
+    right: 0;
+    border-left: 1px solid #222;
+}
+
+.news-sidebar h3 {
+    font-size: 14px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 8px;
+}
+
+.news-item {
+    font-size: 13px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #222;
+    cursor: pointer;
+}
+
+.news-item {
+    font-size: 13px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #222;
+    cursor: pointer;
+    text-decoration: none;   /* remove sublinhado */
+    color: #ffffff;          /* força branco */
+    display: block;
+}
+
+.news-item:visited {
+    color: #ffffff;
+}
+
+.news-item:hover {
+    color: #00bfff;
+}
+
+
+.news-item:hover {
+    color: #00bfff;
+}
+
+/* Ajusta container principal */
+.container {
+    margin-left: 280px;
+    margin-right: 280px;
+}
+
+/* Mobile: remove laterais */
+@media (max-width: 1200px) {
+    .news-sidebar {
+        display: none;
+    }
+
+    .container {
+        margin: auto;
+    }
+}
+
+/* =========================
    📈 TICKER ESTILO CORRETORA
    ========================= */
 
@@ -301,7 +383,6 @@
 }
 
 
-
     </style>
 </head>
 <body>
@@ -313,6 +394,19 @@
         </div>
     </div>
 </div>
+
+<!-- 📰 SIDEBAR ESQUERDA -->
+<div class="news-sidebar left-news">
+    <h3>📰 Mercado</h3>
+    <div id="newsLeft"></div>
+</div>
+
+<!-- 📰 SIDEBAR DIREITA -->
+<div class="news-sidebar right-news">
+    <h3>🌎 Internacional</h3>
+    <div id="newsRight"></div>
+</div>
+
 
 <div id="loading" class="loading-overlay"><div class="spinner"></div></div>
 
@@ -1686,109 +1780,23 @@ async function carregarCotacoesHoje() {
 }
 
 
-async function buscarDolarFimDoMes(ano, mes) {
-    try {
-        // Formata a data no formato YYYYMMDD
-        const ultimoDia = new Date(ano, mes, 0).getDate();
-        const dataFormatada = `${ano}${String(mes).padStart(2, '0')}${String(ultimoDia).padStart(2, '0')}`;
-        
-        // Tenta buscar na AwesomeAPI (mais confiável)
-        const url = `https://economia.awesomeapi.com.br/json/daily/USD-BRL/1?start_date=${dataFormatada}&end_date=${dataFormatada}`;
-        
-        const res = await fetch(url);
-        
-        if (!res.ok) {
-            console.warn(`⚠️ AwesomeAPI falhou para ${ano}/${mes}`);
-            return null;
-        }
-        
-        const json = await res.json();
-        
-        if (!json || json.length === 0) {
-            console.warn(`⚠️ Sem dados para ${ano}/${mes}`);
-            return null;
-        }
-        
-        return parseFloat(json[0].bid);
-        
-    } catch (e) {
-        console.error(`❌ Erro ao buscar dólar ${ano}/${mes}:`, e);
-        return null;
-    }
-}
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function converterUSDParaBRL(valorUSD, ano, mes) {
-    const dolarPTAX = await buscarDolarFimDoMes(ano, mes);
-
-    if (dolarPTAX && dolarPTAX > 0) {
-        return valorUSD * dolarPTAX;
-    }
-
-    // 🔥 fallback seguro
     if (dolarFallbackHoje) {
-        console.warn('⚠️ Usando dólar atual como fallback');
         return valorUSD * dolarFallbackHoje;
     }
-
-    console.error('❌ Sem cotação de dólar disponível');
-    return 0;
+    return valorUSD * 5.80; // fallback fixo
 }
 
-// Adicione no topo do script
-const cacheDolar = {};
-
-async function buscarDolarFimDoMes(ano, mes) {
-    const chave = `${ano}-${mes}`;
-    
-    // Se já está no cache, retorna direto
-    if (cacheDolar[chave]) {
-        console.log(`💾 Usando cache para ${chave}: R$ ${cacheDolar[chave].toFixed(2)}`);
-        return cacheDolar[chave];
+async function converterUSDParaBRL(valorUSD, ano, mes) {
+    if (dolarFallbackHoje) {
+        return valorUSD * dolarFallbackHoje;
     }
-    
-    try {
-        // Formata a data
-        const ultimoDia = new Date(ano, mes, 0).getDate();
-        const dataFormatada = `${ano}${String(mes).padStart(2, '0')}${String(ultimoDia).padStart(2, '0')}`;
-        
-        // Tenta AwesomeAPI primeiro
-        const url = `https://economia.awesomeapi.com.br/json/daily/USD-BRL/1?start_date=${dataFormatada}&end_date=${dataFormatada}`;
-        
-        const res = await fetch(url);
-        
-        if (res.ok) {
-            const json = await res.json();
-            if (json && json.length > 0) {
-                const valor = parseFloat(json[0].bid);
-                cacheDolar[chave] = valor; // Salva no cache
-                console.log(`✅ Dólar ${chave}: R$ ${valor.toFixed(2)}`);
-                return valor;
-            }
-        }
-        
-        // Fallback: tenta BCB (se AwesomeAPI falhar)
-        const dataBCB = `${ano}-${String(mes).padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`;
-        const urlBCB = `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=@dataCotacao)?@dataCotacao='${dataBCB}'&$top=1&$format=json`;
-        
-        const resBCB = await fetch(urlBCB);
-        const jsonBCB = await resBCB.json();
-        
-        if (jsonBCB.value && jsonBCB.value.length > 0) {
-            const valor = parseFloat(jsonBCB.value[0].cotacaoVenda);
-            cacheDolar[chave] = valor;
-            return valor;
-        }
-        
-        return null;
-        
-    } catch (e) {
-        console.error(`❌ Erro ao buscar dólar ${ano}/${mes}:`, e);
-        return null;
-    }
+    return valorUSD * 5.80; // fallback fixo
 }
 
 
@@ -2778,6 +2786,67 @@ function iniciarTicker() {
 
 document.addEventListener("DOMContentLoaded", iniciarTicker);
 
+// =========================
+// 📰 NOTÍCIAS CLICÁVEIS
+// =========================
+
+const noticiasMercado = [
+    { 
+        titulo: "Ibovespa fecha em alta puxado por bancos",
+        link: "https://valor.globo.com/financas/"
+    },
+    { 
+        titulo: "Dólar recua após fala do FED",
+        link: "https://www.infomoney.com.br/mercados/"
+    },
+    { 
+        titulo: "Petrobras anuncia novo plano de dividendos",
+        link: "https://www.moneytimes.com.br/"
+    }
+];
+
+const noticiasInternacional = [
+    { 
+        titulo: "S&P 500 atinge novo recorde histórico",
+        link: "https://finance.yahoo.com/"
+    },
+    { 
+        titulo: "Tesla divulga resultados acima do esperado",
+        link: "https://www.cnbc.com/markets/"
+    },
+    { 
+        titulo: "Inflação nos EUA desacelera",
+        link: "https://www.bloomberg.com/markets"
+    }
+];
+
+function carregarNoticias() {
+    const left = document.getElementById("newsLeft");
+    const right = document.getElementById("newsRight");
+
+    left.innerHTML = "";
+    right.innerHTML = "";
+
+    noticiasMercado.forEach(n => {
+        const a = document.createElement("a");
+        a.href = n.link;
+        a.target = "_blank";
+        a.className = "news-item";
+        a.textContent = n.titulo;
+        left.appendChild(a);
+    });
+
+    noticiasInternacional.forEach(n => {
+        const a = document.createElement("a");
+        a.href = n.link;
+        a.target = "_blank";
+        a.className = "news-item";
+        a.textContent = n.titulo;
+        right.appendChild(a);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", carregarNoticias);
 
 </script>
 </body>
