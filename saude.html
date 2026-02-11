@@ -1045,9 +1045,11 @@ html, body {
                             <input type="number" id="idade" required>
                         </div>
                         <div class="form-group">
-                            <label>Chave OpenAI (para IA)</label>
-                            <input type="password" id="openaiKey" placeholder="sk-...">
-                            <small style="color: var(--text-muted); font-size: 0.8rem;">Necessário para análises com IA</small>
+                            <label>🔑 Chave OpenAI (para IA)</label>
+                            <input type="password" id="openaiKey" placeholder="sk-proj-...">
+                            <small style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 0.5rem;">
+                                Obtenha em: <a href="https://platform.openai.com/api-keys" target="_blank" style="color: var(--primary);">platform.openai.com/api-keys</a>
+                            </small>
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block">💾 Salvar Perfil</button>
@@ -1409,29 +1411,59 @@ function switchTab(tab) {
     function checkApiKey() { return !!localStorage.getItem(DB.openai); }
 
     // =====================================================
-    // IA - OPENAI
+    // IA - OPENAI (GPT-4)
     // =====================================================
     async function callIA(prompt) {
         const apiKey = localStorage.getItem(DB.openai);
-        if (!apiKey) throw new Error('Chave OpenAI não configurada');
+        if (!apiKey) throw new Error('⚠️ Configure sua chave OpenAI na aba Perfil!');
 
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-            body: JSON.stringify({
-                model: 'gpt-4',
-                messages: [
-                    { role: 'system', content: 'Você é um personal trainer e nutricionista experiente. Seja objetivo, motivador e profissional.' },
-                    { role: 'user', content: prompt }
-                ],
-                temperature: 0.7,
-                max_tokens: 3000
-            })
-        });
+        try {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-3.5-turbo',
+                    messages: [
+                        { 
+                            role: 'system', 
+                            content: 'Você é um personal trainer e nutricionista experiente. Seja objetivo, motivador e profissional.' 
+                        },
+                        { 
+                            role: 'user', 
+                            content: prompt 
+                        }
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 3000
+                })
+            });
 
-        if (!response.ok) throw new Error('Erro na API OpenAI');
-        const data = await response.json();
-        return data.choices[0].message.content;
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                if (response.status === 401) {
+                    throw new Error('❌ Chave API inválida! Verifique sua chave na aba Perfil.');
+                }
+                if (response.status === 429) {
+                    throw new Error('⚠️ Limite de requisições atingido. Aguarde alguns minutos.');
+                }
+                throw new Error(errorData.error?.message || `Erro: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.choices && data.choices[0]?.message?.content) {
+                return data.choices[0].message.content;
+            }
+            
+            throw new Error('Resposta vazia da IA');
+            
+        } catch (error) {
+            console.error('Erro completo:', error);
+            throw error;
+        }
     }
 
     // =====================================================
@@ -1558,32 +1590,28 @@ function switchTab(tab) {
     // =====================================================
     // GERAR TREINO COM IA
     // =====================================================
-const MAPA_MUSCULOS = {
-    peito: ['supino', 'crucifixo', 'flexão'],
-    costas: ['remada', 'puxada', 'barra', 'pulldown', 'terra'],
-    ombros: ['desenvolvimento', 'elevação lateral', 'elevação frontal', 'remada alta'],
-    biceps: ['rosca'],
-    triceps: ['tríceps', 'mergulho'],
-    pernas: ['agachamento', 'leg press', 'stiff', 'afundo', 'extensora', 'flexora'],
-    gluteos: ['glúteo', 'afundo'],
-    panturrilha: ['panturrilha'],
-    abdomen: ['abdominal', 'prancha']
+const MAPA_GRUPOS = {
+    empurrar: ['supino', 'crucifixo', 'flexão', 'desenvolvimento', 'elevação', 'tríceps', 'mergulho'],
+    puxar: ['remada', 'puxada', 'barra', 'pulldown', 'terra', 'rosca'],
+    pernas: ['agachamento', 'leg press', 'stiff', 'afundo', 'extensora', 'flexora', 'panturrilha'],
+    core: ['abdominal', 'prancha']
 };
 
-function detectarMusculos(exercicios) {
-    const encontrados = new Set();
+function detectarGrupos(exercicios) {
+    const grupos = new Set();
 
     exercicios.forEach(ex => {
         const nome = ex.nome.toLowerCase();
-        for (const musculo in MAPA_MUSCULOS) {
-            if (MAPA_MUSCULOS[musculo].some(k => nome.includes(k))) {
-                encontrados.add(musculo);
+        for (const grupo in MAPA_GRUPOS) {
+            if (MAPA_GRUPOS[grupo].some(k => nome.includes(k))) {
+                grupos.add(grupo);
             }
         }
     });
 
-    return Array.from(encontrados);
+    return Array.from(grupos);
 }
+
 
     async function gerarTreinoIA(e) {
         e.preventDefault();
@@ -1621,7 +1649,11 @@ closeModal('gerarTreinoModal');
 
 OBJETIVO: ${objetivo}
 NÍVEL: ${nivel}
-FOCO: ${focoTreino === 'superior' ? 'Maior ênfase em membros superiores (mas SEMPRE incluir pernas para manutenção)' : focoTreino === 'inferior' ? 'Maior ênfase em membros inferiores (mas SEMPRE incluir superiores para manutenção)' : 'Corpo Todo equilibrado'}
+FOCO: ${focoTreino === 'superior' 
+? 'Maior ênfase em membros superiores' 
+: focoTreino === 'inferior' 
+? 'Maior ênfase em membros inferiores' 
+: 'Corpo Todo equilibrado'}
 DURAÇÃO: ${duracao} minutos
 EQUIPAMENTOS: ${equipamentos.join(', ')}
 ${outrasAtividades === 'sim' ? `OUTRAS ATIVIDADES: ${detalhesAtividades}` : ''}
@@ -1629,6 +1661,14 @@ ${restricoes ? `RESTRIÇÕES: ${restricoes}` : ''}
 ${observacoes ? `
 REGRAS OBRIGATÓRIAS DEFINIDAS PELO USUÁRIO (NÃO IGNORAR):
 ${observacoes}
+
+HIERARQUIA DE REGRAS (IMPORTANTE):
+1. As OBSERVAÇÕES DO USUÁRIO têm PRIORIDADE ABSOLUTA.
+2. Se houver conflito entre OBSERVAÇÕES e FOCO / REGRA DO FOCO / PERCENTUAIS,
+   SEMPRE obedeça as OBSERVAÇÕES.
+3. Ajuste o foco, a divisão muscular e os percentuais conforme necessário
+   para cumprir exatamente as OBSERVAÇÕES.
+4. caso nao houver sendido ou seja descabido baseado nos exames e na bioimpedancia, voce manda um recado dizendo que nao é correto o treino do modo que o usuario quer!
 
 IMPORTANTE:
 - Essas regras são PRIORIDADE MÁXIMA
@@ -1645,10 +1685,10 @@ IMPORTANTE:
 2. NÃO INCLUA LINKS DO YOUTUBE
 3. Seja específico nos exercícios, séries e repetições
 4. Inclua dicas técnicas importantes
-5. REGRA DO FOCO: 
-   - Se FOCO for "superior": 70-80% dos exercícios para membros superiores + 20-30% para inferiores (manutenção)
-   - Se FOCO for "inferior": 70-80% dos exercícios para membros inferiores + 20-30% para superiores (manutenção)
-   - NUNCA exclua completamente um grupo muscular, apenas PRIORIZE o foco solicitado
+5. REGRA DO FOCO (DIRETRIZ FLEXÍVEL):
+   - Use o FOCO apenas como orientação geral.
+   - Se houver OBSERVAÇÕES do usuário, elas podem reduzir, limitar ou remover
+     completamente a aplicação desta regra.
 
 
 RETORNE APENAS JSON válido (sem texto antes ou depois):
@@ -1677,16 +1717,18 @@ while (tentativas < 3) {
 
         treinos = JSON.parse(jsonMatch[0]);
 
-        // ===== VALIDAÇÃO DE MÚSCULOS =====
-        for (const treino of treinos) {
-            const musculos = detectarMusculos(treino.exercicios);
-            if (musculos.length > 2) {
-                throw new Error(
-                    `Treino inválido: ${musculos.length} músculos (${musculos.join(', ')})`
-                );
-            }
-        }
+        // ===== VALIDAÇÃO DE GRUPOS (máx 2) =====
+for (const treino of treinos) {
+    const grupos = detectarGrupos(treino.exercicios);
 
+    if (grupos.length > 2) {
+        throw new Error(
+            `Treino inválido: grupos detectados (${grupos.join(', ')})`
+        );
+    }
+}
+
+       
         // Se chegou aqui, está válido
         break;
 
