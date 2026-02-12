@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -890,6 +891,15 @@ html, body {
     overflow-x: hidden;
 }
 
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; pointer-events: none; }
+}
+
+#authScreen.hide {
+    animation: fadeOut 0.5s ease-out forwards;
+}
+
     </style>
 </head>
 <body>
@@ -908,6 +918,61 @@ html, body {
         <button class="nav-tab" onclick="switchTab('exames')">🩺 Exames</button>
         <button class="nav-tab" onclick="switchTab('relatorio')">📈 Relatório</button>
         <button class="nav-tab" onclick="switchTab('perfil')">⚙️ Perfil</button>
+    </div>
+
+    <!-- AUTH SCREEN (tela de login/cadastro) -->
+    <div id="authScreen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#0F1419 0%,#1C2128 100%);z-index:10000;display:flex;align-items:center;justify-content:center;padding:1rem;">
+        <div style="background:var(--dark-card);border:2px solid var(--primary);border-radius:24px;padding:3rem 2rem;max-width:450px;width:100%;box-shadow:0 8px 32px rgba(0,217,177,0.3);">
+            <div style="text-align:center;margin-bottom:2rem;">
+                <h1 style="font-family:'Archivo Black',sans-serif;font-size:2.5rem;background:var(--gradient-1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.5rem;">BHR Treinos</h1>
+                <p style="color:var(--text-muted);font-size:0.9rem;">🤖 AI Powered Fitness</p>
+            </div>
+
+            <div style="display:flex;gap:1rem;margin-bottom:2rem;">
+                <button id="btnLoginTab" class="btn btn-primary" style="flex:1;" onclick="switchAuthTab('login')">Login</button>
+                <button id="btnSignupTab" class="btn" style="flex:1;background:rgba(255,255,255,0.1);" onclick="switchAuthTab('signup')">Criar Conta</button>
+            </div>
+
+            <div id="loginForm">
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="loginEmail" required placeholder="seu@email.com" autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label>Senha</label>
+                        <input type="password" id="loginPassword" required placeholder="••••••••" minlength="6" autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" id="btnLogin">🔓 Entrar</button>
+                </form>
+            </div>
+
+            <div id="signupForm" style="display:none;">
+                <form onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="signupEmail" required placeholder="seu@email.com" autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label>Senha</label>
+                        <input type="password" id="signupPassword" required placeholder="••••••••" minlength="6" autocomplete="new-password">
+                        <small style="color:var(--text-muted);font-size:0.8rem;">Mínimo 6 caracteres</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirmar Senha</label>
+                        <input type="password" id="signupPasswordConfirm" required placeholder="••••••••" minlength="6" autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" id="btnSignup">✨ Criar Conta</button>
+                </form>
+            </div>
+
+            <div id="authStatus" style="margin-top:1.5rem;padding:1rem;border-radius:12px;display:none;"></div>
+
+            <div id="authLoading" style="display:none;text-align:center;margin-top:1.5rem;">
+                <span class="ai-loading"></span>
+                <p style="color:var(--text-muted);margin-top:1rem;">Aguarde...</p>
+            </div>
+        </div>
     </div>
 
     <div class="container">
@@ -1034,6 +1099,12 @@ html, body {
         <section id="perfil" class="section">
             <div class="card">
                 <h2 class="card-title">⚙️ Configurações</h2>
+                
+                <div style="background:rgba(0,217,177,0.1);padding:1rem;border-radius:12px;margin-bottom:1.5rem;border:1px solid rgba(0,217,177,0.3);">
+                    <div style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;">Logado como:</div>
+                    <div style="font-weight:700;color:var(--primary);" id="userEmail">Carregando...</div>
+                </div>
+                
                 <form onsubmit="savePerfil(event)">
                     <div class="form-grid">
                         <div class="form-group">
@@ -1053,6 +1124,7 @@ html, body {
                     <button type="submit" class="btn btn-primary btn-block">💾 Salvar Perfil</button>
                 </form>
                 <button class="btn btn-danger btn-block" onclick="clearAll()">🗑️ Limpar Todos os Dados</button>
+                <button class="btn btn-block" style="background:rgba(239,68,68,0.2);border:1px solid #EF4444;color:#EF4444;margin-top:1rem;" onclick="logout()">🚪 Sair da Conta</button>
             </div>
         </section>
     </div>
@@ -1311,21 +1383,397 @@ html, body {
 
     <script>
     // =====================================================
-    // DATABASE
+    // SUPABASE - CONFIGURAÇÃO COM ESPERA DO SDK
     // =====================================================
-    const DB = {
-        perfil: 'vt_perfil',
-        treinos: 'vt_treinos',
-        sessoes: 'vt_sessoes',
-        bio: 'vt_bio',
-        exames: 'vt_exames',
-        atividades: 'vt_atividades',
-        openai: 'vt_openai'
+    const SUPABASE_URL = 'https://fwhsjzkmnfxnlrvspkyr.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3aHNqemttbmZ4bmxydnNwa3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0Nzg3MzUsImV4cCI6MjA4MzA1NDczNX0.lT_tHpkxiOQl2HdsFc5VQr_xfkEvoGi101MaITnSLkc';
+    
+    // USER_ID será definido APÓS o login
+    let USER_ID = null;
+    let currentUser = null;
+    
+    // Inicializa o cliente Supabase (com verificação)
+    let sbClient = null;
+    
+    function initSupabase() {
+        if (typeof window.supabase === 'undefined') {
+            console.warn('⚠️ SDK do Supabase ainda não carregou. Tentando novamente...');
+            setTimeout(initSupabase, 100);
+            return;
+        }
+        
+        try {
+            sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log('✅ Supabase conectado!');
+        } catch(e) {
+            console.error('❌ Erro ao conectar Supabase:', e);
+        }
+    }
+    
+    // Tenta inicializar
+    initSupabase();
+
+    // =====================================================
+    // SISTEMA DE AUTENTICAÇÃO
+    // =====================================================
+
+    // Alterna entre abas de Login/Cadastro
+    function switchAuthTab(tab) {
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const btnLogin = document.getElementById('btnLoginTab');
+        const btnSignup = document.getElementById('btnSignupTab');
+        
+        if (tab === 'login') {
+            loginForm.style.display = 'block';
+            signupForm.style.display = 'none';
+            btnLogin.className = 'btn btn-primary';
+            btnLogin.style.flex = '1';
+            btnSignup.className = 'btn';
+            btnSignup.style.background = 'rgba(255,255,255,0.1)';
+            btnSignup.style.flex = '1';
+        } else {
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'block';
+            btnSignup.className = 'btn btn-primary';
+            btnSignup.style.flex = '1';
+            btnLogin.className = 'btn';
+            btnLogin.style.background = 'rgba(255,255,255,0.1)';
+            btnLogin.style.flex = '1';
+        }
+        
+        document.getElementById('authStatus').style.display = 'none';
+    }
+
+    function showAuthStatus(message, type = 'info') {
+        const status = document.getElementById('authStatus');
+        status.style.display = 'block';
+        status.textContent = message;
+        
+        if (type === 'error') {
+            status.style.background = 'rgba(239, 68, 68, 0.2)';
+            status.style.border = '1px solid #EF4444';
+            status.style.color = '#EF4444';
+        } else if (type === 'success') {
+            status.style.background = 'rgba(74, 222, 128, 0.2)';
+            status.style.border = '1px solid #4ADE80';
+            status.style.color = '#4ADE80';
+        } else {
+            status.style.background = 'rgba(0, 217, 177, 0.2)';
+            status.style.border = '1px solid var(--primary)';
+            status.style.color = 'var(--primary)';
+        }
+    }
+
+    function setAuthLoading(show) {
+        document.getElementById('authLoading').style.display = show ? 'block' : 'none';
+        const btnLogin = document.getElementById('btnLogin');
+        const btnSignup = document.getElementById('btnSignup');
+        if (btnLogin) btnLogin.disabled = show;
+        if (btnSignup) btnSignup.disabled = show;
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        setAuthLoading(true);
+        showAuthStatus('Entrando...', 'info');
+        
+        try {
+            const { data, error } = await sbClient.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+            
+            if (error) throw error;
+            
+            console.log('✅ Login realizado:', data.user.email);
+            currentUser = data.user;
+            USER_ID = data.user.id;
+            
+            showAuthStatus('✅ Login realizado! Carregando...', 'success');
+            
+            setTimeout(() => {
+                hideAuthScreen();
+            }, 1000);
+            
+        } catch (error) {
+            console.error('❌ Erro no login:', error);
+            showAuthStatus('❌ Email ou senha incorretos', 'error');
+            setAuthLoading(false);
+        }
+    }
+
+    async function handleSignup(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+        const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+        
+        if (password !== passwordConfirm) {
+            showAuthStatus('❌ As senhas não conferem!', 'error');
+            return;
+        }
+        
+        setAuthLoading(true);
+        showAuthStatus('Criando sua conta...', 'info');
+        
+        try {
+            const { data, error } = await sbClient.auth.signUp({
+                email: email,
+                password: password
+            });
+            
+            if (error) throw error;
+            
+            console.log('✅ Conta criada:', data.user.email);
+            currentUser = data.user;
+            USER_ID = data.user.id;
+            
+            showAuthStatus('✅ Conta criada! Bem-vindo! 🎉', 'success');
+            
+            setTimeout(() => {
+                hideAuthScreen();
+            }, 1000);
+            
+        } catch (error) {
+            console.error('❌ Erro ao criar conta:', error);
+            showAuthStatus('❌ ' + error.message, 'error');
+            setAuthLoading(false);
+        }
+    }
+
+    function hideAuthScreen() {
+        const authScreen = document.getElementById('authScreen');
+        authScreen.classList.add('hide');
+        
+        setTimeout(() => {
+            authScreen.style.display = 'none';
+        }, 500);
+        
+        initializeApp();
+    }
+
+    async function checkAuth() {
+        console.log('🔍 Verificando autenticação...');
+        
+        try {
+            const { data: { session } } = await sbClient.auth.getSession();
+            
+            if (session && session.user) {
+                console.log('✅ Usuário já autenticado:', session.user.email);
+                currentUser = session.user;
+                USER_ID = session.user.id;
+                hideAuthScreen();
+                return true;
+            } else {
+                console.log('ℹ️ Faça login para continuar');
+                document.getElementById('authScreen').style.display = 'flex';
+                return false;
+            }
+        } catch (error) {
+            console.error('❌ Erro ao verificar auth:', error);
+            document.getElementById('authScreen').style.display = 'flex';
+            return false;
+        }
+    }
+
+    async function logout() {
+        if (confirm('Deseja realmente sair? 👋')) {
+            await sbClient.auth.signOut();
+            currentUser = null;
+            USER_ID = null;
+            notify('Você saiu! Recarregando...');
+            setTimeout(() => location.reload(), 1000);
+        }
+    }
+
+    async function initializeApp() {
+        console.log('🚀 Inicializando app para:', currentUser.email);
+        
+        await loadAllFromSupabase();
+        
+        loadPerfil();
+        loadTreinos();
+        loadAtividades();
+        loadBio();
+        loadExames();
+        updateDashboard();
+        gerarRelatorio();
+        
+        console.log('✅ App pronto!');
+    }
+
+    // =====================================================
+    // DATABASE - VERSÃO CORRIGIDA COMPLETA
+    // =====================================================
+    
+    // 1️⃣ MAPEAMENTO UNIFICADO
+    const DB_KEYS = {
+        perfil: 'perfil',
+        treinos: 'treinos',
+        sessoes: 'sessoes',
+        bio: 'bio',
+        exames: 'exames',
+        atividades: 'atividades',
+        openai: 'bhr_openai_key'
     };
 
-    function save(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
-    function load(key) { const d = localStorage.getItem(key); return d ? JSON.parse(d) : []; }
-    function loadSingle(key) { const d = localStorage.getItem(key); return d ? JSON.parse(d) : null; }
+    const DB_TABLES = {
+        perfil: 'bhr_perfis',
+        treinos: 'bhr_treinos',
+        sessoes: 'bhr_sessoes',
+        bio: 'bhr_bio',
+        exames: 'bhr_exames',
+        atividades: 'bhr_atividades'
+    };
+
+    // Alias para compatibilidade
+    const DB = DB_KEYS;
+    const DB_SUPABASE = DB_TABLES;
+
+    // 2️⃣ ESTADO GLOBAL
+    const APP_DATA = {
+        perfil: null,
+        treinos: [],
+        sessoes: [],
+        bio: [],
+        exames: [],
+        atividades: []
+    };
+
+    // 3️⃣ FUNÇÃO SAVE CORRIGIDA
+    async function save(key, dataToSave) {
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🔄 SAVE:', key);
+        console.log('📦 Dados:', dataToSave);
+        
+        const tableName = DB_TABLES[key];
+        
+        if (!sbClient) {
+            console.error('❌ Supabase offline');
+            notify('❌ Erro: Offline');
+            return false;
+        }
+        
+        if (!tableName) {
+            console.error('❌ Tabela não encontrada:', key);
+            notify('❌ Erro: Config inválida');
+            return false;
+        }
+        
+        try {
+            APP_DATA[key] = dataToSave;
+            console.log('✅ APP_DATA atualizado');
+            
+            const payload = {
+                user_id: USER_ID,
+                data: dataToSave,
+                updated_at: new Date().toISOString()
+            };
+            
+            console.log('📤 Enviando para:', tableName);
+            
+            const { error } = await sbClient
+                .from(tableName)
+                .upsert(payload, { onConflict: 'user_id' });
+            
+            if (error) {
+                console.error('❌ ERRO:', error);
+                notify(`❌ Erro: ${error.message}`);
+                return false;
+            }
+            
+            console.log('✅ SALVO COM SUCESSO!');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            
+            showSyncBadge();
+            return true;
+            
+        } catch (e) {
+            console.error('❌ EXCEÇÃO:', e);
+            notify(`❌ Erro: ${e.message}`);
+            return false;
+        }
+    }
+
+    // 4️⃣ FUNÇÕES LOAD
+    function load(key) {
+        const data = APP_DATA[key];
+        return Array.isArray(data) ? data : [];
+    }
+
+    function loadSingle(key) {
+        return APP_DATA[key];
+    }
+
+    // 5️⃣ CARREGAR DO SUPABASE
+    async function loadAllFromSupabase() {
+        if (!sbClient) {
+            console.warn("⚠️ Supabase offline");
+            return;
+        }
+
+        console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        console.log("☁️ SINCRONIZANDO COM NUVEM");
+        console.log("👤 User:", USER_ID);
+        
+        const loading = document.getElementById('loadingOverlay');
+        if (loading) {
+            loading.classList.add('active');
+            document.getElementById('loadingTitle').textContent = '☁️ Sincronizando...';
+            document.getElementById('loadingMessage').textContent = 'Aguarde...';
+        }
+
+        try {
+            for (const key in DB_TABLES) {
+                const tableName = DB_TABLES[key];
+                
+                console.log(`📥 Buscando: ${tableName}`);
+                
+                const { data, error } = await sbClient
+                    .from(tableName)
+                    .select('data')
+                    .eq('user_id', USER_ID)
+                    .maybeSingle();
+
+                if (error) {
+                    console.error(`❌ Erro em ${tableName}:`, error);
+                    continue;
+                }
+
+                if (data && data.data !== undefined) {
+                    APP_DATA[key] = data.data;
+                    const count = Array.isArray(data.data) ? data.data.length : 1;
+                    console.log(`✅ ${key}: ${count} item(s)`);
+                } else {
+                    console.log(`ℹ️ ${key}: vazio`);
+                }
+            }
+            
+            console.log("✅ SINCRONIZAÇÃO COMPLETA!");
+            console.log("📊 APP_DATA:", APP_DATA);
+            console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            
+        } catch (e) {
+            console.error("❌ ERRO GERAL:", e);
+        } finally {
+            if (loading) loading.classList.remove('active');
+        }
+    }
+
+    // 6️⃣ BADGE DE SUCESSO
+    function showSyncBadge() {
+        const badge = document.createElement('div');
+        badge.style.cssText = 'position:fixed;top:80px;right:20px;background:#4ADE80;color:#000;padding:10px 18px;border-radius:25px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 15px rgba(74,222,128,0.4);';
+        badge.innerHTML = '☁️ Sincronizado';
+        document.body.appendChild(badge);
+        setTimeout(() => badge.remove(), 2000);
+    }
 
     // =====================================================
     // NAVEGAÇÃO
@@ -1398,6 +1846,12 @@ function switchTab(tab) {
     }
 
     function loadPerfil() {
+        // Mostra email do usuário logado
+        const emailEl = document.getElementById('userEmail');
+        if (emailEl && currentUser) {
+            emailEl.textContent = currentUser.email;
+        }
+        
         const perfil = loadSingle(DB.perfil);
         if (perfil) {
             document.getElementById('nome').value = perfil.nome || '';
@@ -1653,34 +2107,10 @@ IMPORTANTE:
 2. NÃO INCLUA LINKS DO YOUTUBE
 3. Seja específico nos exercícios, séries e repetições
 4. Inclua dicas técnicas importantes
-5. REGRA DO FOCO (OBRIGATÓRIA - NÃO VIOLE):
-   ${focoTreino === 'superior' ? `
-   ⚠️ FOCO SUPERIOR ATIVO:
-   - APENAS exercícios de: Peito, Costas, Ombros, Braços, Abdômen
-   - PROIBIDO COMPLETAMENTE: Agachamento, Leg Press, Stiff, Afundo, Extensora, Flexora, Panturrilha, qualquer exercício de pernas
-   - Máximo 2 grupos musculares superiores por treino (ex: Peito + Tríceps, Costas + Bíceps)
-   - Se colocar algum exercício de perna, o treino será REJEITADO
-   ` : focoTreino === 'inferior' ? `
-   ⚠️ FOCO INFERIOR ATIVO:
-   - APENAS exercícios de: Pernas, Glúteos, Panturrilha, Abdômen
-   - PROIBIDO COMPLETAMENTE: Supino, Remada, Desenvolvimento, Rosca, Tríceps, qualquer exercício de superior
-   - Máximo 2 grupos musculares inferiores por treino (ex: Quadríceps + Glúteos)
-   - Se colocar algum exercício de superior, o treino será REJEITADO
-   ` : `
-   ⚠️ CORPO TODO (FULL BODY):
-   - Pode combinar superior E inferior no mesmo treino
-   - Máximo 2 grupos musculares por treino
-   - Equilíbrio entre membros superiores e inferiores
-   `}
-6. OBSERVAÇÕES DO USUÁRIO (${observacoes ? 'TÊM PRIORIDADE ABSOLUTA' : 'Não fornecidas'}):
-${observacoes ? `
-   ${observacoes}
-   
-   ⚠️ ESTAS REGRAS ACIMA SÃO PRIORITÁRIAS!
-   - Se conflitarem com o foco, AJUSTE o foco
-   - Se não fizerem sentido com bio/exames, AVISE o usuário
-   - NÃO ignore essas regras em hipótese alguma
-` : ''}
+5. REGRA DO FOCO (DIRETRIZ FLEXÍVEL):
+   - Use o FOCO apenas como orientação geral.
+   - Se houver OBSERVAÇÕES do usuário, elas podem reduzir, limitar ou remover
+     completamente a aplicação desta regra.
 
 
 RETORNE APENAS JSON válido (sem texto antes ou depois):
@@ -1720,40 +2150,6 @@ for (const treino of treinos) {
     }
 }
 
-        // ===== VALIDAÇÃO DE FOCO =====
-        const focoSelecionado = document.getElementById('focoTreino').value;
-
-        for (const treino of treinos) {
-            const grupos = detectarGrupos(treino.exercicios);
-            
-            // Validar foco SUPERIOR
-            if (focoSelecionado === 'superior') {
-                if (grupos.includes('pernas')) {
-                    throw new Error(
-                        `❌ ERRO: Treino "${treino.nome}" tem exercícios de PERNA mas você escolheu foco SUPERIOR! Exercícios: ${treino.exercicios.map(e => e.nome).join(', ')}`
-                    );
-                }
-                if (!grupos.some(g => ['empurrar', 'puxar', 'core'].includes(g))) {
-                    throw new Error(
-                        `❌ ERRO: Treino "${treino.nome}" não tem exercícios de membros superiores!`
-                    );
-                }
-            }
-            
-            // Validar foco INFERIOR  
-            if (focoSelecionado === 'inferior') {
-                if (grupos.some(g => ['empurrar', 'puxar'].includes(g))) {
-                    throw new Error(
-                        `❌ ERRO: Treino "${treino.nome}" tem exercícios de SUPERIOR mas você escolheu foco INFERIOR! Exercícios: ${treino.exercicios.map(e => e.nome).join(', ')}`
-                    );
-                }
-                if (!grupos.includes('pernas')) {
-                    throw new Error(
-                        `❌ ERRO: Treino "${treino.nome}" não tem exercícios de perna sendo que você escolheu foco INFERIOR!`
-                    );
-                }
-            }
-        }
        
         // Se chegou aqui, está válido
         break;
@@ -3164,16 +3560,26 @@ Retorne APENAS JSON válido:
     // =====================================================
     // INICIALIZAÇÃO
     // =====================================================
-    document.addEventListener('DOMContentLoaded', () => {
-        loadPerfil();
-        loadTreinos();
-        loadAtividades();
-        loadBio();
-        loadExames();
-        updateDashboard();
-        gerarRelatorio();
-        // Migra treinos antigos que podem ter campos inconsistentes
-        setTimeout(migrarTreinosAntigos, 1000);
+    document.addEventListener('DOMContentLoaded', async () => {
+        console.log('🚀 BHR TREINOS INICIANDO...');
+        
+        // Espera o Supabase estar pronto
+        let tentativas = 0;
+        while (!sbClient && tentativas < 50) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            tentativas++;
+        }
+        
+        if (!sbClient) {
+            alert('❌ Erro ao conectar com o servidor. Recarregue a página.');
+            return;
+        }
+        
+        // Verifica se o usuário está logado
+        await checkAuth();
+        
+        // Se não estiver logado, checkAuth() mostra a tela de login
+        // Se estiver logado, initializeApp() já foi chamado
     });
     </script>
 </body>
