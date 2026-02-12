@@ -286,6 +286,24 @@ header {
     gap: 1rem;
 }
 
+        .exercise-item {
+    width: 100%;
+    max-width: 100%;
+}
+
+.exercise-item a {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.workout-card {
+    overflow: hidden;
+}
+.exercise-info {
+    min-width: 0;
+}
+
+
 .exercise-item > div:last-child {
     align-self: flex-end;
 }
@@ -2404,7 +2422,7 @@ function renderTreino(treino) {
                     ${exercicios.map((ex, idx) => {
                         const isCompleted = treino.progresso && treino.progresso[idx];
                         return `
-                            <div class="exercise-item ${isCompleted ? 'completed' : ''}" style="flex-direction: column; align-items: stretch;">
+<div class="exercise-item ${isCompleted ? 'completed' : ''}">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <div class="exercise-info" style="flex: 1;">
                                         <div class="exercise-name">${ex.nome}</div>
