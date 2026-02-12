@@ -1,0 +1,6 @@
+# NÃO COMMITAR O ARQUIVO COM AS CHAVES!
+config.js
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
