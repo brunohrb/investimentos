@@ -38,197 +38,13 @@
             overflow-x: hidden;
         }
 
-        /* ========== LOGIN PAGE ========== */
-        .login-page {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .login-page::before {
-            content: '';
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
-            border-radius: 50%;
-            top: -100px;
-            right: -100px;
-            z-index: 0;
-        }
-
-        .login-page::after {
-            content: '';
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 70%);
-            border-radius: 50%;
-            bottom: -50px;
-            left: -50px;
-            z-index: 0;
-        }
-
-        .login-container {
-            background: #ffffff;
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 60px 40px;
-            max-width: 450px;
-            width: 100%;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            animation: slideInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-            position: relative;
-            z-index: 1;
-            border: 2px solid #e5e7eb;
-        }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(40px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .login-header-icon {
-            font-size: 48px;
-            margin-bottom: 16px;
-            display: inline-block;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .login-header h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 32px;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-
-        .login-header p {
-            color: var(--text-secondary);
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .login-form {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .form-group label {
-            color: var(--text-primary);
-            font-weight: 600;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .form-group input {
-            padding: 14px 16px;
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            font-size: 15px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: var(--bg-light);
-            font-family: 'Poppins', sans-serif;
-            font-weight: 500;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--accent);
-            background: var(--bg-white);
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .login-btn {
-            padding: 14px 24px;
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-family: 'Poppins', sans-serif;
-            margin-top: 8px;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
-        }
-
-        .login-btn:active {
-            transform: translateY(-1px);
-        }
-
-        .error-message {
-            color: var(--danger);
-            font-size: 13px;
-            text-align: center;
-            display: none;
-            padding: 12px 16px;
-            background: rgba(239, 68, 68, 0.1);
-            border-radius: 8px;
-            border-left: 4px solid var(--danger);
-            animation: shake 0.4s ease-in-out;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        .error-message.show {
-            display: block;
-        }
-
         /* ========== DASHBOARD PAGE ========== */
         .dashboard {
-            display: none;
             min-height: 100vh;
             background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 50%, #e5e7eb 100%);
             padding: 40px 20px;
             position: relative;
             overflow: hidden;
-        }
-
-        .dashboard.active {
-            display: block;
         }
 
         .dashboard::before {
@@ -264,33 +80,6 @@
             z-index: 1;
         }
 
-        .logout-btn {
-            position: fixed;
-            top: 30px;
-            right: 30px;
-            padding: 12px 24px;
-            background: #1e40af;
-            color: white;
-            border: 2px solid #1e40af;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 700;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            backdrop-filter: blur(10px);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            z-index: 100;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .logout-btn:hover {
-            background: #1e3a8a;
-            border-color: #1e3a8a;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(30, 64, 175, 0.3);
-        }
-
         .dashboard-header {
             text-align: center;
             margin-bottom: 60px;
@@ -315,7 +104,6 @@
             color: #0f172a;
             margin-bottom: 12px;
             letter-spacing: -1px;
-            text-shadow: none;
         }
 
         .dashboard-header p {
@@ -457,17 +245,12 @@
 
         /* Responsive */
         @media (max-width: 768px) {
-            .login-container {
-                padding: 40px 24px;
-                border-radius: 20px;
-            }
-
-            .login-header h1 {
-                font-size: 28px;
-            }
-
             .dashboard-header h1 {
                 font-size: 36px;
+            }
+
+            .dashboard-header p {
+                font-size: 15px;
             }
 
             .buttons-container {
@@ -476,25 +259,23 @@
             }
 
             .btn-card {
-                min-height: 240px;
-                padding: 30px 20px;
+                min-height: 180px;
+                padding: 24px 20px;
                 border-radius: 16px;
             }
 
             .btn-icon {
-                font-size: 48px;
-                margin-bottom: 16px;
+                font-size: 42px;
+                margin-bottom: 12px;
             }
 
             .btn-card h2 {
                 font-size: 20px;
+                margin-bottom: 8px;
             }
 
-            .logout-btn {
-                top: 20px;
-                right: 20px;
-                padding: 10px 20px;
-                font-size: 12px;
+            .btn-card p {
+                font-size: 13px;
             }
 
             .dashboard {
@@ -502,30 +283,11 @@
             }
 
             .dashboard-header {
-                margin-bottom: 40px;
+                margin-bottom: 35px;
             }
         }
 
         @media (max-width: 480px) {
-            body {
-                padding: 0;
-            }
-
-            .login-container {
-                padding: 32px 20px;
-                border-radius: 16px;
-                max-width: 100%;
-                margin: 20px;
-            }
-
-            .login-header h1 {
-                font-size: 24px;
-            }
-
-            .login-header p {
-                font-size: 13px;
-            }
-
             .dashboard-header h1 {
                 font-size: 28px;
                 margin-bottom: 8px;
@@ -540,68 +302,63 @@
             }
 
             .btn-card {
-                min-height: 200px;
-                padding: 24px 16px;
+                min-height: 160px;
+                padding: 20px 16px;
                 border-radius: 14px;
             }
 
             .btn-icon {
-                font-size: 40px;
-                margin-bottom: 12px;
+                font-size: 38px;
+                margin-bottom: 10px;
             }
 
             .btn-card h2 {
                 font-size: 18px;
-                margin-bottom: 8px;
+                margin-bottom: 6px;
             }
 
             .btn-card p {
-                font-size: 13px;
-            }
-
-            .logout-btn {
-                padding: 8px 16px;
-                font-size: 11px;
-                top: 16px;
-                right: 16px;
+                font-size: 12px;
+                line-height: 1.5;
             }
 
             .dashboard {
-                padding: 20px 12px;
+                padding: 25px 14px;
+            }
+
+            .dashboard-header {
+                margin-bottom: 30px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .dashboard-header h1 {
+                font-size: 24px;
+            }
+
+            .btn-card {
+                min-height: 145px;
+                padding: 18px 14px;
+            }
+
+            .btn-icon {
+                font-size: 34px;
+                margin-bottom: 8px;
+            }
+
+            .btn-card h2 {
+                font-size: 16px;
+            }
+
+            .btn-card p {
+                font-size: 11px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Login Container -->
-    <div class="login-page" id="loginPage">
-        <div class="login-container">
-            <div class="login-header">
-                <div class="login-header-icon">👤</div>
-                <h1>Bem-vindo</h1>
-                <p>Bruno Bandeira</p>
-            </div>
-            <form class="login-form" onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label for="password">Senha de Acesso</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        placeholder="Digite sua senha"
-                        required
-                        autofocus
-                    >
-                </div>
-                <button type="submit" class="login-btn">Acessar Plataforma</button>
-                <div class="error-message" id="errorMessage"></div>
-            </form>
-        </div>
-    </div>
-
     <!-- Dashboard -->
-    <div class="dashboard" id="dashboard">
-        <button class="logout-btn" onclick="handleLogout()">🚪 Sair</button>
-        
+    <div class="dashboard">
         <div class="dashboard-content">
             <div class="dashboard-header">
                 <h1>Bem-vindo, Bruno!</h1>
@@ -615,13 +372,13 @@
                     <p>Gerencie seus investimentos e portfólio financeiro</p>
                 </a>
 
-                <a href="https://brunohrb.github.io/pessoal/saude" target="_blank" class="btn-card saude">
+                <a href="https://brunohrb.github.io/pessoal/treino" class="btn-card saude">
                     <div class="btn-icon">🏥</div>
                     <h2>Saúde</h2>
                     <p>Acompanhe sua saúde e bem-estar</p>
                 </a>
 
-                <a href="https://github.com/brunobandeira/viagem" target="_blank" class="btn-card viagem">
+                <a href="https://github.com/brunobandeira/viagem" class="btn-card viagem">
                     <div class="btn-icon">✈️</div>
                     <h2>Viagem</h2>
                     <p>Planeje suas próximas aventuras</p>
@@ -635,53 +392,5 @@
             </div>
         </div>
     </div>
-
-    <script>
-        const CORRECT_PASSWORD = "bruno";
-
-        async function handleLogin(event) {
-            event.preventDefault();
-            
-            const passwordInput = document.getElementById('password');
-            const errorMessage = document.getElementById('errorMessage');
-            const password = passwordInput.value;
-
-            if (password.toLowerCase() === CORRECT_PASSWORD.toLowerCase()) {
-                errorMessage.classList.remove('show');
-                sessionStorage.setItem('authenticated', 'true');
-                
-                document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('dashboard').classList.add('active');
-                
-                passwordInput.value = '';
-            } else {
-                errorMessage.textContent = '❌ Senha incorreta. Tente novamente.';
-                errorMessage.classList.add('show');
-                passwordInput.value = '';
-                passwordInput.focus();
-            }
-        }
-
-        function handleLogout() {
-            sessionStorage.removeItem('authenticated');
-            document.getElementById('dashboard').classList.remove('active');
-            document.getElementById('loginPage').style.display = 'flex';
-            document.getElementById('password').value = '';
-            document.getElementById('errorMessage').classList.remove('show');
-        }
-
-        window.addEventListener('load', function() {
-            if (sessionStorage.getItem('authenticated') === 'true') {
-                document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('dashboard').classList.add('active');
-            }
-        });
-
-        document.getElementById('password').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                document.querySelector('.login-form').dispatchEvent(new Event('submit'));
-            }
-        });
-    </script>
 </body>
 </html>
