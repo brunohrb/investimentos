@@ -1835,11 +1835,22 @@ function switchTab(tab) {
     // =====================================================
     function savePerfil(e) {
         e.preventDefault();
+        
+        const nome = document.getElementById('nome').value.trim();
+        const idade = document.getElementById('idade').value.trim();
+        
+        // Validação básica
+        if (!nome || !idade) {
+            alert('❌ Por favor, preencha Nome e Idade!');
+            return;
+        }
+        
         const perfil = {
-            nome: document.getElementById('nome').value,
-            idade: document.getElementById('idade').value,
+            nome: nome,
+            idade: idade,
             openaiKey: document.getElementById('openaiKey').value
         };
+        
         save(DB.perfil, perfil);
         if (perfil.openaiKey) localStorage.setItem(DB.openai, perfil.openaiKey);
         notify('Perfil salvo com sucesso! ✅');
