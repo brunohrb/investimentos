@@ -7,7 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-    <script src="config.js"></script>
     <style>
 
 /* =========================
@@ -490,6 +489,69 @@
     </div>
 </div>
 
+<!-- 🔹 MODAL PATRIMÔNIO GRANDE -->
+<div id="patrimonioModal" class="modal">
+    <div class="modal-content" style="width:95%; max-width:1200px; height:90vh; overflow-y:auto;">
+
+        <div class="modal-header">
+            <h2>🏢 Holding BEM Partic.</h2>
+            <span class="close-modal" onclick="fecharPatrimonio()">&times;</span>
+        </div>
+
+        <!-- 🔹 CARDS SUPERIORES -->
+        <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:20px; margin-bottom:30px;">
+
+            <div class="total-card" style="background: linear-gradient(135deg,#007bff,#00bfff);">
+                <h3>💵 Total Dinheiro</h3>
+                <p id="cardTotalDinheiro">R$ 0,00</p>
+            </div>
+
+            <div class="total-card" style="background: linear-gradient(135deg,#28a745,#20c997);">
+                <h3>🏠 Total Imóveis</h3>
+                <p id="cardTotalImoveis">R$ 0,00</p>
+            </div>
+
+            <div class="total-card" style="background: linear-gradient(135deg,#6f42c1,#e83e8c);">
+                <h3>🏢 Holding BEM Partic.</h3>
+                <p id="cardTotalHolding">R$ 0,00</p>
+            </div>
+
+        </div>
+
+        <!-- 🔹 FORMULÁRIO -->
+        <div style="background: var(--card-bg); padding:20px; border-radius:12px; border:1px solid var(--border-color); margin-bottom:25px;">
+            <h3 style="margin-top:0;">Adicionar Patrimônio</h3>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr auto; gap:15px;">
+               <input type="hidden" id="patTipo" value="imovel">
+
+
+                <input type="text" id="patDesc" placeholder="Descrição">
+
+                <input type="text" id="patValor" placeholder="R$ 0,00" oninput="mascaraMoeda(this,'BRL')">
+
+                <button onclick="salvarPatrimonio()" class="btn-success">Adicionar</button>
+            </div>
+        </div>
+
+        <!-- 🔹 LISTAS RECOLHÍVEIS -->
+
+        <div>
+
+            <h3 onclick="toggleSecao('secaoImoveis')" style="cursor:pointer;">
+                🏠 Imóveis ▼
+            </h3>
+            <div id="secaoImoveis" style="margin-bottom:30px;"></div>
+
+                        <div id="secaoDinheiro"></div>
+
+        </div>
+
+    </div>
+</div>
+
+
+
 <div id="portabilidadeModal" class="modal">
     <div class="modal-content">
         <div class="modal-header"><h3>Portabilidade entre Contas</h3><span class="close-modal" onclick="fecharModalPortabilidade()">&times;</span></div>
@@ -586,6 +648,7 @@
     </div>
 </div>
 
+<button class="btn-icon" onclick="abrirPatrimonio()">🏠</button>
 <button class="btn-icon" onclick="abrirConfig()">⚙️</button>
 </div>
 
@@ -704,6 +767,8 @@
     </div>
 </div>
 
+
+
     <div class="charts-grid">
         <div class="chart-container"><h3>Evolução do Banco</h3><canvas id="patrimonioChart"></canvas></div>
         <div class="chart-container"><h3>Distribuição por Banco</h3><canvas id="pizzaChart"></canvas></div>
@@ -720,9 +785,8 @@ let todosRegistros = [];
 let charts = {};
 let dolarFallbackHoje = null;
 
-    // Usa configuração do arquivo config.js
-    const SUPABASE_URL = window.SUPABASE_CONFIG.url;
-    const SUPABASE_KEY = window.SUPABASE_CONFIG.key;
+    const SUPABASE_URL = 'https://fwhsjzkmnfxnlrvspkyr.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3aHNqemttbmZ4bmxydnNwa3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0Nzg3MzUsImV4cCI6MjA4MzA1NDczNX0.lT_tHpkxiOQl2HdsFc5VQr_xfkEvoGi101MaITnSLkc';
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let senhaMestra = localStorage.getItem('investflow_pass') || '1234';
     let privacidadeAtiva = true;
@@ -2872,6 +2936,233 @@ function carregarNoticias() {
 }
 
 document.addEventListener("DOMContentLoaded", carregarNoticias);
+
+// =============================
+// 🔹 CONTROLE DE PATRIMÔNIO
+// =============================
+
+let listaPatrimonio = JSON.parse(localStorage.getItem('meu_patrimonio')) || [];
+
+function togglePatrimonio() {
+    const area = document.getElementById('areaPatrimonio');
+    area.style.display = area.style.display === 'none' ? 'block' : 'none';
+    renderizarPatrimonio();
+}
+
+function adicionarPatrimonio() {
+    const desc = document.getElementById('descricaoPatrimonio').value;
+    const valor = desformatarMoeda(document.getElementById('valorPatrimonio').value);
+
+    if (!desc || !valor) {
+        alert("Preencha descrição e valor");
+        return;
+    }
+
+    listaPatrimonio.push({
+        descricao: desc,
+        valor: valor
+    });
+
+    salvarPatrimonioLocal();
+    limparCamposPatrimonio();
+    renderizarPatrimonio();
+}
+
+function removerPatrimonio(index) {
+    listaPatrimonio.splice(index, 1);
+    salvarPatrimonioLocal();
+    renderizarPatrimonio();
+}
+
+function renderizarPatrimonio() {
+    const container = document.getElementById('listaPatrimonio');
+    container.innerHTML = '';
+
+    let total = 0;
+
+    listaPatrimonio.forEach((item, index) => {
+        total += item.valor;
+
+        container.innerHTML += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid var(--border-color);">
+                <div>
+                    <strong>${item.descricao}</strong><br>
+                    ${formatarMoeda(item.valor)}
+                </div>
+                <button class="btn-delete" onclick="removerPatrimonio(${index})">✕</button>
+            </div>
+        `;
+    });
+
+    document.getElementById('totalPatrimonioGeral').textContent = formatarMoeda(total);
+}
+
+function salvarPatrimonioLocal() {
+    localStorage.setItem('meu_patrimonio', JSON.stringify(listaPatrimonio));
+}
+
+function limparCamposPatrimonio() {
+    document.getElementById('descricaoPatrimonio').value = '';
+    document.getElementById('valorPatrimonio').value = '';
+}
+
+// ============================
+// 🔹 PATRIMÔNIO - SUPABASE
+// ============================
+
+async function abrirPatrimonio() {
+    document.getElementById('patrimonioModal').style.display = 'flex';
+    await carregarPatrimonio();
+}
+
+function fecharPatrimonio() {
+    document.getElementById('patrimonioModal').style.display = 'none';
+}
+
+async function salvarPatrimonio() {
+    const descricao = document.getElementById('patDesc').value;
+    const valor = desformatarMoeda(document.getElementById('patValor').value);
+    const editId = document.getElementById('patDesc').dataset.editId;
+
+    if (!descricao || !valor) {
+        alert("Preencha os campos");
+        return;
+    }
+
+    showLoading(true);
+
+    let error;
+
+    if (editId) {
+        const { error: err } = await sb
+            .from('patrimonio')
+            .update({ descricao, valor })
+            .eq('id', editId);
+        error = err;
+    } else {
+        const { error: err } = await sb
+            .from('patrimonio')
+            .insert([{ descricao, valor, tipo: 'imovel' }]);
+        error = err;
+    }
+
+    showLoading(false);
+
+    if (error) {
+        alert("Erro ao salvar");
+        return;
+    }
+
+    document.getElementById('patDesc').value = '';
+    document.getElementById('patValor').value = '';
+    delete document.getElementById('patDesc').dataset.editId;
+
+    await carregarPatrimonio();
+}
+
+
+async function carregarPatrimonio() {
+    showLoading(true);
+
+    const { data, error } = await sb
+        .from('patrimonio')
+        .select('*')
+        .eq('tipo', 'imovel')
+        .order('criado_em', { ascending: false });
+
+    showLoading(false);
+    if (error) return;
+
+    let totalImoveis = 0;
+
+    const imoveisDiv = document.getElementById('secaoImoveis');
+    imoveisDiv.innerHTML = '';
+
+    data.forEach(item => {
+        totalImoveis += Number(item.valor);
+        imoveisDiv.innerHTML += montarItemImovel(item);
+    });
+
+    // 🔥 PEGA O TOTAL DA TELA PRINCIPAL
+    const totalPrincipalTexto =
+        document.getElementById('patrimonioTotal')?.textContent ||
+        document.getElementById('patrimonioTotalGeral')?.textContent ||
+        "R$ 0,00";
+
+    const totalPrincipalNumero = desformatarMoeda(totalPrincipalTexto);
+
+    document.getElementById('cardTotalDinheiro').textContent =
+        formatarMoeda(totalPrincipalNumero);
+
+    document.getElementById('cardTotalImoveis').textContent =
+        formatarMoeda(totalImoveis);
+
+    document.getElementById('cardTotalHolding').textContent =
+        formatarMoeda(totalPrincipalNumero + totalImoveis);
+}
+
+function editarImovel(id, descricao, valor) {
+    document.getElementById('patDesc').value = descricao;
+    document.getElementById('patValor').value = formatarMoeda(Number(valor));
+    document.getElementById('patDesc').dataset.editId = id;
+}
+
+
+
+function montarItemImovel(item) {
+    return `
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:15px;
+            margin-bottom:12px;
+            border-radius:10px;
+            background: rgba(0,0,0,0.03);
+            border:1px solid var(--border-color);
+        ">
+
+            <div>
+                <strong style="font-size:16px;">${item.descricao}</strong>
+                <div style="font-size:14px; color:#666;">
+                    ${formatarMoeda(Number(item.valor))}
+                </div>
+            </div>
+
+            <div style="display:flex; gap:8px;">
+                <button onclick="editarImovel('${item.id}', '${item.descricao}', ${item.valor})"
+                    style="background:#007bff; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;">
+                    ✏️
+                </button>
+
+                <button onclick="excluirPatrimonio('${item.id}')"
+                    style="background:#dc3545; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;">
+                    🗑
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+
+function toggleSecao(id) {
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+
+async function excluirPatrimonio(id) {
+    if (!confirm("Excluir item?")) return;
+
+    showLoading(true);
+
+    await sb.from('patrimonio').delete().eq('id', id);
+
+    showLoading(false);
+
+    await carregarPatrimonio();
+}
+
 
 </script>
 </body>
