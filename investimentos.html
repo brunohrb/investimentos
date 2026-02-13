@@ -406,6 +406,80 @@
 
 }
 
+/* ===========================
+   📱 PATRIMÔNIO – MOBILE
+   =========================== */
+@media (max-width: 768px) {
+
+    /* Modal ocupa quase tela inteira */
+    #patrimonioModal .modal-content {
+        width: 100% !important;
+        height: 100vh !important;
+        max-width: 100% !important;
+        border-radius: 0 !important;
+        padding: 20px !important;
+    }
+
+    /* Cards viram coluna */
+    #patrimonioModal .total-card {
+        text-align: center;
+        padding: 18px;
+    }
+
+    #patrimonioModal .total-card p {
+        font-size: 22px !important;
+    }
+
+    #patrimonioModal > div > div:first-child {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Formulário vira vertical */
+    #patrimonioModal select,
+    #patrimonioModal input,
+    #patrimonioModal button {
+        width: 100% !important;
+        font-size: 16px !important;
+    }
+
+    #patrimonioModal div[style*="grid-template-columns: 1fr 1fr 1fr auto"] {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+
+    /* Imóveis ficam organizados */
+    #secaoImoveis > div {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px;
+    }
+
+    #secaoImoveis button {
+        width: 48%;
+    }
+
+    #secaoImoveis div > div:last-child {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+    }
+
+}
+
+.gridPatrimonioCards {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .gridPatrimonioCards {
+        grid-template-columns: 1fr;
+    }
+}
+
+
     </style>
 </head>
 <body>
@@ -670,7 +744,12 @@
     
     <div class="total-card" style="background: linear-gradient(135deg, #007bff, #00bfff);"><h3>💵 USD</h3><p id="patrimonioUSD" class="hidden-value">$0,00</p></div>
     
-    <div class="total-card" style="background: linear-gradient(135deg, #6f42c1, #e83e8c);"><h3>🌍 Total</h3><p id="patrimonioTotal" class="hidden-value">R$ 0,00</p></div>
+    <div class="total-card" style="background: linear-gradient(135deg, #6f42c1, #e83e8c);"><h3>🌍 Total</h3><p id="patrimonioTotal" class="hidden-value">R$ 0,00</p>
+<p id="patrimonioTotalUSD" class="hidden-value" 
+   style="font-size:0.85em; margin-top:6px; opacity:0.8;">
+   US$ 0,00
+</p>
+</div>
     
     <div class="total-card" style="background: linear-gradient(135deg, #fd7e14, #ff9f43);"><h3>📈 Ações</h3><p id="patrimonioAcoes" class="hidden-value">R$ 0,00</p></div>
     
@@ -1537,6 +1616,25 @@ if (bancoSelecionadoId === 'consolidado_total') {
     document.getElementById('patrimonioBRL').textContent = formatarMoeda(patrimonioBrasil);
     document.getElementById('patrimonioUSD').textContent = patrimonioUSD.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
     document.getElementById('patrimonioTotal').textContent = formatarMoeda(patrimonioTotal);
+// 🔹 Conversão para USD (valor informativo)
+if (bancoSelecionadoId === 'consolidado_total') {
+
+    const totalBRL = patrimonioAtual;
+    const dolarHoje = dolarFallbackHoje || 0;
+
+    if (dolarHoje > 0) {
+        const totalUSD = totalBRL / dolarHoje;
+
+        document.getElementById('patrimonioTotalUSD').textContent =
+            totalUSD.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+    }
+}
+
     
     // 5️⃣ TOTAL APORTADO
     let aportadoBRL = 0;
