@@ -1,0 +1,3344 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Investimento - Fechamento Mensal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+
+/* =========================
+   📰 SIDEBAR NOTÍCIAS
+   ========================= */
+
+.news-sidebar {
+    position: fixed;
+    top: 60px; /* abaixo do ticker */
+    width: 260px;
+    height: calc(100vh - 60px);
+    background: #0f1115;
+    color: #fff;
+    padding: 15px;
+    overflow-y: auto;
+    z-index: 5;
+}
+
+.left-news {
+    left: 0;
+    border-right: 1px solid #222;
+}
+
+.right-news {
+    right: 0;
+    border-left: 1px solid #222;
+}
+
+.news-sidebar h3 {
+    font-size: 14px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 8px;
+}
+
+.news-item {
+    font-size: 13px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #222;
+    cursor: pointer;
+}
+
+.news-item {
+    font-size: 13px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #222;
+    cursor: pointer;
+    text-decoration: none;   /* remove sublinhado */
+    color: #ffffff;          /* força branco */
+    display: block;
+}
+
+.news-item:visited {
+    color: #ffffff;
+}
+
+.news-item:hover {
+    color: #00bfff;
+}
+
+
+.news-item:hover {
+    color: #00bfff;
+}
+
+/* Ajusta container principal */
+.container {
+    margin-left: 280px;
+    margin-right: 280px;
+}
+
+/* Mobile: remove laterais */
+@media (max-width: 1200px) {
+
+    .news-sidebar {
+        display: none !important;
+    }
+
+    .container {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        max-width: 100% !important;
+        border-radius: 0;
+    }
+
+    body {
+        padding: 0;
+    }
+}
+
+
+/* =========================
+   📈 TICKER ESTILO CORRETORA
+   ========================= */
+
+.ticker-wrapper {
+    width: 100%;
+    background: #111;
+    overflow: hidden;
+    border-bottom: 2px solid #222;
+}
+
+.ticker {
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.ticker-content {
+    display: inline-block;
+    padding-left: 100%;
+    animation: tickerMove 35s linear infinite;
+}
+
+.ticker-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 30px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ticker-symbol {
+    color: #00bfff;
+}
+
+.ticker-price {
+    color: #fff;
+}
+
+.ticker-pos {
+    color: #00ff7f;
+}
+
+.ticker-neg {
+    color: #ff4d4d;
+}
+
+@keyframes tickerMove {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+        :root { --primary-color: #007bff; --secondary-color: #6c757d; --bg-color: #f0f2f5; --card-bg: #ffffff; --text-color: #333; --border-color: #ddd; --card-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        [data-theme="dark"] { --bg-color: #121212; --card-bg: #1e1e1e; --text-color: #e0e0e0; --border-color: #333; --card-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        * { box-sizing: border-box; transition: background-color 0.3s, color 0.3s; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); padding: 0; color: var(--text-color); margin: 0; overflow-x: hidden; }
+        
+        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0056b3, #00bfff); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+        .login-box { background: #ffffff; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; width: 90%; max-width: 350px; }
+        .login-box h1 { color: #0056b3; margin-bottom: 10px; font-size: 24px; }
+        .login-box p { color: #666; margin-bottom: 25px; font-size: 14px; }
+        .login-box input { padding: 12px; border: 2px solid #eee; border-radius: 8px; width: 100%; margin-bottom: 15px; text-align: center; font-size: 18px; }
+        .login-box button { background: #0056b3; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+        
+        .container { max-width: 1200px; margin: auto; background: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: var(--card-shadow); display: none; margin-top: 10px; margin-bottom: 10px; }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 20px; }
+        
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .btn-icon { background: none; border: 1px solid var(--border-color); color: var(--text-color); padding: 8px; cursor: pointer; border-radius: 50%; font-size: 18px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+        
+.dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .total-card { background: linear-gradient(135deg, #0056b3, #00bfff); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,86,179,0.3); text-align: center; }
+        .total-card h3 { margin: 0 0 5px 0; font-size: 14px; opacity: 0.9; }
+        .total-card p { margin: 0; font-size: 24px; font-weight: 800; }
+        .stats-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; text-align: center; }
+        .stats-card h4 { margin: 0 0 5px 0; font-size: 12px; color: #888; text-transform: uppercase; }
+        .stats-card p { margin: 0; font-size: 20px; font-weight: bold; color: var(--primary-color); }
+
+        .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; background: rgba(0,0,0,0.03); padding: 15px; border-radius: 8px; }
+        .controls-row { display: flex; align-items: center; gap: 10px; width: 100%; }
+        
+        .inputs { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
+        input, select, button { padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; width: 100%; background: var(--card-bg); color: var(--text-color); }
+        
+        button { background-color: #0056b3; color: white; border: none; cursor: pointer; font-weight: bold; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-success { background-color: #28a745; }
+        .btn-cancel { background-color: #333; display: none; }
+
+        .table-wrapper { overflow-x: auto; margin-top: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 12px 10px; border-bottom: 1px solid var(--border-color); text-align: left; font-size: 13px; }
+        th { background-color: rgba(0,0,0,0.05); color: #888; font-weight: 600; }
+
+        .pos { color: #28a745; font-weight: bold; }
+        .neg { color: #dc3545; font-weight: bold; }
+        /* ===========================
+   💻 AÇÕES – PADRÃO (DESKTOP)
+   =========================== */
+/* COMPUTADOR – AÇÕES UMA ABAIXO DA OUTRA */
+.actions-cell {
+    display: flex;
+    flex-direction: column;   /* 👈 ISSO resolve */
+    gap: 6px;
+}
+
+    max-height: 90px;         /* 👈 limite de altura */
+    overflow-y: auto;         /* 👈 scroll vertical */
+
+    align-content: flex-start;
+}
+
+.actions-cell > div {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    background: rgba(0,0,0,0.04);
+    padding: 4px 6px;
+    border-radius: 6px;
+
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+
+        .btn-edit, .btn-delete { padding: 8px; font-size: 11px; border: none; color: white; cursor: pointer; border-radius: 4px; width: auto; flex: 1; }
+        .btn-edit { background-color: #007bff; }
+        .btn-delete { background-color: #dc3545; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; position: relative; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .close-modal { cursor: pointer; font-size: 24px; }
+
+        .charts-grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 30px; }
+        .chart-container { padding: 15px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); height: 300px; }
+        .chart-container h3 { margin: 0 0 10px 0; font-size: 14px; text-align: center; }
+
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 9000; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .hidden-value { filter: blur(10px); pointer-events: none; user-select: none; }
+
+        @media (min-width: 768px) {
+            body { padding: 10px; } .container { padding: 30px; }
+            .dashboard-grid { grid-template-columns: repeat(4, 1fr); }
+
+            .total-card { text-align: left; } .total-card p { font-size: 32px; }
+            .controls { flex-direction: row; } .inputs { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+            button { width: auto; } .charts-grid { grid-template-columns: 1fr 1fr; }
+            .chart-container { height: 350px; } th, td { font-size: 14px; padding: 14px; }
+        }
+
+.btn-excluir-banco {
+    all: unset;                /* reset total */
+    cursor: pointer;
+
+    width: 34px;
+    height: 34px;
+
+    background: #dc3545;
+    color: white;
+
+    border-radius: 8px;
+    border: 1px solid #c82333;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 16px;
+    font-weight: bold;
+
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: background 0.2s, transform 0.1s, box-shadow 0.1s;
+}
+
+.btn-excluir-banco:hover {
+    background: #c82333;
+}
+
+.btn-excluir-banco:active {
+    transform: scale(0.95);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* ===========================
+   📱 AJUSTES PARA iPHONE
+   =========================== */
+@media (max-width: 768px) {
+
+    /* Grid do dashboard vira 1 coluna */
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    /* Card azul ocupa largura total */
+    .total-card {
+        min-height: auto;
+        padding: 22px;
+    }
+
+    /* Tamanho do valor principal */
+    .total-card p {
+        font-size: 26px;
+    }
+
+    /* Cards brancos */
+    .stats-card {
+        padding: 18px;
+    }
+
+    .stats-card p {
+        font-size: 18px;
+    }
+
+    /* Header não quebra */
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    /* Controles */
+    .controls {
+        padding: 12px;
+    }
+
+    .controls-row {
+        width: 100%;
+    }
+
+    select, input, button {
+        font-size: 16px; /* evita zoom automático no iOS */
+    }
+
+    /* Tabela com scroll horizontal suave */
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 700px;
+    }
+
+    /* Gráficos */
+    .chart-container {
+        height: 260px;
+    }
+
+/* ===============================
+   🏠 Modal Patrimônio Mobile
+   =============================== */
+
+#patrimonioModal .modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+    padding: 20px !important;
+}
+
+/* Cards superiores viram coluna */
+#patrimonioModal div[style*="grid-template-columns: repeat(3,1fr)"] {
+    grid-template-columns: 1fr !important;
+}
+
+/* Formulário vira vertical */
+#patrimonioModal div[style*="grid-template-columns: 1fr 1fr 1fr auto"] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+
+/* Inputs maiores para iOS */
+#patrimonioModal input,
+#patrimonioModal button {
+    font-size: 16px !important;
+}
+
+/* Cards de imóveis organizados */
+#secaoImoveis > div {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px;
+}
+
+
+/* 🔹 Corrige alinhamento dos ícones no mobile */
+.header-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.header-actions > div {
+    white-space: normal !important;
+}
+
+.btn-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 16px;
+}
+
+
+    /* ===========================
+       📱 TABELA – AÇÕES NO MOBILE
+       =========================== */
+
+    /* Coluna de ações vira vertical */
+    .actions-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 180px;
+    }
+
+    /* Cada aporte vira um "card" */
+    .actions-cell > div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        background: rgba(0,0,0,0.04);
+        padding: 6px 8px;
+        border-radius: 6px;
+
+        font-size: 12px;
+        white-space: normal;
+    }
+
+    /* Botões menores no iPhone */
+    .btn-edit,
+    .btn-delete {
+        padding: 4px 6px !important;
+        font-size: 12px !important;
+    }
+
+
+
+}
+
+
+        @media (max-width: 768px) {
+
+    #dashboardVisual > div {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+
+    #dashboardVisual canvas {
+        max-width: 100% !important;
+    }
+
+}
+
+/* ===========================
+   📱 PATRIMÔNIO – MOBILE
+   =========================== */
+@media (max-width: 768px) {
+
+    /* Modal ocupa quase tela inteira */
+    #patrimonioModal .modal-content {
+        width: 100% !important;
+        height: 100vh !important;
+        max-width: 100% !important;
+        border-radius: 0 !important;
+        padding: 20px !important;
+    }
+
+    /* Cards viram coluna */
+    #patrimonioModal .total-card {
+        text-align: center;
+        padding: 18px;
+    }
+
+    #patrimonioModal .total-card p {
+        font-size: 22px !important;
+    }
+
+    #patrimonioModal > div > div:first-child {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Formulário vira vertical */
+    #patrimonioModal select,
+    #patrimonioModal input,
+    #patrimonioModal button {
+        width: 100% !important;
+        font-size: 16px !important;
+    }
+
+    #patrimonioModal div[style*="grid-template-columns: 1fr 1fr 1fr auto"] {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+
+    /* Imóveis ficam organizados */
+    #secaoImoveis > div {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px;
+    }
+
+    #secaoImoveis button {
+        width: 48%;
+    }
+
+    #secaoImoveis div > div:last-child {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+    }
+
+}
+
+.gridPatrimonioCards {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .gridPatrimonioCards {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+
+    </style>
+</head>
+<body>
+<!-- 🔴 TICKER DE AÇÕES -->
+<div class="ticker-wrapper">
+    <div class="ticker">
+        <div class="ticker-content" id="tickerContent">
+            <!-- Itens serão inseridos via JS -->
+        </div>
+    </div>
+</div>
+
+<!-- 📰 SIDEBAR ESQUERDA -->
+<div class="news-sidebar left-news">
+    <h3>📰 Mercado</h3>
+    <div id="newsLeft"></div>
+</div>
+
+<!-- 📰 SIDEBAR DIREITA -->
+<div class="news-sidebar right-news">
+    <h3>🌎 Internacional</h3>
+    <div id="newsRight"></div>
+</div>
+
+
+<div id="loading" class="loading-overlay"><div class="spinner"></div></div>
+
+<div id="loginScreen">
+    <div class="login-box">
+        <h1>Investimentos</h1>
+        <p>Sistema de Fechamento Mensal</p>
+        <form id="loginForm" onsubmit="event.preventDefault(); login();" autocomplete="on" method="post">
+            <input 
+                type="text" 
+                id="mainUsername"
+                name="username"
+                value="bruno"
+                autocomplete="username"
+                readonly
+                style="text-align: center; background: #f5f5f5; cursor: not-allowed;"
+                placeholder="Usuário">
+            <input 
+                type="password" 
+                id="mainPassword" 
+                name="password"
+                placeholder="Digite sua senha"
+                autocomplete="current-password"
+                autofocus
+                required>
+            <button type="submit">Entrar Agora</button>
+        </form>
+    </div>
+</div>
+
+
+<div id="configModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>Configurações</h3><span class="close-modal" onclick="fecharConfig()">&times;</span></div>
+        <button onclick="toggleTheme()" id="themeBtn" style="margin-bottom:10px">🌙 Modo Escuro</button>
+        <button onclick="mudarSenha()" class="btn-secondary" style="margin-bottom:10px">Alterar Senha</button>
+        <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0">
+        <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0">
+
+<h4 style="margin-bottom:10px">Gerenciar Bancos</h4>
+
+<button onclick="adicionarNovoBanco()" class="btn-success" style="margin-bottom:10px">
+    ➕ Adicionar Banco
+</button>
+
+<button onclick="toggleModoExcluirBanco()" class="btn-secondary" style="margin-bottom:10px">
+    🗑️ Excluir Banco
+</button>
+
+<div id="listaBancosConfig" style="font-size:14px"></div>
+
+
+        <p style="font-size:12px; color:#888">Backup & Restauração (Excel)</p>
+        <button onclick="exportarExcel()" class="btn-success" style="margin-bottom:10px">Exportar Excel</button>
+        <input type="file" id="importExcel" style="display:none" onchange="importarExcel(event)">
+        <button onclick="document.getElementById('importExcel').click()" class="btn-secondary">Importar Excel</button>
+    </div>
+</div>
+
+<!-- 🔹 MODAL PATRIMÔNIO GRANDE -->
+<div id="patrimonioModal" class="modal">
+    <div class="modal-content" style="width:95%; max-width:1200px; height:90vh; overflow-y:auto;">
+
+        <div class="modal-header">
+            <h2>🏢 Holding BEM Partic.</h2>
+            <span class="close-modal" onclick="fecharPatrimonio()">&times;</span>
+        </div>
+
+        <!-- 🔹 CARDS SUPERIORES -->
+        <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:20px; margin-bottom:30px;">
+
+            <div class="total-card" style="background: linear-gradient(135deg,#007bff,#00bfff);">
+                <h3>💵 Total Dinheiro</h3>
+                <p id="cardTotalDinheiro">R$ 0,00</p>
+            </div>
+
+            <div class="total-card" style="background: linear-gradient(135deg,#28a745,#20c997);">
+                <h3>🏠 Total Imóveis</h3>
+                <p id="cardTotalImoveis">R$ 0,00</p>
+            </div>
+
+            <div class="total-card" style="background: linear-gradient(135deg,#6f42c1,#e83e8c);">
+                <h3>🏢 Holding BEM Partic.</h3>
+                <p id="cardTotalHolding">R$ 0,00</p>
+            </div>
+
+        </div>
+
+        <!-- 🔹 FORMULÁRIO -->
+        <div style="background: var(--card-bg); padding:20px; border-radius:12px; border:1px solid var(--border-color); margin-bottom:25px;">
+            <h3 style="margin-top:0;">Adicionar Patrimônio</h3>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr auto; gap:15px;">
+               <input type="hidden" id="patTipo" value="imovel">
+
+
+                <input type="text" id="patDesc" placeholder="Descrição">
+
+                <input type="text" id="patValor" placeholder="R$ 0,00" oninput="mascaraMoeda(this,'BRL')">
+
+                <button onclick="salvarPatrimonio()" class="btn-success">Adicionar</button>
+            </div>
+        </div>
+
+        <!-- 🔹 LISTAS RECOLHÍVEIS -->
+
+        <div>
+
+            <h3 onclick="toggleSecao('secaoImoveis')" style="cursor:pointer;">
+                🏠 Imóveis ▼
+            </h3>
+            <div id="secaoImoveis" style="margin-bottom:30px;"></div>
+
+                        <div id="secaoDinheiro"></div>
+
+        </div>
+
+    </div>
+</div>
+
+
+
+<div id="portabilidadeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>Portabilidade entre Contas</h3><span class="close-modal" onclick="fecharModalPortabilidade()">&times;</span></div>
+        <div style="display: grid; gap: 10px;">
+            <label style="font-size:12px; color:#888">Banco de Origem</label>
+            <select id="portabilidadeBancoOrigem"></select>
+            <label style="font-size:12px; color:#888">Banco de Destino</label>
+            <select id="portabilidadeBancoDestino"></select>
+            <label style="font-size:12px; color:#888">Data</label>
+            <input type="date" id="portabilidadeData">
+            <label style="font-size:12px; color:#888">Valor</label>
+            <input type="text" id="portabilidadeValor" placeholder="R$ 0,00" oninput="mascaraMoeda(this, 'BRL')">
+            <button onclick="executarPortabilidade()" class="btn-success">Registrar Portabilidade</button>
+        </div>
+    </div>
+</div>
+
+<div id="portabilidadeUSDModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>Portabilidade USD</h3><span class="close-modal" onclick="fecharModalPortabilidadeUSD()">&times;</span></div>
+        <div style="display: grid; gap: 10px;">
+            <label style="font-size:12px; color:#888">Banco Origem (USD)</label>
+            <select id="portabilidadeUSDOrigem"></select>
+            <label style="font-size:12px; color:#888">Banco Destino (USD)</label>
+            <select id="portabilidadeUSDDestino"></select>
+            <label style="font-size:12px; color:#888">Data</label>
+            <input type="date" id="portabilidadeUSDData">
+            <label style="font-size:12px; color:#888">Valor em US$</label>
+            <input type="text" id="portabilidadeUSDValor" placeholder="US$ 0,00" oninput="mascaraMoeda(this, 'USD')">
+            <label style="font-size:12px; color:#888">Valor em R$ (manual)</label>
+            <input type="text" id="portabilidadeUSDValorBRL" placeholder="R$ 0,00" oninput="mascaraMoeda(this, 'BRL')">
+            <button onclick="executarPortabilidadeUSD()" class="btn-success">Registrar</button>
+        </div>
+    </div>
+</div>
+
+<div id="portabilidadeBrlUsdModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>Portabilidade BRL → USD</h3><span class="close-modal" onclick="fecharModalPortabilidadeBrlUsd()">&times;</span></div>
+        <div style="display: grid; gap: 10px;">
+            <label style="font-size:12px; color:#888">Banco Brasil (origem)</label>
+            <select id="portabilidadeBrlUsdOrigem"></select>
+            <label style="font-size:12px; color:#888">Banco EUA (destino)</label>
+            <select id="portabilidadeBrlUsdDestino"></select>
+            <label style="font-size:12px; color:#888">Data</label>
+            <input type="date" id="portabilidadeBrlUsdData">
+            <label style="font-size:12px; color:#888">Valor em R$ (retirada)</label>
+            <input type="text" id="portabilidadeBrlUsdValorBRL" placeholder="R$ 0,00" oninput="mascaraMoeda(this, 'BRL')">
+            <label style="font-size:12px; color:#888">Valor em US$ (entrada)</label>
+            <input type="text" id="portabilidadeBrlUsdValorUSD" placeholder="US$ 0,00" oninput="mascaraMoeda(this, 'USD')">
+            <button onclick="executarPortabilidadeBrlUsd()" class="btn-success">Registrar BRL → USD</button>
+        </div>
+    </div>
+</div>
+
+<div id="portabilidadeUsdBrlModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3>Portabilidade USD → BRL</h3><span class="close-modal" onclick="fecharModalPortabilidadeUsdBrl()">&times;</span></div>
+        <div style="display: grid; gap: 10px;">
+            <label style="font-size:12px; color:#888">Banco EUA (origem)</label>
+            <select id="portabilidadeUsdBrlOrigem"></select>
+            <label style="font-size:12px; color:#888">Banco Brasil (destino)</label>
+            <select id="portabilidadeUsdBrlDestino"></select>
+            <label style="font-size:12px; color:#888">Data</label>
+            <input type="date" id="portabilidadeUsdBrlData">
+            <label style="font-size:12px; color:#888">Valor em US$ (retirada)</label>
+            <input type="text" id="portabilidadeUsdBrlValorUSD" placeholder="US$ 0,00" oninput="mascaraMoeda(this, 'USD')">
+            <label style="font-size:12px; color:#888">Valor em R$ (entrada - manual)</label>
+            <input type="text" id="portabilidadeUsdBrlValorBRL" placeholder="R$ 0,00" oninput="mascaraMoeda(this, 'BRL')">
+            <button onclick="executarPortabilidadeUsdBrl()" class="btn-success">Registrar USD → BRL</button>
+        </div>
+    </div>
+</div>
+
+<div class="container" id="mainContainer">
+    <header>
+        <h2 id="tituloSistema"> </h2>
+        <div class="header-actions">
+    <div id="cotacoesTopo" style="font-size:12px; color:#666; margin-right:10px; white-space:nowrap;">
+        💵 USD: <span id="valorDolar">--</span>
+        &nbsp;&nbsp;
+        💶 EUR: <span id="valorEuro">--</span>
+    </div>
+
+    <button class="btn-icon" onclick="togglePrivacy()" id="privacyBtn">👁️</button>
+
+<div style="position: relative;">
+    <button class="btn-icon" onclick="toggleMenuPortabilidade()" title="Portabilidades">💱</button>
+    <div id="menuPortabilidade" style="display: none; position: absolute; right: 0; top: 50px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--card-shadow); padding: 8px; z-index: 1000; min-width: 200px;">
+        <button onclick="abrirModalPortabilidade(); toggleMenuPortabilidade();" style="width: 100%; padding: 10px; margin-bottom: 5px; background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; text-align: left; font-size: 14px;">🔄 BRL → BRL</button>
+        <button onclick="abrirModalPortabilidadeUSD(); toggleMenuPortabilidade();" style="width: 100%; padding: 10px; margin-bottom: 5px; background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; text-align: left; font-size: 14px;">💵 USD → USD</button>
+        <button onclick="abrirModalPortabilidadeBrlUsd(); toggleMenuPortabilidade();" style="width: 100%; padding: 10px; margin-bottom: 5px; background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; text-align: left; font-size: 14px;">🌎 BRL → USD</button>
+        <button onclick="abrirModalPortabilidadeUsdBrl(); toggleMenuPortabilidade();" style="width: 100%; padding: 10px; background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; text-align: left; font-size: 14px;">🔙 USD → BRL</button>
+    </div>
+</div>
+
+<button class="btn-icon" onclick="abrirPatrimonio()">🏠</button>
+<button class="btn-icon" onclick="abrirConfig()">⚙️</button>
+</div>
+
+    </header>
+    
+<!-- Dashboard NORMAL -->
+<div class="dashboard-grid" id="dashboardNormal">
+    <div class="total-card"><h3>Patrimônio do Banco</h3><p id="patrimonioTotalGeral" class="hidden-value">R$ 0,00</p><p id="patrimonioTotalGeralUSD" class="hidden-value" style="display:none; font-size:0.85em; margin-top:5px; color:#666;">US$ 0,00 / R$ 0,00</p></div>
+    <div class="stats-card"><h4>Rentabilidade Acumulada</h4><p id="rendimentoMedio" class="hidden-value">0,00%</p></div>
+    <div class="stats-card"><h4>Total Aportado (Banco)</h4><p id="totalAportado" class="hidden-value">R$ 0,00</p></div>
+    <div class="stats-card" id="indicadorDolarComprado" style="display:none;"><h4>Dolar Comprado</h4><p id="valorDolarComprado" style="color:#28a745; font-size:20px; font-weight:bold;">R$ 0,00</p></div>
+    <div class="stats-card" id="indicadorDolarComLucro" style="display:none;"><h4>Dolar com Lucro</h4><p id="valorDolarComLucro" style="color:#007bff; font-size:20px; font-weight:bold;">R$ 0,00</p></div>
+</div>
+
+<!-- Dashboard CONSOLIDADO TOTAL -->
+<div class="dashboard-grid" id="dashboardConsolidadoTotal" style="display:none;">
+    <!-- Linha 1: 4 cards principais (Brasil, USD, Total, Ações) -->
+    <div class="total-card" style="background: linear-gradient(135deg, #28a745, #20c997);"><h3>💰 Brasil</h3><p id="patrimonioBRL" class="hidden-value">R$ 0,00</p></div>
+    
+    <div class="total-card" style="background: linear-gradient(135deg, #007bff, #00bfff);"><h3>💵 USD</h3><p id="patrimonioUSD" class="hidden-value">$0,00</p></div>
+    
+    <div class="total-card" style="background: linear-gradient(135deg, #6f42c1, #e83e8c);"><h3>🌍 Total</h3><p id="patrimonioTotal" class="hidden-value">R$ 0,00</p>
+<p id="patrimonioTotalUSD" class="hidden-value" 
+   style="font-size:0.85em; margin-top:6px; opacity:0.8;">
+   US$ 0,00
+</p>
+</div>
+    
+    <div class="total-card" style="background: linear-gradient(135deg, #fd7e14, #ff9f43);"><h3>📈 Ações</h3><p id="patrimonioAcoes" class="hidden-value">R$ 0,00</p></div>
+    
+    <!-- Linha 2: 5 cards de informações (um vai quebrar para linha 3 ou podemos ajustar depois) -->
+    <div class="stats-card"><h4>Aportado BRL</h4><p id="totalAportadoBRL" class="hidden-value">R$ 0,00</p></div>
+    
+    <div class="stats-card"><h4>Aportado USD</h4><p id="totalAportadoUSD" class="hidden-value">$0,00</p></div>
+    
+    <div class="stats-card"><h4>Dólar Comprado</h4><p id="valorDolarCompradoConsolidado" class="hidden-value">R$ 0,00</p></div>
+    
+    <div class="stats-card"><h4>Dólar com Lucro</h4><p id="valorDolarComLucroConsolidado" class="hidden-value">R$ 0,00</p></div>
+    
+    <div class="stats-card"><h4>Rentabilidade Total</h4><p id="rendimentoMedioTotal" class="hidden-value">0,00%</p></div>
+</div>
+
+<div class="controls">
+    <div class="controls-row">
+<select id="carteiraSelector" onchange="carteiraMudou()">
+    <option value="consolidado_total">🌍 Consolidado Total</option>
+    <option value="br">🇧🇷 Carteira Brasil</option>
+    <option value="int">🌎 Carteira Internacional</option>
+    <option value="consolidado_br">📊 Consolidado Brasil</option>
+    <option value="consolidado_usd">📊 Consolidado Internacional</option>
+</select>
+    </div>
+
+    <div class="controls-row">
+        <select id="bancoSelector" onchange="carregarDadosBanco()"></select>
+    </div>
+
+        <div class="controls-row">
+            <select id="anoFilter" onchange="atualizarFiltroAnoEDados()">
+
+<option value="todos">Todos os Anos</option></select>
+        </div>
+    </div>
+
+    <input type="hidden" id="registroId">
+    <div class="inputs">
+        <input type="date" id="dataInput">
+        <input type="text" id="valorAporteInput" placeholder="Aporte R$ (ou - para retirada)" oninput="mascaraMoeda(this, 'BRL')">
+        <input type="text" id="patrimonioAtualInput" placeholder="Patr. Final do Mês R$" oninput="mascaraMoeda(this, 'BRL')">
+        <input type="text" id="valorAporteInputUSD" placeholder="Aporte $ (ou -)" style="display: none;" oninput="mascaraMoeda(this, 'USD')">
+        <input type="text" id="patrimonioAtualInputUSD" placeholder="Patr. Final $ " style="display: none;" oninput="mascaraMoeda(this, 'USD')">
+        <button onclick="salvarRegistro()" id="btnSalvar">Registrar</button>
+        <button onclick="limparCampos()" id="btnCancelar" class="btn-cancel">X</button>
+    </div>
+
+   <div style="margin-top: 20px;">
+    <!-- 📊 CARDS DE VISUALIZAÇÃO (só no Consolidado Total) -->
+    <div id="dashboardVisual" style="display: none;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+            
+            <!-- Card: Distribuição por Moeda -->
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
+                <h3 style="margin: 0 0 15px 0; font-size: 16px; color: var(--text-color);">💰 Distribuição por Moeda</h3>
+                <canvas id="chartMoedas" style="max-height: 250px;"></canvas>
+            </div>
+            
+            <!-- Card: Distribuição por Banco -->
+            <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
+                <h3 style="margin: 0 0 15px 0; font-size: 16px; color: var(--text-color);">🏦 Top 5 Bancos</h3>
+                <canvas id="chartBancos" style="max-height: 250px;"></canvas>
+            </div>
+            
+        </div>
+        
+        <!-- Card: Evolução Mensal -->
+        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+            <h3 style="margin: 0 0 15px 0; font-size: 16px; color: var(--text-color);">📈 Evolução do Patrimônio (12 meses)</h3>
+            <canvas id="chartEvolucao" style="max-height: 300px;"></canvas>
+        </div>
+    </div>
+    
+    <!-- 📋 TABELA (mostra só 3 linhas inicialmente) -->
+    <div class="table-wrapper">
+        <table>
+            <thead><tr id="tabelaHead"><th>Mês/Ano</th><th>Aportes R$</th><th>Patr. R$</th><th>Aporte $</th><th>Patr. $</th><th>% $</th><th>Ações</th></tr></thead>
+            <tbody id="tabelaCorpo"></tbody>
+        </table>
+    </div>
+    
+    <!-- Botão Expandir Histórico -->
+    <button onclick="toggleHistorico()" id="btnExpandirHistorico" style="display: none; width: 100%; padding: 10px; margin-top: 10px; background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; cursor: pointer;">
+        <span id="setaHistorico">▼</span> Ver histórico completo
+    </button>
+    
+    <!-- Histórico Oculto -->
+    <div id="historicoOculto" class="table-wrapper" style="display: none; margin-top: 10px;">
+        <table>
+            <thead><tr><th>Mês/Ano</th><th>Aportes R$</th><th>Patr. R$</th><th>Aporte $</th><th>Patr. $</th><th>% $</th><th>Ações</th></tr></thead>
+            <tbody id="tabelaCorpoOculto"></tbody>
+        </table>
+    </div>
+</div>
+
+
+
+    <div class="charts-grid">
+        <div class="chart-container"><h3>Evolução do Banco</h3><canvas id="patrimonioChart"></canvas></div>
+        <div class="chart-container"><h3>Distribuição por Banco</h3><canvas id="pizzaChart"></canvas></div>
+        <div class="chart-container" style="grid-column: 1 / -1;"><h3>Patrimônio Total Consolidado</h3><canvas id="patrimonioConsolidadoChart"></canvas></div>
+    </div>
+</div>
+
+<script>
+
+let bancos = [];
+let todosBancos = [];
+let registrosAtuais = [];
+let todosRegistros = [];
+let charts = {};
+let dolarFallbackHoje = null;
+
+    // =============================
+    // CONFIGURAÇÃO SUPABASE
+    // =============================
+    // As variáveis de ambiente serão injetadas via GitHub Actions
+    // SUPABASE_URL e SUPABASE_KEY devem estar configuradas como secrets do GitHub
+    
+    const SUPABASE_URL = window.ENV_SUPABASE_URL || "";
+    const SUPABASE_KEY = window.ENV_SUPABASE_KEY || "";
+    
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+        console.error("⚠️ Variáveis de ambiente do Supabase não configuradas!");
+        alert("Erro: Variáveis de ambiente do Supabase não foram configuradas. Entre em contato com o administrador.");
+    }
+    
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let senhaMestra = localStorage.getItem('investflow_pass') || '1234';
+    let privacidadeAtiva = true;
+let modoExcluirBanco = false;
+
+async function login() {
+    const senhaDigitada = document.getElementById('mainPassword').value;
+    
+    showLoading(true);
+    const { data, error } = await sb
+        .from('usuarios')
+        .select('senha_hash')
+        .eq('username', 'bruno')
+        .single();
+    showLoading(false);
+    
+    if (error || !data) {
+        alert('Erro ao verificar senha');
+        return;
+    }
+    
+    if (data.senha_hash === senhaDigitada) {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainContainer').style.display = 'block';
+        inicializarSistema();
+    } else {
+        alert('Senha incorreta!');
+    }
+}
+
+ async function inicializarSistema() {
+    await carregarBancos();
+    await carregarTodosRegistros();
+    carregarCotacoesHoje();
+    carteiraMudou(); // 🔥 Força atualização na inicialização
+}
+
+
+function togglePrivacy() {
+    privacidadeAtiva = !privacidadeAtiva;
+    atualizarTabela();
+    
+    // 🔹 Seleciona TODOS os elementos com hidden-value
+    const dashboardEls = document.querySelectorAll('.hidden-value');
+    dashboardEls.forEach(el => {
+        if (privacidadeAtiva) el.classList.add('hidden-value');
+        else el.classList.remove('hidden-value');
+    });
+    
+    document.getElementById('privacyBtn').innerHTML = privacidadeAtiva ? '👁️' : '🙈';
+}
+
+    function mascaraMoeda(i, moeda) {
+        let v = i.value.replace(/[^\d-]/g,'');
+        if (v === '' || v === '-') return;
+        let isNeg = v.startsWith('-');
+        v = v.replace('-', '');
+        v = (parseFloat(v)/100).toFixed(2) + '';
+        v = v.replace(".", ",");
+        v = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+        i.value = (isNeg ? '-' : '') + (moeda === 'BRL' ? 'R$ ' + v : 'US$ ' + v);
+    }
+
+    function desformatarMoeda(v) {
+        if (!v) return 0;
+        let isNeg = v.includes('-');
+        let num = v.replace(/[^\d,]/g, '').replace(',', '.');
+        return (isNeg ? -1 : 1) * (parseFloat(num) || 0);
+    }
+
+    function abrirConfig() {
+    document.getElementById('configModal').style.display = 'flex';
+    renderizarBancosConfig();
+}
+
+    function fecharConfig() { document.getElementById('configModal').style.display = 'none'; }
+    
+async function mudarSenha() {
+    const senhaAtual = prompt('Digite a senha atual:');
+    if (!senhaAtual) return;
+    
+    showLoading(true);
+    const { data, error } = await sb
+        .from('usuarios')
+        .select('senha_hash')
+        .eq('username', 'bruno')
+        .single();
+    showLoading(false);
+    
+    if (error || !data || data.senha_hash !== senhaAtual) {
+        alert('Senha atual incorreta!');
+        return;
+    }
+    
+    const novaSenha = prompt('Digite a nova senha:');
+    if (!novaSenha) return;
+    
+    const confirmacao = prompt('Confirme a nova senha:');
+    if (novaSenha !== confirmacao) {
+        alert('As senhas não coincidem!');
+        return;
+    }
+    
+    showLoading(true);
+    const { error: errUpdate } = await sb
+        .from('usuarios')
+        .update({ senha_hash: novaSenha })
+        .eq('username', 'bruno');
+    showLoading(false);
+    
+    if (errUpdate) {
+        alert('Erro ao atualizar senha!');
+    } else {
+        alert('Senha alterada com sucesso!');
+    }
+}
+
+    function toggleTheme(init = false) {
+        const body = document.body; const btn = document.getElementById('themeBtn');
+        if (!init) {
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        } else { body.setAttribute('data-theme', 'dark'); }
+        const isNowDark = body.getAttribute('data-theme') === 'dark';
+        btn.innerHTML = isNowDark ? '☀️ Modo Claro' : '🌙 Modo Escuro';
+        if (charts.patrimonio) { atualizarGrafico(); atualizarGraficoPizza(); consolidarPatrimonioHistorico(); }
+    }
+
+    function showLoading(show) { document.getElementById('loading').style.display = show ? 'flex' : 'none'; }
+
+    async function carregarBancos() {
+        showLoading(true); const { data, error } = await sb.from('bancos').select('*').order('nome'); showLoading(false);
+        if (error) return; 
+    todosBancos = data;   // 👈 GUARDA TODOS
+    bancos = data;
+      
+
+ const selector = document.getElementById('bancoSelector');
+selector.innerHTML = '';
+const carteira = document.getElementById('carteiraSelector')?.value || 'br';
+
+const bancosFiltrados = bancos.filter(b => carteira === 'br' ? !b.is_usd : b.is_usd);
+
+bancosFiltrados.forEach(banco => {
+    const option = document.createElement('option');
+    option.value = banco.id;
+    option.textContent = banco.nome;
+    selector.appendChild(option);
+});
+
+if (selector.value) carregarDadosBanco();
+    }
+
+    async function carregarTodosRegistros() {
+        const { data, error } = await sb.from('registros').select('*').order('data_fechamento', { ascending: true });
+        if (error) return; todosRegistros = data;
+        atualizarFiltroAnos();
+     if (document.getElementById('bancoSelector').value.startsWith('consolidado'))
+    carregarDadosBanco();
+
+    }
+
+function atualizarFiltroAnos() {
+    const filter = document.getElementById('anoFilter');
+    const valorAnterior = filter.value || 'todos';
+    
+    const anos = [...new Set(todosRegistros.map(r => r.data_fechamento.split('-')[0]))].sort((a, b) => b - a);
+    
+    filter.innerHTML = '<option value="todos">Todos os Anos</option>';
+    anos.forEach(ano => { 
+        const opt = document.createElement('option'); 
+        opt.value = ano; 
+        opt.textContent = ano; 
+        filter.appendChild(opt); 
+    });
+    
+    filter.value = valorAnterior;
+}
+
+
+  async function carregarDadosBanco() {
+    const bancoId = document.getElementById('bancoSelector').value;
+
+    if (bancoId.startsWith('consolidado')) {
+        document.getElementById('tituloSistema').textContent = 'Consolidado';
+        document.getElementById('valorAporteInput').parentElement.style.display = 'none';
+        
+        const bancosParaConsolidar = filtrarBancosParaConsolidado(bancoId);
+        const idsParaConsolidar = bancosParaConsolidar.map(b => b.id);
+        
+        if (idsParaConsolidar.length > 0) {
+            showLoading(true);
+            const { data, error } = await sb
+                .from('registros')
+                .select('*')
+                .in('banco_id', idsParaConsolidar)
+                .order('data_fechamento', { ascending: true });
+            showLoading(false);
+            
+            if (error) return;
+            registrosAtuais = filtrarRegistrosPorAno(data);
+        } else {
+            registrosAtuais = [];
+        }
+    } else {
+        document.getElementById('tituloSistema').textContent = 'HRB Invest';
+        document.getElementById('valorAporteInput').parentElement.style.display = 'grid';
+
+        showLoading(true);
+        const { data, error } = await sb
+            .from('registros')
+            .select('*')
+            .eq('banco_id', bancoId)
+            .order('data_fechamento', { ascending: true });
+        showLoading(false);
+
+        if (error) return;
+        registrosAtuais = filtrarRegistrosPorAno(data);
+    }
+
+    alternarInputsUSD();
+    
+    // 🔥 AQUI ESTÁ O FIX: FORÇAR ATUALIZAÇÃO VISUAL
+    await atualizarTabela();
+    await atualizarDashboardBanco();
+    calcularDolarIndicadores();
+
+    if (bancoId.startsWith('consolidado')) {
+        consolidarPatrimonioHistorico();
+        atualizarGraficoPizza();
+    } else {
+        atualizarGrafico();
+    }
+// Mostra dashboard visual só no Consolidado Total
+
+if (bancoId === 'consolidado_total') {
+    document.getElementById('dashboardVisual').style.display = 'block';
+    criarGraficosConsolidado();
+} else {
+    document.getElementById('dashboardVisual').style.display = 'none';
+}
+}
+
+
+    function consolidarRegistrosPorMes(regs) {
+        const meses = {};
+        regs.forEach(r => {
+            const mesAno = r.periodo;
+            if (!meses[mesAno]) {
+                meses[mesAno] = { periodo: mesAno, data_fechamento: r.data_fechamento, aportes: 0, patrimonio: 0, aportes_usd: 0, patrimonio_usd: 0, is_usd: false };
+            }
+            meses[mesAno].aportes += r.aportes;
+            meses[mesAno].patrimonio += r.patrimonio;
+            meses[mesAno].aportes_usd += r.aportes_usd;
+            meses[mesAno].patrimonio_usd += r.patrimonio_usd;
+            if (new Date(r.data_fechamento) > new Date(meses[mesAno].data_fechamento)) meses[mesAno].data_fechamento = r.data_fechamento;
+        });
+        return Object.values(meses).sort((a, b) => new Date(a.data_fechamento) - new Date(b.data_fechamento));
+    }
+
+    function alternarInputsUSD() {
+        const banco = bancos.find(b => b.id === document.getElementById('bancoSelector').value);
+        const isUSD = banco?.is_usd || banco?.nome.toLowerCase().includes('tasty');
+        const display = isUSD ? 'inline-block' : 'none';
+        document.getElementById('valorAporteInputUSD').style.display = display;
+        document.getElementById('patrimonioAtualInputUSD').style.display = display;
+    }
+
+    async function salvarRegistro() {
+    const bancoId = document.getElementById('bancoSelector').value; 
+    if (bancoId.startsWith('consolidado')) return;
+    
+    const registroId = document.getElementById('registroId').value;
+    const dataInput = document.getElementById('dataInput').value;
+    let aporte = desformatarMoeda(document.getElementById('valorAporteInput').value);
+    let patrimonio = desformatarMoeda(document.getElementById('patrimonioAtualInput').value);
+    const banco = bancos.find(b => b.id === bancoId);
+    const isUSD = banco?.is_usd || banco?.nome.toLowerCase().includes('tasty');
+    let aporteUSD = desformatarMoeda(document.getElementById('valorAporteInputUSD').value);
+    let patrimonioUSD = desformatarMoeda(document.getElementById('patrimonioAtualInputUSD').value);
+    
+// 🔹 Aportes e patrimônio são digitados manualmente (sem conversão automática)    
+    if (!bancoId || !dataInput) { 
+        alert("Preencha os campos!"); 
+        return; 
+    }
+    
+    const [ano, mes] = dataInput.split('-');
+    const payload = { 
+        banco_id: bancoId, 
+        periodo: `${ano}/${mes}`, 
+        data_fechamento: dataInput, 
+        aportes: aporte, 
+        patrimonio: patrimonio, 
+        aportes_usd: aporteUSD, 
+        patrimonio_usd: patrimonioUSD, 
+        is_usd: isUSD 
+    };
+    
+    showLoading(true); 
+    let error;
+    if (registroId) { 
+        const { error: err } = await sb.from('registros').update(payload).eq('id', registroId); 
+        error = err; 
+    } else { 
+        const { error: err } = await sb.from('registros').insert([payload]); 
+        error = err; 
+    }
+    showLoading(false);
+    
+    if (error) alert('Erro ao salvar'); 
+    else { 
+        limparCampos(); 
+        await carregarTodosRegistros(); 
+        await carregarDadosBanco(); 
+    }
+}
+
+    function formatarMoeda(v, moeda = 'BRL') {
+        return v.toLocaleString('pt-BR', { style: 'currency', currency: moeda, minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+ async function atualizarTabela() {
+    const corpo = document.getElementById('tabelaCorpo'); 
+    const head = document.getElementById('tabelaHead');
+    const anoSelecionado = document.getElementById('anoFilter').value;
+    corpo.innerHTML = '';
+    const bancoId = document.getElementById('bancoSelector').value;
+    
+    let isUSD = false;
+    if (bancoId === 'consolidado_usd') {
+        isUSD = true;
+    } else if (bancoId === 'consolidado_br') {
+        isUSD = false;
+    } else if (bancoId === 'consolidado_total') {
+        isUSD = false;
+    } else {
+        const banco = bancos.find(b => b.id === bancoId);
+        isUSD = banco?.is_usd || banco?.nome.toLowerCase().includes('tasty');
+    }
+    
+    if (isUSD) head.innerHTML = `<th>Mês/Ano</th><th>Aporte R$</th><th>Patr. R$</th><th>Aporte $</th><th>Patr. $</th><th>Saldo $</th><th>% $</th><th>Ações</th>`;
+    else if (bancoId === 'consolidado_total') head.innerHTML = `<th>Mês/Ano</th><th>Aporte R$</th><th>Aporte $</th><th>Patr. R$</th><th>Patr. $</th><th>Saldo R$</th><th>Saldo $</th><th>%</th><th>Ações</th>`;
+    else head.innerHTML = `<th>Mês/Ano</th><th>Aportes</th><th>Patrimônio</th><th>Saldo</th><th>%</th><th>Ações</th>`;
+// Agrupar por mês para cálculo consolidado
+const mesesAgrupados = {};
+registrosAtuais.forEach(r => {
+    if (!mesesAgrupados[r.periodo]) mesesAgrupados[r.periodo] = {
+        regs: [],
+        patrimonioFinal: 0,
+        patrimonioFinalUSD: 0,
+        patrimonioFinalUSDconvertido: 0,
+        dataUltimoFechado: null
+    };
+
+    mesesAgrupados[r.periodo].regs.push(r);
+    
+    if (r.patrimonio > 0) {
+        mesesAgrupados[r.periodo].patrimonioFinal += r.patrimonio;
+        if (!mesesAgrupados[r.periodo].dataUltimoFechado || new Date(r.data_fechamento) > new Date(mesesAgrupados[r.periodo].dataUltimoFechado)) {
+            mesesAgrupados[r.periodo].dataUltimoFechado = r.data_fechamento;
+        }
+    }
+
+    if (r.patrimonio_usd > 0) {
+        mesesAgrupados[r.periodo].patrimonioFinalUSD += r.patrimonio_usd;
+        if (bancoId === 'consolidado_total') {
+            mesesAgrupados[r.periodo].patrimonioFinalUSDconvertido += r.patrimonio_usd;
+        }
+        if (!mesesAgrupados[r.periodo].dataUltimoFechadoUSD || new Date(r.data_fechamento) > new Date(mesesAgrupados[r.periodo].dataUltimoFechadoUSD)) {
+            mesesAgrupados[r.periodo].dataUltimoFechadoUSD = r.data_fechamento;
+        }
+    }
+});
+    
+
+
+    let patAnteriorBRL = 0; 
+    let patAnteriorUSD = 0; 
+    let linhasCalculadas = [];
+    
+    const sortedMesesCrescente = Object.keys(mesesAgrupados).sort((a, b) => {
+        const [anoA, mesA] = a.split('/').map(Number);
+        const [anoB, mesB] = b.split('/').map(Number);
+        if (anoA !== anoB) return anoA - anoB;
+        return mesA - mesB;
+    });
+
+for (const mesAno of sortedMesesCrescente) {
+    const dadosMes = mesesAgrupados[mesAno];
+    const anoReg = mesAno.split('/')[0];
+
+    // 🔥 REMOVIDO: Agora mostra meses mesmo sem fechamento
+    
+    if (bancoId === 'consolidado_total' && dadosMes.patrimonioFinalUSDconvertido > 0) {
+        const [mes, ano] = mesAno.split('/');
+        const usdConvertido = await converterUSDParaBRL(dadosMes.patrimonioFinalUSDconvertido, ano, mes);
+        dadosMes.patrimonioFinalUSDconvertido = usdConvertido;
+    }
+    
+    // ... resto do código continua normalmente        
+        if (bancoId === 'consolidado_total' && dadosMes.patrimonioFinalUSDconvertido > 0) {
+            const [mes, ano] = mesAno.split('/');
+            const usdConvertido = await converterUSDParaBRL(dadosMes.patrimonioFinalUSDconvertido, ano, mes);
+            dadosMes.patrimonioFinalUSDconvertido = usdConvertido;
+        }
+        
+        let totalAporteBRL = 0; 
+        let basePonderadaBRL = patAnteriorBRL;
+        let totalAporteUSD = 0; 
+        let basePonderadaUSD = patAnteriorUSD;
+
+        dadosMes.regs.forEach(reg => {
+            const data = new Date(reg.data_fechamento + 'T00:00:00');
+            const diasNoMes = new Date(data.getFullYear(), data.getMonth() + 1, 0).getDate();
+            const diaAporte = data.getDate();
+            const proporcao = (diasNoMes - diaAporte + 1) / diasNoMes;
+            
+            totalAporteBRL += reg.aportes;
+            basePonderadaBRL += (reg.aportes * proporcao);
+            
+            totalAporteUSD += reg.aportes_usd;
+            basePonderadaUSD += (reg.aportes_usd * proporcao);
+        });
+
+        const saldoBRL = dadosMes.patrimonioFinal - patAnteriorBRL - totalAporteBRL;
+        const crescBRL = basePonderadaBRL > 0 ? (saldoBRL / basePonderadaBRL) * 100 : 0;
+        
+        if (anoSelecionado === 'todos' || anoSelecionado === anoReg) {
+            let rowHTML = `<td>${mesAno}</td>`;
+            const hideClass = privacidadeAtiva ? 'hidden-value' : '';
+
+            if (isUSD) {
+                const saldoUSD = dadosMes.patrimonioFinalUSD - patAnteriorUSD - totalAporteUSD;
+                const crescUSD = basePonderadaUSD > 0 ? (saldoUSD / basePonderadaUSD) * 100 : 0;
+                rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinal)}</td><td class="${hideClass}">${formatarMoeda(totalAporteUSD, 'USD')}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinalUSD, 'USD')}</td><td class="${saldoUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoUSD, 'USD')}</td><td class="${crescUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescUSD.toFixed(2)}%</td>`;
+                patAnteriorUSD = dadosMes.patrimonioFinalUSD;
+            } else if (bancoId === 'consolidado_total') {
+                const patrimonioTotal = dadosMes.patrimonioFinal + (dadosMes.patrimonioFinalUSDconvertido || 0);
+                const saldoTotalBRL = patrimonioTotal - (patAnteriorBRL + patAnteriorUSD) - totalAporteBRL;
+                const saldoTotalUSD = dadosMes.patrimonioFinalUSD - patAnteriorUSD - totalAporteUSD;
+                const crescTotal = (patAnteriorBRL + patAnteriorUSD) > 0 ? (saldoTotalBRL / (patAnteriorBRL + patAnteriorUSD)) * 100 : 0;
+                rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(totalAporteUSD, 'USD')}</td><td class="${hideClass}">${formatarMoeda(patrimonioTotal)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinalUSD, 'USD')}</td><td class="${saldoTotalBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoTotalBRL)}</td><td class="${saldoTotalUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoTotalUSD, 'USD')}</td><td class="${crescTotal >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescTotal.toFixed(2)}%</td>`;
+                patAnteriorBRL = patrimonioTotal;
+                patAnteriorUSD = dadosMes.patrimonioFinalUSD;
+            } else {
+                rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinal)}</td><td class="${saldoBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoBRL)}</td><td class="${crescBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescBRL.toFixed(2)}%</td>`;
+            }
+            
+            if (!bancoId.startsWith('consolidado')) {
+                rowHTML += `<td class="actions-cell">`;
+                dadosMes.regs.forEach(r => {
+                    rowHTML += `<div style="font-size:10px; margin-bottom:2px">Aporte ${r.data_fechamento.split('-')[2]}: ${formatarMoeda(r.aportes)} <button class="btn-edit" style="padding:2px 5px" onclick="editarRegistro('${r.id}')">✎</button><button class="btn-delete" style="padding:2px 5px" onclick="excluirRegistro('${r.id}')">✕</button></div>`;
+                });
+                rowHTML += `</td>`;
+            } else { 
+                rowHTML += `<td>-</td>`; 
+            }
+            
+            linhasCalculadas.push(rowHTML);
+        }
+        patAnteriorBRL = dadosMes.patrimonioFinal;
+    }
+    
+    linhasCalculadas.reverse();
+    
+    // Mostra os 3 primeiros meses (mais recentes)
+    linhasCalculadas.slice(0, 3).forEach(html => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = html;
+        corpo.appendChild(tr);
+    });
+
+    // Se tiver mais que 3 meses, mostra o botão e coloca o resto no histórico oculto
+    const corpoOculto = document.getElementById('tabelaCorpoOculto');
+    corpoOculto.innerHTML = '';
+
+    if (linhasCalculadas.length > 3) {
+        document.getElementById('btnExpandirHistorico').style.display = 'block';
+        linhasCalculadas.slice(3).forEach(html => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = html;
+            corpoOculto.appendChild(tr);
+        });
+    } else {
+        document.getElementById('btnExpandirHistorico').style.display = 'none';
+    }
+}
+
+async function atualizarDashboardBanco() {
+    console.clear();
+    
+    const bancoSelecionadoId = document.getElementById('bancoSelector').value;
+
+    // Mostra/esconde o dashboard correto
+    if (bancoSelecionadoId === 'consolidado_total') {
+        document.getElementById('dashboardNormal').style.display = 'none';
+        document.getElementById('dashboardConsolidadoTotal').style.display = 'grid';
+    } else {
+        document.getElementById('dashboardNormal').style.display = 'grid';
+        document.getElementById('dashboardConsolidadoTotal').style.display = 'none';
+    }
+
+    const carteiraAtual = document.getElementById('carteiraSelector')?.value || 'br';
+
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth();
+    const anoAtual = hoje.getFullYear();
+
+    let patrimonioAtual = 0;
+
+    // 👉 define quais bancos entram no cálculo
+    let bancosParaCalculo = [];
+
+    if (bancoSelecionadoId.startsWith('consolidado')) {
+        bancosParaCalculo = filtrarBancosParaConsolidado(bancoSelecionadoId);
+    } else {
+        bancosParaCalculo = todosBancos.filter(b => b.id === bancoSelecionadoId);
+    }
+
+    for (const banco of bancosParaCalculo) {
+        const regsBanco = todosRegistros  // 🔥 USA todosRegistros, não registrosAtuais
+            .filter(r => r.banco_id === banco.id)
+            .sort((a, b) => new Date(a.data_fechamento) - new Date(b.data_fechamento));
+
+        if (regsBanco.length === 0) continue;
+
+        const ultimoFechado = [...regsBanco]
+            .reverse()
+            .find(r => banco.is_usd ? r.patrimonio_usd > 0 : r.patrimonio > 0);
+
+     if (!ultimoFechado) continue;
+
+let patrimonioBaseUSD = 0;  // 🔥 NOVO: guarda o valor em USD
+let patrimonioBaseBRL = 0;  // 🔥 NOVO: guarda o valor em BRL
+
+// 🔹 Define o patrimônio base do último fechamento
+if (banco.is_usd) {
+    patrimonioBaseUSD = ultimoFechado.patrimonio_usd;
+    
+    // Converte para BRL usando a cotação correta
+    const d = new Date(ultimoFechado.data_fechamento);
+    const fechadoNoMesAtual = d.getMonth() === mesAtual && d.getFullYear() === anoAtual;
+    
+    if (fechadoNoMesAtual) {
+        patrimonioBaseBRL = patrimonioBaseUSD * (dolarFallbackHoje || 0);
+    } else {
+        patrimonioBaseBRL = await converterUSDParaBRL(
+            patrimonioBaseUSD,
+            d.getFullYear(),
+            d.getMonth() + 1
+        );
+    }
+} else {
+    patrimonioBaseBRL = ultimoFechado.patrimonio;
+}
+
+        // 🔹 Verifica se tem fechamento no mês atual
+const temFechamentoMesAtual = regsBanco.some(r => {
+    const d = new Date(r.data_fechamento);
+    return (
+        d.getMonth() === mesAtual &&
+        d.getFullYear() === anoAtual &&
+        (banco.is_usd ? r.patrimonio_usd > 0 : r.patrimonio > 0)
+    );
+});
+
+// 🔥 CORREÇÃO: Se NÃO tem fechamento no mês atual, soma os aportes
+if (!temFechamentoMesAtual) {
+    for (const r of regsBanco) {
+        const d = new Date(r.data_fechamento);
+        if (d.getMonth() === mesAtual && d.getFullYear() === anoAtual) {
+            if (banco.is_usd) {
+                patrimonioBaseUSD += r.aportes_usd || 0;
+                patrimonioBaseBRL += (r.aportes_usd || 0) * (dolarFallbackHoje || 0);
+            } else {
+                patrimonioBaseBRL += r.aportes || 0;
+            }
+        }
+    }
+}
+
+// 🔥 Soma ao patrimônio total (sempre em BRL para consolidados)
+if (bancoSelecionadoId === 'consolidado_usd') {
+    patrimonioAtual += patrimonioBaseUSD;  // Para consolidado USD, usa valor em dólar
+} else {
+    patrimonioAtual += patrimonioBaseBRL;  // Para outros casos, usa valor em reais
+}   }
+
+// =========================
+// 🔹 EXIBIÇÃO DO PATRIMÔNIO
+// =========================
+
+if (bancoSelecionadoId === 'consolidado_usd') {
+    // 🔥 Consolidado USD: mostra em dólar puro + conversão
+    document.getElementById('patrimonioTotalGeral').textContent =
+        patrimonioAtual.toLocaleString('en-US', {
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }) +
+        ' / ' +
+        formatarMoeda(patrimonioAtual * (dolarFallbackHoje || 1));
+        
+} else if (carteiraAtual === 'int' && !bancoSelecionadoId.startsWith('consolidado')) {
+    // 🔥 CARTEIRA INTERNACIONAL (banco individual USD)
+    
+    const bancoAtual = bancosParaCalculo[0];
+    
+    if (bancoAtual && bancoAtual.is_usd) {
+        const regsBanco = todosRegistros
+            .filter(r => r.banco_id === bancoAtual.id)
+            .sort((a, b) => new Date(a.data_fechamento) - new Date(b.data_fechamento));
+        
+        const ultimoFechado = [...regsBanco].reverse()
+            .find(r => r.patrimonio_usd > 0);
+        
+        if (ultimoFechado) {
+            let patrimonioUSD = ultimoFechado.patrimonio_usd;
+            
+            // Adiciona aportes do mês atual (se houver)
+            const temFechamentoMesAtual = regsBanco.some(r => {
+                const d = new Date(r.data_fechamento);
+                return (
+                    d.getMonth() === mesAtual &&
+                    d.getFullYear() === anoAtual &&
+                    r.patrimonio_usd > 0
+                );
+            });
+            
+            if (!temFechamentoMesAtual) {
+                regsBanco.forEach(r => {
+                    const d = new Date(r.data_fechamento);
+                    if (d.getMonth() === mesAtual && d.getFullYear() === anoAtual) {
+                        patrimonioUSD += r.aportes_usd || 0;
+                    }
+                });
+            }
+            
+            // 🔥 MOSTRA: US$ XXX.XX / R$ XXX.XX
+            document.getElementById('patrimonioTotalGeral').textContent =
+                patrimonioUSD.toLocaleString('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }) +
+                ' / ' +
+                formatarMoeda(patrimonioUSD * (dolarFallbackHoje || 1));
+        }
+    }
+} else {
+    // Outras carteiras: mostra em BRL
+    document.getElementById('patrimonioTotalGeral').textContent =
+        formatarMoeda(patrimonioAtual);
+}
+
+// 🔹 Se for Consolidado Total, preenche os 3 cards especiais
+if (bancoSelecionadoId === 'consolidado_total') {
+    // 🔥 CALCULA OS VALORES DOS CONSOLIDADOS BRASIL E USD
+    
+    // 1️⃣ PATRIMÔNIO BRASIL (mesma lógica do consolidado_br)
+    let patrimonioBrasil = 0;
+    const bancosBR = todosBancos.filter(b => !b.is_usd);
+    
+    for (const banco of bancosBR) {
+        const regsBanco = todosRegistros
+            .filter(r => r.banco_id === banco.id)
+            .sort((a, b) => new Date(a.data_fechamento) - new Date(b.data_fechamento));
+        
+        if (regsBanco.length === 0) continue;
+        
+        const ultimoFechado = [...regsBanco].reverse()
+            .find(r => r.patrimonio > 0);
+        
+        if (!ultimoFechado) continue;
+        
+        let patrimonioBase = ultimoFechado.patrimonio;
+        
+        // Adiciona aportes do mês atual se não tiver fechamento
+        const temFechamentoMesAtual = regsBanco.some(r => {
+            const d = new Date(r.data_fechamento);
+            return (
+                d.getMonth() === mesAtual &&
+                d.getFullYear() === anoAtual &&
+                r.patrimonio > 0
+            );
+        });
+        
+        if (!temFechamentoMesAtual) {
+            regsBanco.forEach(r => {
+                const d = new Date(r.data_fechamento);
+                if (d.getMonth() === mesAtual && d.getFullYear() === anoAtual) {
+                    patrimonioBase += r.aportes || 0;
+                }
+            });
+        }
+        
+        patrimonioBrasil += patrimonioBase;
+    }
+    
+    // 2️⃣ PATRIMÔNIO USD (mesma lógica do consolidado_usd)
+    let patrimonioUSD = 0;
+    const bancosUSD = todosBancos.filter(b => b.is_usd);
+    
+    for (const banco of bancosUSD) {
+        const regsBanco = todosRegistros
+            .filter(r => r.banco_id === banco.id)
+            .sort((a, b) => new Date(a.data_fechamento) - new Date(b.data_fechamento));
+        
+        if (regsBanco.length === 0) continue;
+        
+        const ultimoFechado = [...regsBanco].reverse()
+            .find(r => r.patrimonio_usd > 0);
+        
+        if (!ultimoFechado) continue;
+        
+        let patrimonioBase = ultimoFechado.patrimonio_usd;
+        
+        // Adiciona aportes do mês atual se não tiver fechamento
+        const temFechamentoMesAtual = regsBanco.some(r => {
+            const d = new Date(r.data_fechamento);
+            return (
+                d.getMonth() === mesAtual &&
+                d.getFullYear() === anoAtual &&
+                r.patrimonio_usd > 0
+            );
+        });
+        
+        if (!temFechamentoMesAtual) {
+            regsBanco.forEach(r => {
+                const d = new Date(r.data_fechamento);
+                if (d.getMonth() === mesAtual && d.getFullYear() === anoAtual) {
+                    patrimonioBase += r.aportes_usd || 0;
+                }
+            });
+        }
+        
+        patrimonioUSD += patrimonioBase;
+    }
+    
+    // 3️⃣ PATRIMÔNIO TOTAL = BRASIL + USD (convertido)
+    const patrimonioTotal = patrimonioBrasil + (patrimonioUSD * (dolarFallbackHoje || 0));
+    
+    // 4️⃣ ATUALIZA OS CARDS
+    document.getElementById('patrimonioBRL').textContent = formatarMoeda(patrimonioBrasil);
+    document.getElementById('patrimonioUSD').textContent = patrimonioUSD.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    document.getElementById('patrimonioTotal').textContent = formatarMoeda(patrimonioTotal);
+// 🔹 Conversão para USD (valor informativo)
+if (bancoSelecionadoId === 'consolidado_total') {
+
+    const totalBRL = patrimonioAtual;
+    const dolarHoje = dolarFallbackHoje || 0;
+
+    if (dolarHoje > 0) {
+        const totalUSD = totalBRL / dolarHoje;
+
+        document.getElementById('patrimonioTotalUSD').textContent =
+            totalUSD.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+    }
+}
+
+    
+    // 5️⃣ TOTAL APORTADO
+    let aportadoBRL = 0;
+    let aportadoUSD = 0;
+    
+    todosBancos.forEach(banco => {
+        todosRegistros.filter(r => r.banco_id === banco.id).forEach(r => {
+            if (banco.is_usd) {
+                aportadoUSD += r.aportes_usd || 0;
+                aportadoBRL += r.aportes || 0;
+            } else {
+                aportadoBRL += r.aportes || 0;
+            }
+        });
+    });
+    
+    document.getElementById('totalAportadoBRL').textContent = formatarMoeda(aportadoBRL);
+    document.getElementById('totalAportadoUSD').textContent = aportadoUSD.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+}
+
+    atualizarCardsAportesERentabilidade(patrimonioAtual);
+    calcularRentabilidadeAcumuladaSimples(patrimonioAtual);
+}
+
+    function atualizarGrafico() {
+        const isDark = document.body.getAttribute('data-theme') === 'dark'; const textColor = isDark ? '#e0e0e0' : '#666';
+        if (charts.patrimonio) charts.patrimonio.destroy();
+        const ctx = document.getElementById('patrimonioChart').getContext('2d');
+        charts.patrimonio = new Chart(ctx, {
+            type: 'line',
+            data: { labels: registrosAtuais.map(r => r.periodo), datasets: [{ label: 'Patrimônio (R$)', data: registrosAtuais.map(r => r.patrimonio), borderColor: '#0056b3', backgroundColor: 'rgba(0,86,179,0.1)', fill: true, tension: 0.3 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => formatarMoeda(c.raw) } } }, scales: { x: { ticks: { color: textColor } }, y: { ticks: { color: textColor, callback: (v) => 'R$ ' + v.toLocaleString('pt-BR') } } } }
+        });
+    }
+
+    function atualizarGraficoPizza() {
+        if (charts.pizza) charts.pizza.destroy();
+        const ultimos = {};
+        todosRegistros.forEach(r => { if (!ultimos[r.banco_id] || new Date(r.data_fechamento) > new Date(ultimos[r.banco_id].data_fechamento)) ultimos[r.banco_id] = r; });
+        const ctx = document.getElementById('pizzaChart').getContext('2d');
+        const labels = Object.values(ultimos).map(r => bancos.find(b => b.id === r.banco_id)?.nome || 'Desconhecido');
+        const valores = Object.values(ultimos).map(r => r.patrimonio);
+        charts.pizza = new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels: labels, datasets: [{ data: valores, backgroundColor: ['#0056b3', '#00bfff', '#28a745', '#ffc107', '#6f42c1', '#e83e8c'] }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: document.body.getAttribute('data-theme') === 'dark' ? '#e0e0e0' : '#666' } }, tooltip: { callbacks: { label: (c) => ' ' + formatarMoeda(c.raw) } } } }
+        });
+    }
+
+async function consolidarPatrimonioHistorico() {
+
+    if (charts.patrimonio) {
+        charts.patrimonio.destroy();
+        charts.patrimonio = null;
+    }
+
+    if (charts.consolidado) charts.consolidado.destroy();
+
+    const tipo = document.getElementById('bancoSelector').value;
+    const historico = {};
+
+
+    for (const r of todosRegistros) {
+
+        // 🔹 filtra por tipo de consolidado
+        if (tipo === 'consolidado_br' && r.is_usd) continue;
+        if (tipo === 'consolidado_usd' && !r.is_usd) continue;
+
+        if (!historico[r.periodo]) {
+            historico[r.periodo] = 0;
+        }
+
+        if (r.is_usd) {
+            if (tipo === 'consolidado_usd') {
+                historico[r.periodo] += r.patrimonio_usd;
+            } else if (tipo === 'consolidado_br') {
+                // CONSOLIDADO BRASIL - ignora USD
+            } else {
+                // CONSOLIDADO TOTAL - converte USD para BRL
+                const [mes, ano] = r.periodo.split('/');
+                historico[r.periodo] += await converterUSDParaBRL(
+                    r.patrimonio_usd,
+                    ano,
+                    mes
+                );
+            }
+        } else {
+            historico[r.periodo] += r.patrimonio;
+        }
+    }
+
+    const labels = Object.keys(historico).sort((a, b) => {
+        const [anoA, mesA] = a.split('/').map(Number);
+        const [anoB, mesB] = b.split('/').map(Number);
+        if (anoA !== anoB) return anoA - anoB;
+        return mesA - mesB;
+    });
+
+    const valores = labels.map(l => historico[l]);
+
+    const ctx = document.getElementById('patrimonioConsolidadoChart').getContext('2d');
+    charts.consolidado = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: tipo === 'consolidado_br' ? 'Patrimônio Brasil' : tipo === 'consolidado_usd' ? 'Patrimônio USD' : 'Patrimônio Total',
+                data: valores,
+                borderColor: '#00bfff',
+                backgroundColor: 'rgba(0,191,255,0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: c =>
+                            tipo === 'consolidado_usd'
+                                ? c.raw.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+                                : formatarMoeda(c.raw)
+                    }
+                }
+            }
+        }
+    });
+}
+
+    async function adicionarNovoBanco() {
+        const nome = prompt("Nome do novo banco:"); if (!nome) return;
+        const tipo = confirm("Este banco é Internacional (USD)?\nClique em OK para SIM ou Cancelar para NÃO (R$).");
+        showLoading(true); await sb.from('bancos').insert([{ nome, is_usd: tipo }]); showLoading(false); await carregarBancos();
+    }
+
+    async function editarRegistro(id) {
+        const reg = todosRegistros.find(r => r.id === id); if (!reg) return;
+        document.getElementById('registroId').value = reg.id; document.getElementById('dataInput').value = reg.data_fechamento;
+        const aporteInput = document.getElementById('valorAporteInput');
+        const patrInput = document.getElementById('patrimonioAtualInput');
+        aporteInput.value = reg.aportes.toFixed(2); mascaraMoeda(aporteInput, 'BRL');
+        patrInput.value = reg.patrimonio.toFixed(2); mascaraMoeda(patrInput, 'BRL');
+        if (reg.is_usd) {
+            const aporteUSD = document.getElementById('valorAporteInputUSD');
+            const patrUSD = document.getElementById('patrimonioAtualInputUSD');
+            aporteUSD.value = reg.aportes_usd.toFixed(2); mascaraMoeda(aporteUSD, 'USD');
+            patrUSD.value = reg.patrimonio_usd.toFixed(2); mascaraMoeda(patrUSD, 'USD');
+        }
+        document.getElementById('btnSalvar').textContent = 'Atualizar';
+        document.getElementById('btnCancelar').style.display = 'inline-block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function excluirRegistro(id) {
+        if (!confirm('Excluir registro?')) return;
+        showLoading(true); await sb.from('registros').delete().eq('id', id); showLoading(false);
+        await carregarTodosRegistros(); await carregarDadosBanco();
+    }
+
+    function limparCampos() {
+        document.getElementById('registroId').value = ''; document.getElementById('dataInput').value = '';
+        document.getElementById('valorAporteInput').value = ''; document.getElementById('patrimonioAtualInput').value = '';
+        document.getElementById('valorAporteInputUSD').value = ''; document.getElementById('patrimonioAtualInputUSD').value = '';
+        document.getElementById('btnSalvar').textContent = 'Registrar';
+        document.getElementById('btnCancelar').style.display = 'none';
+    }
+
+    function exportarExcel() {
+        const wsBancos = XLSX.utils.json_to_sheet(bancos);
+        const wsRegistros = XLSX.utils.json_to_sheet(todosRegistros);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, wsBancos, "Bancos");
+        XLSX.utils.book_append_sheet(wb, wsRegistros, "Registros");
+        XLSX.writeFile(wb, "InvestFlow_Backup.xlsx");
+    }
+
+    async function importarExcel(event) {
+        const file = event.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const jsonBancos = XLSX.utils.sheet_to_json(workbook.Sheets["Bancos"]);
+            const jsonRegistros = XLSX.utils.sheet_to_json(workbook.Sheets["Registros"]);
+            if (confirm("Isso irá apagar seus dados atuais e restaurar do Excel. Continuar?")) {
+                showLoading(true);
+                await sb.from('registros').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                await sb.from('bancos').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                for (let b of jsonBancos) {
+                    const { data: newB } = await sb.from('bancos').insert([{ nome: b.nome, is_usd: b.is_usd }]).select();
+                    const oldId = b.id; const newId = newB[0].id;
+                    const regsDoBanco = jsonRegistros.filter(r => r.banco_id === oldId);
+                    for (let r of regsDoBanco) { delete r.id; r.banco_id = newId; await sb.from('registros').insert([r]); }
+                }
+                showLoading(false); alert('Restauração concluída!'); location.reload();
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+function carteiraMudou() {
+    const carteira = document.getElementById('carteiraSelector').value;
+    const bancoSelector = document.getElementById('bancoSelector');
+    
+    // Se selecionou consolidado, esconde o dropdown de bancos
+    if (carteira.startsWith('consolidado')) {
+        bancoSelector.style.display = 'none';
+        bancoSelector.innerHTML = `<option value="${carteira}">${carteira}</option>`;
+        bancoSelector.value = carteira;
+        carregarDadosBanco();
+    } else {
+        // Mostra o dropdown de bancos
+        bancoSelector.style.display = 'block';
+        carregarBancos();
+    }
+}
+function calcularDolarIndicadores() {
+    const carteiraAtual = document.getElementById('carteiraSelector')?.value || 'br';
+    const indicadorComprado = document.getElementById('indicadorDolarComprado');
+    const indicadorComLucro = document.getElementById('indicadorDolarComLucro');
+    
+    const bancoSelecionadoId = document.getElementById('bancoSelector').value;
+    
+    if (carteiraAtual === 'int' || bancoSelecionadoId === 'consolidado_total' || bancoSelecionadoId === 'consolidado_usd') {
+        indicadorComprado.style.display = 'block';
+        indicadorComLucro.style.display = 'block';
+        
+        let totalBRLAportado = 0;
+        let totalUSDaportado = 0;
+        let totalUSDpatrimonio = 0;
+        
+        const bancosUSD = todosBancos.filter(b => b.is_usd);
+        
+        bancosUSD.forEach(banco => {
+            const regsBanco = todosRegistros.filter(r => r.banco_id === banco.id);
+            
+            // 🔥 SOMA TODOS OS APORTES (BRL e USD)
+            regsBanco.forEach(r => {
+                totalBRLAportado += r.aportes || 0;
+                totalUSDaportado += r.aportes_usd || 0;
+            });
+            
+            // 🔥 PEGA O ÚLTIMO PATRIMÔNIO USD FECHADO
+            const regsComPatrimonio = regsBanco
+                .filter(r => r.patrimonio_usd > 0)
+                .sort((a, b) => new Date(b.data_fechamento) - new Date(a.data_fechamento));
+            
+            if (regsComPatrimonio.length > 0) {
+                const ultimoFechado = regsComPatrimonio[0];
+                const dataUltimo = new Date(ultimoFechado.data_fechamento);
+                const hoje = new Date();
+                
+                // 🔥 SE O ÚLTIMO FECHAMENTO FOI NO MÊS ATUAL, USA ELE
+                if (dataUltimo.getMonth() === hoje.getMonth() && 
+                    dataUltimo.getFullYear() === hoje.getFullYear()) {
+                    totalUSDpatrimonio += ultimoFechado.patrimonio_usd;
+                } else {
+                    // 🔥 SE NÃO, SOMA OS APORTES DO MÊS ATUAL
+                    let patrimonioBase = ultimoFechado.patrimonio_usd;
+                    
+                    regsBanco.forEach(r => {
+                        const d = new Date(r.data_fechamento);
+                        if (d.getMonth() === hoje.getMonth() && 
+                            d.getFullYear() === hoje.getFullYear()) {
+                            patrimonioBase += r.aportes_usd || 0;
+                        }
+                    });
+                    
+                    totalUSDpatrimonio += patrimonioBase;
+                }
+            }
+        });
+        
+        // 🔥 CÁLCULO CORRETO:
+        // Dólar Comprado = Total R$ Aportado / Total USD Aportado
+        const dolarComprado = totalUSDaportado > 0 ? totalBRLAportado / totalUSDaportado : 0;
+        
+        // 🔥 Dólar com Lucro = Total R$ Aportado / Total USD Patrimônio Atual
+        const dolarComLucro = totalUSDpatrimonio > 0 ? totalBRLAportado / totalUSDpatrimonio : 0;
+        
+        console.log('📊 Indicadores de Dólar:');
+        console.log('Total BRL Aportado:', formatarMoeda(totalBRLAportado));
+        console.log('Total USD Aportado:', totalUSDaportado.toFixed(2));
+        console.log('Total USD Patrimônio:', totalUSDpatrimonio.toFixed(2));
+        console.log('Dólar Comprado:', dolarComprado.toFixed(4));
+        console.log('Dólar com Lucro:', dolarComLucro.toFixed(4));
+        
+        document.getElementById('valorDolarComprado').textContent = formatarMoeda(dolarComprado, 'BRL');
+        document.getElementById('valorDolarComLucro').textContent = formatarMoeda(dolarComLucro, 'BRL');
+        document.getElementById('valorDolarCompradoConsolidado').textContent = formatarMoeda(dolarComprado, 'BRL');
+        document.getElementById('valorDolarComLucroConsolidado').textContent = formatarMoeda(dolarComLucro, 'BRL');
+    } else {
+        indicadorComprado.style.display = 'none';
+        indicadorComLucro.style.display = 'none';
+    }
+}
+async function carregarCotacoesHoje() {
+    try {
+        const res = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL');
+        
+        // 🔥 VERIFICA SE É JSON VÁLIDO
+        const contentType = res.headers.get('content-type');
+        if (!res.ok || !contentType || !contentType.includes('application/json')) {
+            throw new Error('API retornou erro');
+        }
+        
+        const data = await res.json();
+
+        if (data.USDBRL && data.USDBRL.bid) {
+            dolarFallbackHoje = parseFloat(data.USDBRL.bid);
+
+            document.getElementById('valorDolar').textContent =
+                dolarFallbackHoje.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        if (data.EURBRL && data.EURBRL.bid) {
+            document.getElementById('valorEuro').textContent =
+                parseFloat(data.EURBRL.bid).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+    } catch (e) {
+        console.warn('⚠️ Erro ao carregar cotações:', e.message);
+        // Define valor padrão conservador
+        dolarFallbackHoje = 5.80;
+        document.getElementById('valorDolar').textContent = 'R$ 5,80 (estimado)';
+        document.getElementById('valorEuro').textContent = 'R$ 6,20 (estimado)';
+    }
+}
+
+
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function converterUSDParaBRL(valorUSD, ano, mes) {
+    if (dolarFallbackHoje) {
+        return valorUSD * dolarFallbackHoje;
+    }
+    return valorUSD * 5.80; // fallback fixo
+}
+
+async function converterUSDParaBRL(valorUSD, ano, mes) {
+    if (dolarFallbackHoje) {
+        return valorUSD * dolarFallbackHoje;
+    }
+    return valorUSD * 5.80; // fallback fixo
+}
+
+
+function renderizarBancosConfig() {
+    const container = document.getElementById('listaBancosConfig');
+    container.innerHTML = '';
+
+    // 👉 SE NÃO ESTIVER NO MODO EXCLUIR, NÃO MOSTRA NADA
+    if (!modoExcluirBanco) {
+        container.innerHTML = `
+            <p style="font-size:12px; color:#888; margin-top:5px">
+                Clique em <strong>Excluir Banco</strong> para gerenciar remoções
+            </p>
+        `;
+        return;
+    }
+
+    // 👉 SE ESTIVER NO MODO EXCLUIR, MOSTRA A LISTA COM ❌
+    bancos.forEach(b => {
+        const div = document.createElement('div');
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.style.alignItems = 'center';
+        div.style.marginBottom = '8px';
+
+        div.innerHTML = `
+            <span>${b.nome} ${b.is_usd ? '(USD)' : '(R$)'}</span>
+            <button class="btn-excluir-banco"
+                onclick="excluirBanco('${b.id}', '${b.nome}')">
+                ❌
+            </button>
+        `;
+
+        container.appendChild(div);
+    });
+}
+ 	
+
+async function excluirBanco(id, nome) {
+    if (!confirm(`Excluir o banco "${nome}"?\nTodos os registros dele serão apagados.`)) {
+        return;
+    }
+
+    showLoading(true);
+
+    await sb.from('registros').delete().eq('banco_id', id);
+    await sb.from('bancos').delete().eq('id', id);
+
+    showLoading(false);
+
+    await carregarBancos();
+    await carregarTodosRegistros();
+modoExcluirBanco = false;
+    renderizarBancosConfig();
+}
+
+function toggleModoExcluirBanco() {
+    modoExcluirBanco = !modoExcluirBanco;
+    renderizarBancosConfig();
+}
+
+function calcularPatrimonioEstimado(regs) {
+    if (regs.length === 0) return 0;
+
+    // ordena por data
+    const ordenados = [...regs].sort(
+        (a, b) => new Date(a.data_fechamento) - new Date(b.data_fechamento)
+    );
+
+    // último registro fechado (com patrimônio > 0)
+    const ultimoFechado = [...ordenados]
+        .reverse()
+        .find(r => r.patrimonio > 0);
+
+    if (!ultimoFechado) return 0;
+
+    const dataUltimo = new Date(ultimoFechado.data_fechamento);
+    const mesAtual = new Date().getMonth();
+    const anoAtual = new Date().getFullYear();
+
+    let aportesMesAtual = 0;
+
+    ordenados.forEach(r => {
+        const d = new Date(r.data_fechamento);
+        if (
+            d.getMonth() === mesAtual &&
+            d.getFullYear() === anoAtual
+        ) {
+            aportesMesAtual += r.aportes;
+        }
+    });
+
+    return ultimoFechado.patrimonio + aportesMesAtual;
+}
+
+function filtrarBancosParaConsolidado(tipo) {
+    if (tipo === 'consolidado_br') {
+        return todosBancos.filter(b => !b.is_usd);
+    }
+
+    if (tipo === 'consolidado_usd') {
+        return todosBancos.filter(b => b.is_usd);
+    }
+
+    // consolidado_total
+    return todosBancos;
+}
+
+function renderizarHistoricoAnualConsolidado() {
+
+    const tipo = document.getElementById('bancoSelector').value;
+
+    // 🔹 container da tabela (vamos reutilizar a tabela principal)
+    const corpo = document.getElementById('tabelaCorpo');
+    const head = document.getElementById('tabelaHead');
+
+    corpo.innerHTML = '';
+
+    // 🔹 define cabeçalho ANUAL
+    head.innerHTML = `
+        <th>Ano</th>
+        <th>Aportes</th>
+        <th>Patrimônio 31/12</th>
+        <th>Saldo</th>
+        <th>Crescimento %</th>
+    `;
+
+    const anos = {};
+
+    // 🔹 percorre TODOS os registros
+    todosRegistros.forEach(r => {
+
+        // filtros por tipo
+        if (tipo === 'consolidado_br' && r.is_usd) return;
+        if (tipo === 'consolidado_usd' && !r.is_usd) return;
+
+        const ano = r.data_fechamento.split('-')[0];
+
+        if (!anos[ano]) {
+            anos[ano] = {
+                aportes: 0,
+                patrimonioFinal: null,
+                dataFinal: null
+            };
+        }
+
+        // aportes
+        anos[ano].aportes += tipo === 'consolidado_usd'
+            ? (r.aportes_usd || 0)
+            : (r.aportes || 0);
+
+        // patrimônio mais recente do ano
+        const data = new Date(r.data_fechamento);
+        if (!anos[ano].dataFinal || data > anos[ano].dataFinal) {
+            anos[ano].dataFinal = data;
+            anos[ano].patrimonioFinal = tipo === 'consolidado_usd'
+                ? r.patrimonio_usd
+                : r.patrimonio;
+        }
+    });
+
+    const anosOrdenados = Object.keys(anos).sort();
+
+    let patrimonioAnterior = 0;
+
+    anosOrdenados.forEach(ano => {
+        const a = anos[ano];
+
+        const saldo = a.patrimonioFinal - patrimonioAnterior - a.aportes;
+        const crescimento = patrimonioAnterior > 0
+            ? (saldo / patrimonioAnterior) * 100
+            : 0;
+
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+            <td><strong>${ano}</strong></td>
+            <td>${tipo === 'consolidado_usd'
+                ? a.aportes.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+                : formatarMoeda(a.aportes)}</td>
+
+            <td>${tipo === 'consolidado_usd'
+                ? a.patrimonioFinal.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+                : formatarMoeda(a.patrimonioFinal)}</td>
+
+            <td class="${saldo >= 0 ? 'pos' : 'neg'}">
+                ${tipo === 'consolidado_usd'
+                    ? saldo.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+                    : formatarMoeda(saldo)}
+            </td>
+
+            <td class="${crescimento >= 0 ? 'pos' : 'neg'}">
+                ${crescimento.toFixed(2)}%
+            </td>
+        `;
+
+        corpo.appendChild(tr);
+
+        patrimonioAnterior = a.patrimonioFinal;
+    });
+}
+
+function abrirModalPortabilidade() {
+    document.getElementById('portabilidadeModal').style.display = 'flex';
+    preencherSelectsPortabilidade();
+    document.getElementById('portabilidadeData').valueAsDate = new Date();
+}
+
+function fecharModalPortabilidade() {
+    document.getElementById('portabilidadeModal').style.display = 'none';
+    document.getElementById('portabilidadeValor').value = '';
+}
+
+function preencherSelectsPortabilidade() {
+    const selectOrigem = document.getElementById('portabilidadeBancoOrigem');
+    const selectDestino = document.getElementById('portabilidadeBancoDestino');
+    selectOrigem.innerHTML = '';
+    selectDestino.innerHTML = '';
+    bancos.forEach(b => {
+        const option1 = document.createElement('option');
+        option1.value = b.id;
+        option1.textContent = b.nome;
+        selectOrigem.appendChild(option1);
+        const option2 = document.createElement('option');
+        option2.value = b.id;
+        option2.textContent = b.nome;
+        selectDestino.appendChild(option2);
+    });
+}
+
+async function executarPortabilidade() {
+    const bancoOrigemId = document.getElementById('portabilidadeBancoOrigem').value;
+    const bancoDestinoId = document.getElementById('portabilidadeBancoDestino').value;
+    const data = document.getElementById('portabilidadeData').value;
+    const valor = desformatarMoeda(document.getElementById('portabilidadeValor').value);
+    if (!bancoOrigemId || !bancoDestinoId || !data || !valor) {
+        alert('Preencha todos os campos!');
+        return;
+    }
+    if (bancoOrigemId === bancoDestinoId) {
+        alert('Selecione bancos diferentes!');
+        return;
+    }
+    if (valor <= 0) {
+        alert('Valor deve ser maior que zero!');
+        return;
+    }
+    const [ano, mes] = data.split('-');
+    const periodo = `${ano}/${mes}`;
+    const bancoOrigem = bancos.find(b => b.id === bancoOrigemId);
+    const bancoDestino = bancos.find(b => b.id === bancoDestinoId);
+    showLoading(true);
+    try {
+        const registroOrigem = {
+            banco_id: bancoOrigemId,
+            periodo: periodo,
+            data_fechamento: data,
+            aportes: -valor,
+            patrimonio: 0,
+            aportes_usd: 0,
+            patrimonio_usd: 0,
+            is_usd: false,
+            tipo: 'portabilidade'
+        };
+        const { error: err1 } = await sb.from('registros').insert([registroOrigem]);
+        if (err1) throw err1;
+        const registroDestino = {
+            banco_id: bancoDestinoId,
+            periodo: periodo,
+            data_fechamento: data,
+            aportes: valor,
+            patrimonio: 0,
+            aportes_usd: 0,
+            patrimonio_usd: 0,
+            is_usd: false,
+            tipo: 'portabilidade'
+        };
+        const { error: err2 } = await sb.from('registros').insert([registroDestino]);
+        if (err2) throw err2;
+        alert(`Portabilidade registrada com sucesso!\n-R$ ${valor.toFixed(2)} em ${bancoOrigem.nome}\n+R$ ${valor.toFixed(2)} em ${bancoDestino.nome}`);
+        fecharModalPortabilidade();
+        await carregarTodosRegistros();
+        await carregarDadosBanco();
+    } catch (error) {
+        alert('Erro ao registrar portabilidade: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+function abrirModalPortabilidadeUSD() {
+    document.getElementById('portabilidadeUSDModal').style.display = 'flex';
+    preencherSelectsPortabilidadeUSD();
+    document.getElementById('portabilidadeUSDData').valueAsDate = new Date();
+}
+
+function fecharModalPortabilidadeUSD() {
+    document.getElementById('portabilidadeUSDModal').style.display = 'none';
+    document.getElementById('portabilidadeUSDValor').value = '';
+    document.getElementById('portabilidadeUSDValorBRL').value = '';
+}
+
+function preencherSelectsPortabilidadeUSD() {
+    const selectOrigem = document.getElementById('portabilidadeUSDOrigem');
+    const selectDestino = document.getElementById('portabilidadeUSDDestino');
+    selectOrigem.innerHTML = '';
+    selectDestino.innerHTML = '';
+    const bancosUSD = bancos.filter(b => b.is_usd || b.nome.toLowerCase().includes('tasty'));
+    bancosUSD.forEach(b => {
+        const option1 = document.createElement('option');
+        option1.value = b.id;
+        option1.textContent = b.nome;
+        selectOrigem.appendChild(option1);
+        const option2 = document.createElement('option');
+        option2.value = b.id;
+        option2.textContent = b.nome;
+        selectDestino.appendChild(option2);
+    });
+}
+
+async function executarPortabilidadeUSD() {
+    const bancoOrigemId = document.getElementById('portabilidadeUSDOrigem').value;
+    const bancoDestinoId = document.getElementById('portabilidadeUSDDestino').value;
+    const data = document.getElementById('portabilidadeUSDData').value;
+    const valorUSD = desformatarMoeda(document.getElementById('portabilidadeUSDValor').value);
+    const valorBRL = desformatarMoeda(document.getElementById('portabilidadeUSDValorBRL').value);
+    if (!bancoOrigemId || !bancoDestinoId || !data || !valorUSD || !valorBRL) {
+        alert('Preencha todos os campos!');
+        return;
+    }
+    if (bancoOrigemId === bancoDestinoId) {
+        alert('Selecione bancos diferentes!');
+        return;
+    }
+    if (valorUSD <= 0 || valorBRL <= 0) {
+        alert('Valores devem ser maiores que zero!');
+        return;
+    }
+    const [ano, mes] = data.split('-');
+    const periodo = `${ano}/${mes}`;
+    const bancoOrigem = bancos.find(b => b.id === bancoOrigemId);
+    const bancoDestino = bancos.find(b => b.id === bancoDestinoId);
+    showLoading(true);
+    try {
+        const registroOrigem = {
+            banco_id: bancoOrigemId,
+            periodo: periodo,
+            data_fechamento: data,
+            aportes: -valorBRL,
+            patrimonio: 0,
+            aportes_usd: -valorUSD,
+            patrimonio_usd: 0,
+            is_usd: true,
+            tipo: 'portabilidade'
+        };
+        const { error: err1 } = await sb.from('registros').insert([registroOrigem]);
+        if (err1) throw err1;
+        const registroDestino = {
+            banco_id: bancoDestinoId,
+            periodo: periodo,
+            data_fechamento: data,
+            aportes: valorBRL,
+            patrimonio: 0,
+            aportes_usd: valorUSD,
+            patrimonio_usd: 0,
+            is_usd: true,
+            tipo: 'portabilidade'
+        };
+        const { error: err2 } = await sb.from('registros').insert([registroDestino]);
+        if (err2) throw err2;
+        alert(`Portabilidade USD OK!\n-US$ ${valorUSD.toFixed(2)} / -R$ ${valorBRL.toFixed(2)} em ${bancoOrigem.nome}\n+US$ ${valorUSD.toFixed(2)} / +R$ ${valorBRL.toFixed(2)} em ${bancoDestino.nome}`);
+        fecharModalPortabilidadeUSD();
+        await carregarTodosRegistros();
+        await carregarDadosBanco();
+    } catch (error) {
+        alert('Erro: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+
+function abrirModalPortabilidadeBrlUsd() {
+    document.getElementById('portabilidadeBrlUsdModal').style.display = 'flex';
+    preencherSelectsPortabilidadeBrlUsd();
+    document.getElementById('portabilidadeBrlUsdData').valueAsDate = new Date();
+}
+
+function fecharModalPortabilidadeBrlUsd() {
+    document.getElementById('portabilidadeBrlUsdModal').style.display = 'none';
+    document.getElementById('portabilidadeBrlUsdValorBRL').value = '';
+    document.getElementById('portabilidadeBrlUsdValorUSD').value = '';
+}
+
+function preencherSelectsPortabilidadeBrlUsd() {
+    const selectOrigem = document.getElementById('portabilidadeBrlUsdOrigem');
+    const selectDestino = document.getElementById('portabilidadeBrlUsdDestino');
+    selectOrigem.innerHTML = '';
+    selectDestino.innerHTML = '';
+    const bancosBRL = bancos.filter(b => !b.is_usd && !b.nome.toLowerCase().includes('tasty'));
+    const bancosUSD = bancos.filter(b => b.is_usd || b.nome.toLowerCase().includes('tasty'));
+    bancosBRL.forEach(b => {
+        const option = document.createElement('option');
+        option.value = b.id;
+        option.textContent = b.nome;
+        selectOrigem.appendChild(option);
+    });
+    bancosUSD.forEach(b => {
+        const option = document.createElement('option');
+        option.value = b.id;
+        option.textContent = b.nome;
+        selectDestino.appendChild(option);
+    });
+}
+
+async function executarPortabilidadeBrlUsd() {
+    const bancoOrigemId = document.getElementById('portabilidadeBrlUsdOrigem').value;
+    const bancoDestinoId = document.getElementById('portabilidadeBrlUsdDestino').value;
+    const data = document.getElementById('portabilidadeBrlUsdData').value;
+    const valorBRL = desformatarMoeda(document.getElementById('portabilidadeBrlUsdValorBRL').value);
+    const valorUSD = desformatarMoeda(document.getElementById('portabilidadeBrlUsdValorUSD').value);
+
+    if (!bancoOrigemId || !bancoDestinoId || !data || !valorBRL || !valorUSD) {
+        alert('Preencha todos os campos!');
+        return;
+    }
+    if (valorBRL <= 0 || valorUSD <= 0) {
+        alert('Valores devem ser maiores que zero!');
+        return;
+    }
+    const [ano, mes] = data.split('-');
+    const periodo = `${ano}/${mes}`;
+    const bancoOrigem = bancos.find(b => b.id === bancoOrigemId);
+    const bancoDestino = bancos.find(b => b.id === bancoDestinoId);
+    showLoading(true);
+    try {
+        const registroOrigem = {
+            banco_id: bancoOrigemId,
+            periodo: periodo,
+            data_fechamento: data,
+            aportes: -valorBRL,
+            patrimonio: 0,
+            aportes_usd: 0,
+            patrimonio_usd: 0,
+            is_usd: false,
+            tipo: 'portabilidade'
+        };
+        const { error: err1 } = await sb.from('registros').insert([registroOrigem]);
+        if (err1) throw err1;
+        const registroDestino = {
+            banco_id: bancoDestinoId,
+            periodo: periodo,
+            data_fechamento: data,
+            aportes: valorBRL,
+            patrimonio: 0,
+            aportes_usd: valorUSD,
+            patrimonio_usd: 0,
+            is_usd: true,
+            tipo: 'portabilidade'
+        };
+        const { error: err2 } = await sb.from('registros').insert([registroDestino]);
+        if (err2) throw err2;
+        alert(`Portabilidade BRL->USD OK!\n-R$ ${valorBRL.toFixed(2)} em ${bancoOrigem.nome}\n+US$ ${valorUSD.toFixed(2)} / +R$ ${valorBRL.toFixed(2)} em ${bancoDestino.nome}`);
+        fecharModalPortabilidadeBrlUsd();
+        await carregarTodosRegistros();
+        await carregarDadosBanco();
+    } catch (error) {
+        alert('Erro: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+async function executarPortabilidadeUsdBrl() {
+    const bancoOrigemId = document.getElementById('portabilidadeUsdBrlOrigem').value;
+    const bancoDestinoId = document.getElementById('portabilidadeUsdBrlDestino').value;
+    const data = document.getElementById('portabilidadeUsdBrlData').value;
+    const valorUSD = desformatarMoeda(document.getElementById('portabilidadeUsdBrlValorUSD').value);
+    const valorBRL = desformatarMoeda(document.getElementById('portabilidadeUsdBrlValorBRL').value);
+    if (!bancoOrigemId || !bancoDestinoId || !data || !valorUSD || !valorBRL) {
+        alert('Preencha todos os campos!');
+        return;
+    }
+    if (valorUSD <= 0 || valorBRL <= 0) {
+        alert('Valores devem ser maiores que zero!');
+        return;
+    }
+    const [ano, mes] = data.split('-');
+    const periodo = `${ano}/${mes}`;
+    const bancoOrigem = bancos.find(b => b.id === bancoOrigemId);
+    const bancoDestino = bancos.find(b => b.id === bancoDestinoId);
+    showLoading(true);
+    try {
+        const registroOrigem = {
+            banco_id: bancoOrigemId,
+            periodo: periodo,
+            data_fechamento: data,
+            aportes: 0,
+            patrimonio: 0,
+            aportes_usd: -valorUSD,
+            patrimonio_usd: 0,
+            is_usd: true,
+            tipo: 'portabilidade'
+        };
+        const { error: err1 } = await sb.from('registros').insert([registroOrigem]);
+        if (err1) throw err1;
+        const registroDestino = {
+            banco_id: bancoDestinoId,
+            periodo: periodo,
+            data_fechamento: data,
+            aportes: valorBRL,
+            patrimonio: 0,
+            aportes_usd: 0,
+            patrimonio_usd: 0,
+            is_usd: false,
+            tipo: 'portabilidade'
+        };
+        const { error: err2 } = await sb.from('registros').insert([registroDestino]);
+        if (err2) throw err2;
+        alert(`Portabilidade USD->BRL OK!\n-US$ ${valorUSD.toFixed(2)} em ${bancoOrigem.nome}\n+R$ ${valorBRL.toFixed(2)} em ${bancoDestino.nome}`);
+        fecharModalPortabilidadeBrlUsd();
+        await carregarTodosRegistros();
+        await carregarDadosBanco();
+    } catch (error) {
+        alert('Erro: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+function abrirModalPortabilidadeUsdBrl() {
+    document.getElementById('portabilidadeUsdBrlModal').style.display = 'flex';
+    preencherSelectsPortabilidadeUsdBrl();
+    document.getElementById('portabilidadeUsdBrlData').valueAsDate = new Date();
+}
+
+function fecharModalPortabilidadeUsdBrl() {
+    document.getElementById('portabilidadeUsdBrlModal').style.display = 'none';
+    document.getElementById('portabilidadeUsdBrlValorUSD').value = '';
+    document.getElementById('portabilidadeUsdBrlValorBRL').value = '';
+}
+
+function preencherSelectsPortabilidadeUsdBrl() {
+    const selectOrigem = document.getElementById('portabilidadeUsdBrlOrigem');
+    const selectDestino = document.getElementById('portabilidadeUsdBrlDestino');
+    selectOrigem.innerHTML = '';
+    selectDestino.innerHTML = '';
+    const bancosUSD = bancos.filter(b => b.is_usd || b.nome.toLowerCase().includes('tasty'));
+    const bancosBRL = bancos.filter(b => !b.is_usd && !b.nome.toLowerCase().includes('tasty'));
+    bancosUSD.forEach(b => {
+        const option = document.createElement('option');
+        option.value = b.id;
+        option.textContent = b.nome;
+        selectOrigem.appendChild(option);
+    });
+    bancosBRL.forEach(b => {
+        const option = document.createElement('option');
+        option.value = b.id;
+        option.textContent = b.nome;
+        selectDestino.appendChild(option);
+    });
+}
+
+function atualizarCardsAportesERentabilidade(patrimonioAtual) {
+
+    const bancoSelecionadoId = document.getElementById('bancoSelector').value;
+    const carteiraAtual = document.getElementById('carteiraSelector')?.value || 'br';
+
+    let totalBRL = 0;
+    let totalUSD = 0;
+
+    let bancosParaCalculo = [];
+
+    if (bancoSelecionadoId.startsWith('consolidado')) {
+        bancosParaCalculo = filtrarBancosParaConsolidado(bancoSelecionadoId);
+    } else {
+        bancosParaCalculo = todosBancos.filter(b => b.id === bancoSelecionadoId);
+    }
+
+    bancosParaCalculo.forEach(banco => {
+const regsBanco = registrosAtuais.filter(r => r.banco_id === banco.id);
+
+        regsBanco.forEach(r => {
+            if (banco.is_usd) {
+                totalUSD += r.aportes_usd || 0;
+                totalBRL += r.aportes || 0; // BRL equivalente registrado
+            } else {
+                totalBRL += r.aportes || 0;
+            }
+        });
+    });
+
+let texto = '';
+
+if (carteiraAtual === 'br') {
+    texto = formatarMoeda(totalBRL);
+} else {
+
+    // 🔹 converte USD → BRL usando dólar atual
+   texto =
+    totalUSD.toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'USD'
+    }) +
+    ' / ' +
+    formatarMoeda(totalBRL);
+
+}
+
+document.getElementById('totalAportado').textContent = texto;
+}
+
+function calcularRentabilidadeAcumuladaSimples(patrimonioAtual) {
+    const carteiraAtual = document.getElementById('carteiraSelector')?.value || 'br';
+    const bancoSelecionadoId = document.getElementById('bancoSelector').value;
+
+    let totalAportado = 0;
+    let bancosParaCalculo = [];
+
+    if (bancoSelecionadoId.startsWith('consolidado')) {
+        bancosParaCalculo = filtrarBancosParaConsolidado(bancoSelecionadoId);
+    } else {
+        bancosParaCalculo = todosBancos.filter(b => b.id === bancoSelecionadoId);
+    }
+
+    // 🔹 Calcula total aportado
+    bancosParaCalculo.forEach(banco => {
+        const regsBanco = registrosAtuais.filter(r => r.banco_id === banco.id);
+        
+        regsBanco.forEach(r => {
+            if (bancoSelecionadoId === 'consolidado_total') {
+                // Para consolidado total: soma TUDO em BRL
+                totalAportado += r.aportes || 0;
+            } else if (carteiraAtual === 'int') {
+                totalAportado += r.aportes_usd || 0;
+            } else {
+                totalAportado += r.aportes || 0;
+            }
+        });
+    });
+
+    if (totalAportado <= 0) {
+        document.getElementById('rendimentoMedio').textContent = '0,00%';
+        if (bancoSelecionadoId === 'consolidado_total') {
+            document.getElementById('rendimentoMedioTotal').textContent = '0,00%';
+        }
+        return;
+    }
+
+    let rentabilidade = 0;
+
+    if (carteiraAtual === 'int') {
+        const patrimonioUSD = patrimonioAtual / (dolarFallbackHoje || 1);
+        rentabilidade = ((patrimonioUSD - totalAportado) / totalAportado) * 100;
+    } else {
+        rentabilidade = ((patrimonioAtual - totalAportado) / totalAportado) * 100;
+    }
+
+    // 🔹 Atualiza o card correto
+    if (bancoSelecionadoId === 'consolidado_total') {
+        document.getElementById('rendimentoMedioTotal').textContent = rentabilidade.toFixed(2) + '%';
+    } else {
+        document.getElementById('rendimentoMedio').textContent = rentabilidade.toFixed(2) + '%';
+    }
+}
+function filtrarRegistrosPorAno(registros) {
+    // 📌 Obtém o ano selecionado no dropdown
+    const anoSelecionado = document.getElementById('anoFilter').value;
+
+    // 📌 Se "Todos os Anos" estiver selecionado, retorna todos os registros
+    if (anoSelecionado === 'todos') {
+        return registros;
+    }
+
+    // 📌 Filtra registros que começam com o ano selecionado
+    // Funciona com formatos: "2026-01-31", "2026/01/31", "2026/01", etc
+    return registros.filter(r => {
+        // Verifica se data_fechamento OU periodo começam com o ano
+        const dataFechamento = r.data_fechamento || '';
+        const periodo = r.periodo || '';
+        
+        return dataFechamento.startsWith(anoSelecionado) || 
+               periodo.startsWith(anoSelecionado);
+    });
+}
+
+async function atualizarFiltroAnoEDados() {
+    // 📌 Guarda o ano selecionado ANTES de qualquer coisa
+    const anoSelecionado = document.getElementById('anoFilter').value;
+    const bancoId = document.getElementById('bancoSelector').value;
+    
+    // 📌 Recarrega os dados do banco do Supabase
+    if (bancoId.startsWith('consolidado')) {
+        const bancosParaConsolidar = filtrarBancosParaConsolidado(bancoId);
+        const idsParaConsolidar = bancosParaConsolidar.map(b => b.id);
+        
+        if (idsParaConsolidar.length > 0) {
+            showLoading(true);
+            const { data, error } = await sb
+                .from('registros')
+                .select('*')
+                .in('banco_id', idsParaConsolidar)
+                .order('data_fechamento', { ascending: true });
+            showLoading(false);
+            
+            if (error) return;
+            // 📌 APLICA O FILTRO DE ANO AOS DADOS
+            registrosAtuais = filtrarRegistrosPorAno(data);
+        } else {
+            registrosAtuais = [];
+        }
+    } else {
+        showLoading(true);
+        const { data, error } = await sb
+            .from('registros')
+            .select('*')
+            .eq('banco_id', bancoId)
+            .order('data_fechamento', { ascending: true });
+        showLoading(false);
+
+        if (error) return;
+        // 📌 APLICA O FILTRO DE ANO AOS DADOS
+        registrosAtuais = filtrarRegistrosPorAno(data);
+    }
+    
+    // 📌 Restaura o ano selecionado no dropdown (porque atualizarFiltroAnos reseta)
+    document.getElementById('anoFilter').value = anoSelecionado;
+    
+    // 📌 ATUALIZA A TABELA E OS GRÁFICOS COM OS DADOS FILTRADOS
+    alternarInputsUSD();
+    await atualizarTabela();
+    await atualizarDashboardBanco();
+    calcularDolarIndicadores();
+
+    if (bancoId.startsWith('consolidado')) {
+        consolidarPatrimonioHistorico();
+        atualizarGraficoPizza();
+    } else {
+        atualizarGrafico();
+    }
+}
+
+function toggleMenuPortabilidade() {
+    const menu = document.getElementById('menuPortabilidade');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+// Fecha o menu se clicar fora dele
+document.addEventListener('click', function(event) {
+    const menu = document.getElementById('menuPortabilidade');
+    const botao = event.target.closest('[onclick*="toggleMenuPortabilidade"]');
+    
+    if (!botao && !menu.contains(event.target)) {
+        menu.style.display = 'none';
+    }
+});
+
+
+function toggleHistorico() {
+    const container = document.getElementById('historicoOculto');
+    const seta = document.getElementById('setaHistorico');
+    const btn = document.getElementById('btnExpandirHistorico');
+    
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        seta.textContent = '▲';
+        btn.innerHTML = '<span id="setaHistorico">▲</span> Recolher histórico';
+    } else {
+        container.style.display = 'none';
+        seta.textContent = '▼';
+        btn.innerHTML = '<span id="setaHistorico">▼</span> Ver histórico completo';
+    }
+}
+
+function criarGraficosConsolidado() {
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#e0e0e0' : '#666';
+    
+    // 📊 Gráfico: Distribuição por Moeda
+    if (charts.moedas) charts.moedas.destroy();
+    const ctxMoedas = document.getElementById('chartMoedas').getContext('2d');
+    
+    let totalBRL = 0;
+    let totalUSD = 0;
+    
+    todosBancos.forEach(banco => {
+        const regs = todosRegistros.filter(r => r.banco_id === banco.id);
+        if (regs.length === 0) return;
+        
+        const ultimo = [...regs].sort((a,b) => new Date(b.data_fechamento) - new Date(a.data_fechamento))[0];
+        
+        if (banco.is_usd) {
+            totalUSD += ultimo.patrimonio_usd || 0;
+        } else {
+            totalBRL += ultimo.patrimonio || 0;
+        }
+    });
+    
+    charts.moedas = new Chart(ctxMoedas, {
+        type: 'doughnut',
+        data: {
+            labels: ['Brasil (R$)', 'Internacional (USD)'],
+            datasets: [{
+                data: [totalBRL, totalUSD * (dolarFallbackHoje || 1)],
+                backgroundColor: ['#28a745', '#007bff']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { labels: { color: textColor } },
+                tooltip: {
+                    callbacks: {
+                        label: (c) => c.label + ': ' + formatarMoeda(c.raw)
+                    }
+                }
+            }
+        }
+    });
+    
+    // 🏦 Gráfico: Top 5 Bancos
+    if (charts.topBancos) charts.topBancos.destroy();
+    const ctxBancos = document.getElementById('chartBancos').getContext('2d');
+    
+    const bancosDados = todosBancos.map(banco => {
+        const regs = todosRegistros.filter(r => r.banco_id === banco.id);
+        if (regs.length === 0) return null;
+        
+        const ultimo = [...regs].sort((a,b) => new Date(b.data_fechamento) - new Date(a.data_fechamento))[0];
+        const valor = banco.is_usd 
+            ? (ultimo.patrimonio_usd || 0) * (dolarFallbackHoje || 1)
+            : (ultimo.patrimonio || 0);
+        
+        return { nome: banco.nome, valor };
+    }).filter(b => b && b.valor > 0).sort((a,b) => b.valor - a.valor).slice(0, 5);
+    
+    charts.topBancos = new Chart(ctxBancos, {
+        type: 'bar',
+        data: {
+            labels: bancosDados.map(b => b.nome),
+            datasets: [{
+                label: 'Patrimônio (R$)',
+                data: bancosDados.map(b => b.valor),
+                backgroundColor: '#00bfff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (c) => formatarMoeda(c.raw)
+                    }
+                }
+            },
+            scales: {
+                x: { ticks: { color: textColor, callback: (v) => 'R$ ' + v.toLocaleString('pt-BR') } },
+                y: { ticks: { color: textColor } }
+            }
+        }
+    });
+    
+// 📈 Gráfico: Evolução 12 meses
+if (charts.evolucao) charts.evolucao.destroy();
+const ctxEvolucao = document.getElementById('chartEvolucao').getContext('2d');
+
+const historico = {};
+
+// 🔥 CORREÇÃO: Agrupa por mês e pega APENAS o patrimônio de cada banco
+todosBancos.forEach(banco => {
+    const regsBanco = todosRegistros.filter(r => r.banco_id === banco.id);
+    
+    regsBanco.forEach(r => {
+        // Ignora registros sem patrimônio (só aportes)
+        const temPatrimonio = banco.is_usd ? (r.patrimonio_usd > 0) : (r.patrimonio > 0);
+        if (!temPatrimonio) return;
+        
+        if (!historico[r.periodo]) {
+            historico[r.periodo] = {};
+        }
+        
+        // Guarda o último patrimônio de cada banco em cada mês
+        if (!historico[r.periodo][banco.id] || 
+            new Date(r.data_fechamento) > new Date(historico[r.periodo][banco.id].data)) {
+            historico[r.periodo][banco.id] = {
+                valor: banco.is_usd ? r.patrimonio_usd : r.patrimonio,
+                isUSD: banco.is_usd,
+                data: r.data_fechamento
+            };
+        }
+    });
+});
+
+// Soma os patrimônios de cada banco por mês
+const historicoFinal = {};
+Object.keys(historico).forEach(periodo => {
+    let totalBRL = 0;
+    
+    Object.values(historico[periodo]).forEach(reg => {
+        if (reg.isUSD) {
+            totalBRL += reg.valor * (dolarFallbackHoje || 1);
+        } else {
+            totalBRL += reg.valor;
+        }
+    });
+    
+    historicoFinal[periodo] = totalBRL;
+});
+
+const labels = Object.keys(historicoFinal).sort().slice(-12);
+const valores = labels.map(l => historicoFinal[l]);
+    
+    charts.evolucao = new Chart(ctxEvolucao, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Patrimônio Total (R$)',
+                data: valores,
+                borderColor: '#6f42c1',
+                backgroundColor: 'rgba(111, 66, 193, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { labels: { color: textColor } },
+                tooltip: {
+                    callbacks: {
+                        label: (c) => formatarMoeda(c.raw)
+                    }
+                }
+            },
+            scales: {
+                x: { ticks: { color: textColor } },
+                y: { ticks: { color: textColor, callback: (v) => 'R$ ' + v.toLocaleString('pt-BR') } }
+            }
+        }
+    });
+}
+
+// =========================
+// 📊 TICKER DEMO
+// =========================
+
+const ativosDemo = [
+    { symbol: "VALE3", price: 63.45, change: -0.30 },
+    { symbol: "PETR4", price: 38.21, change: 0.85 },
+    { symbol: "ITUB4", price: 29.10, change: 1.12 },
+    { symbol: "BBDC4", price: 14.87, change: -0.45 },
+    { symbol: "WEGE3", price: 41.55, change: 0.62 },
+    { symbol: "AAPL", price: 189.32, change: 0.40 },
+    { symbol: "TSLA", price: 221.15, change: -1.20 }
+];
+
+function iniciarTicker() {
+    const container = document.getElementById("tickerContent");
+    container.innerHTML = "";
+
+    ativosDemo.forEach(ativo => {
+        const item = document.createElement("div");
+        item.className = "ticker-item";
+
+        const classeVariacao = ativo.change >= 0 ? "ticker-pos" : "ticker-neg";
+
+        item.innerHTML = `
+            <span class="ticker-symbol">${ativo.symbol}</span>
+            <span class="ticker-price">R$ ${ativo.price.toFixed(2)}</span>
+            <span class="${classeVariacao}">
+                ${ativo.change >= 0 ? "+" : ""}${ativo.change.toFixed(2)}%
+            </span>
+        `;
+
+        container.appendChild(item);
+    });
+
+    // duplica conteúdo para efeito infinito
+    container.innerHTML += container.innerHTML;
+}
+
+document.addEventListener("DOMContentLoaded", iniciarTicker);
+
+// =========================
+// 📰 NOTÍCIAS CLICÁVEIS
+// =========================
+
+const noticiasMercado = [
+    { 
+        titulo: "Ibovespa fecha em alta puxado por bancos",
+        link: "https://valor.globo.com/financas/"
+    },
+    { 
+        titulo: "Dólar recua após fala do FED",
+        link: "https://www.infomoney.com.br/mercados/"
+    },
+    { 
+        titulo: "Petrobras anuncia novo plano de dividendos",
+        link: "https://www.moneytimes.com.br/"
+    }
+];
+
+const noticiasInternacional = [
+    { 
+        titulo: "S&P 500 atinge novo recorde histórico",
+        link: "https://finance.yahoo.com/"
+    },
+    { 
+        titulo: "Tesla divulga resultados acima do esperado",
+        link: "https://www.cnbc.com/markets/"
+    },
+    { 
+        titulo: "Inflação nos EUA desacelera",
+        link: "https://www.bloomberg.com/markets"
+    }
+];
+
+function carregarNoticias() {
+    const left = document.getElementById("newsLeft");
+    const right = document.getElementById("newsRight");
+
+    left.innerHTML = "";
+    right.innerHTML = "";
+
+    noticiasMercado.forEach(n => {
+        const a = document.createElement("a");
+        a.href = n.link;
+        a.target = "_blank";
+        a.className = "news-item";
+        a.textContent = n.titulo;
+        left.appendChild(a);
+    });
+
+    noticiasInternacional.forEach(n => {
+        const a = document.createElement("a");
+        a.href = n.link;
+        a.target = "_blank";
+        a.className = "news-item";
+        a.textContent = n.titulo;
+        right.appendChild(a);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", carregarNoticias);
+
+// =============================
+// 🔹 CONTROLE DE PATRIMÔNIO
+// =============================
+
+let listaPatrimonio = JSON.parse(localStorage.getItem('meu_patrimonio')) || [];
+
+function togglePatrimonio() {
+    const area = document.getElementById('areaPatrimonio');
+    area.style.display = area.style.display === 'none' ? 'block' : 'none';
+    renderizarPatrimonio();
+}
+
+function adicionarPatrimonio() {
+    const desc = document.getElementById('descricaoPatrimonio').value;
+    const valor = desformatarMoeda(document.getElementById('valorPatrimonio').value);
+
+    if (!desc || !valor) {
+        alert("Preencha descrição e valor");
+        return;
+    }
+
+    listaPatrimonio.push({
+        descricao: desc,
+        valor: valor
+    });
+
+    salvarPatrimonioLocal();
+    limparCamposPatrimonio();
+    renderizarPatrimonio();
+}
+
+function removerPatrimonio(index) {
+    listaPatrimonio.splice(index, 1);
+    salvarPatrimonioLocal();
+    renderizarPatrimonio();
+}
+
+function renderizarPatrimonio() {
+    const container = document.getElementById('listaPatrimonio');
+    container.innerHTML = '';
+
+    let total = 0;
+
+    listaPatrimonio.forEach((item, index) => {
+        total += item.valor;
+
+        container.innerHTML += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid var(--border-color);">
+                <div>
+                    <strong>${item.descricao}</strong><br>
+                    ${formatarMoeda(item.valor)}
+                </div>
+                <button class="btn-delete" onclick="removerPatrimonio(${index})">✕</button>
+            </div>
+        `;
+    });
+
+    document.getElementById('totalPatrimonioGeral').textContent = formatarMoeda(total);
+}
+
+function salvarPatrimonioLocal() {
+    localStorage.setItem('meu_patrimonio', JSON.stringify(listaPatrimonio));
+}
+
+function limparCamposPatrimonio() {
+    document.getElementById('descricaoPatrimonio').value = '';
+    document.getElementById('valorPatrimonio').value = '';
+}
+
+// ============================
+// 🔹 PATRIMÔNIO - SUPABASE
+// ============================
+
+async function abrirPatrimonio() {
+    document.getElementById('patrimonioModal').style.display = 'flex';
+    await carregarPatrimonio();
+}
+
+function fecharPatrimonio() {
+    document.getElementById('patrimonioModal').style.display = 'none';
+}
+
+async function salvarPatrimonio() {
+    const descricao = document.getElementById('patDesc').value;
+    const valor = desformatarMoeda(document.getElementById('patValor').value);
+    const editId = document.getElementById('patDesc').dataset.editId;
+
+    if (!descricao || !valor) {
+        alert("Preencha os campos");
+        return;
+    }
+
+    showLoading(true);
+
+    let error;
+
+    if (editId) {
+        const { error: err } = await sb
+            .from('patrimonio')
+            .update({ descricao, valor })
+            .eq('id', editId);
+        error = err;
+    } else {
+        const { error: err } = await sb
+            .from('patrimonio')
+            .insert([{ descricao, valor, tipo: 'imovel' }]);
+        error = err;
+    }
+
+    showLoading(false);
+
+    if (error) {
+        alert("Erro ao salvar");
+        return;
+    }
+
+    document.getElementById('patDesc').value = '';
+    document.getElementById('patValor').value = '';
+    delete document.getElementById('patDesc').dataset.editId;
+
+    await carregarPatrimonio();
+}
+
+
+async function carregarPatrimonio() {
+    showLoading(true);
+
+    const { data, error } = await sb
+        .from('patrimonio')
+        .select('*')
+        .eq('tipo', 'imovel')
+        .order('criado_em', { ascending: false });
+
+    showLoading(false);
+    if (error) return;
+
+    let totalImoveis = 0;
+
+    const imoveisDiv = document.getElementById('secaoImoveis');
+    imoveisDiv.innerHTML = '';
+
+    data.forEach(item => {
+        totalImoveis += Number(item.valor);
+        imoveisDiv.innerHTML += montarItemImovel(item);
+    });
+
+    // 🔥 PEGA O TOTAL DA TELA PRINCIPAL
+    const totalPrincipalTexto =
+        document.getElementById('patrimonioTotal')?.textContent ||
+        document.getElementById('patrimonioTotalGeral')?.textContent ||
+        "R$ 0,00";
+
+    const totalPrincipalNumero = desformatarMoeda(totalPrincipalTexto);
+
+    document.getElementById('cardTotalDinheiro').textContent =
+        formatarMoeda(totalPrincipalNumero);
+
+    document.getElementById('cardTotalImoveis').textContent =
+        formatarMoeda(totalImoveis);
+
+    document.getElementById('cardTotalHolding').textContent =
+        formatarMoeda(totalPrincipalNumero + totalImoveis);
+}
+
+function editarImovel(id, descricao, valor) {
+    document.getElementById('patDesc').value = descricao;
+    document.getElementById('patValor').value = formatarMoeda(Number(valor));
+    document.getElementById('patDesc').dataset.editId = id;
+}
+
+
+
+function montarItemImovel(item) {
+    return `
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:15px;
+            margin-bottom:12px;
+            border-radius:10px;
+            background: rgba(0,0,0,0.03);
+            border:1px solid var(--border-color);
+        ">
+
+            <div>
+                <strong style="font-size:16px;">${item.descricao}</strong>
+                <div style="font-size:14px; color:#666;">
+                    ${formatarMoeda(Number(item.valor))}
+                </div>
+            </div>
+
+            <div style="display:flex; gap:8px;">
+                <button onclick="editarImovel('${item.id}', '${item.descricao}', ${item.valor})"
+                    style="background:#007bff; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;">
+                    ✏️
+                </button>
+
+                <button onclick="excluirPatrimonio('${item.id}')"
+                    style="background:#dc3545; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer;">
+                    🗑
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+
+function toggleSecao(id) {
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+
+async function excluirPatrimonio(id) {
+    if (!confirm("Excluir item?")) return;
+
+    showLoading(true);
+
+    await sb.from('patrimonio').delete().eq('id', id);
+
+    showLoading(false);
+
+    await carregarPatrimonio();
+}
+
+
+</script>
+</body>
+</html>
+
+
+
+
+
