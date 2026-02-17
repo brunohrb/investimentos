@@ -10,6 +10,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
+
 
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -976,6 +980,8 @@ html, body {
         <button class="nav-tab" onclick="switchTab('treinos')">💪 Treinos</button>
         <button class="nav-tab" onclick="switchTab('atividades')">🏃 Atividades</button>
         <button class="nav-tab" onclick="switchTab('bio')">📊 Bio</button>
+<button class="nav-tab" onclick="switchTab('scanner')">📷 Scanner</button>
+
         <button class="nav-tab" onclick="switchTab('exames')">🩺 Exames</button>
         <button class="nav-tab" onclick="switchTab('relatorio')">📈 Relatório</button>
         <button class="nav-tab" onclick="switchTab('perfil')">⚙️ Perfil</button>
@@ -1108,6 +1114,7 @@ html, body {
                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                         <button class="btn btn-ai btn-small" onclick="analisarBioIA()">🤖 Analisar</button>
                         <button class="btn btn-primary btn-small" onclick="openModal('bioModal')">➕ Adicionar</button>
+
                     </div>
                 </h2>
                 <div class="evolution-chart">
@@ -1116,6 +1123,72 @@ html, body {
                 <div id="bioList" style="margin-top: 1.5rem;"></div>
             </div>
         </section>
+
+<!-- SCANNER CORPORAL -->
+<section id="scanner" class="section">
+  <div class="card">
+
+    <h2 class="card-title">📷 Scanner Corporal</h2>
+
+    <button class="btn btn-ai btn-block"
+            style="font-size:1.1rem;padding:1.2rem;"
+            onclick="iniciarScannerBio()">
+        📷 Iniciar Escaneamento
+    </button>
+
+    <!-- CÂMERA -->
+    <div id="scannerCameraContainer"
+         style="position:relative;margin-top:1.5rem;display:none;">
+
+        <video id="bioVideo"
+               autoplay
+               playsinline
+               style="width:100%;
+                      aspect-ratio:9/16;
+                      object-fit:cover;
+                      border-radius:20px;">
+        </video>
+
+        <canvas id="bioCanvas"
+                style="position:absolute;
+                       top:0;
+                       left:0;
+                       width:100%;
+                       height:100%;
+                       border-radius:20px;">
+        </canvas>
+    </div>
+
+    <!-- DADOS MANUAIS -->
+<div id="scannerDados"
+     style="margin-top:1.5rem;">
+
+
+        <div class="form-grid">
+            <input type="number" id="scannerPeso" placeholder="Peso (kg)">
+            <input type="number" id="scannerAltura" placeholder="Altura (cm)">
+            <input type="number" id="scannerIdade" placeholder="Idade">
+            <select id="scannerSexo">
+                <option value="1">Masculino</option>
+                <option value="0">Feminino</option>
+            </select>
+
+            <button class="btn btn-primary btn-block"
+                    onclick="calcularResultadoScanner()">
+                📊 Gerar Resultado
+            </button>
+        </div>
+
+    </div>
+
+    <!-- RESULTADOS -->
+    <div id="scannerResultados"
+         style="margin-top:1.5rem;"></div>
+
+  </div>
+</section>
+
+
 
         <!-- EXAMES -->
         <section id="exames" class="section">
@@ -1852,6 +1925,7 @@ function switchTab(tab) {
             tab === 'treinos' ? '💪' :
             tab === 'atividades' ? '🏃' :
             tab === 'bio' ? '📊' :
+            tab === 'scanner' ? '📷' :
             tab === 'exames' ? '🩺' :
             tab === 'relatorio' ? '📈' :
             tab === 'perfil' ? '⚙️' : ''
@@ -3653,6 +3727,141 @@ Retorne APENAS JSON válido:
         // Se não estiver logado, checkAuth() mostra a tela de login
         // Se estiver logado, initializeApp() já foi chamado
     });
+
+let bioPose;
+let bioCamera;
+
+function iniciarScannerBio() {
+
+   document.getElementById("scannerCameraContainer").style.display = "block";
+    document.getElementById("scannerDados").style.display = "block";
+
+    const video = document.getElementById('bioVideo');
+    const canvas = document.getElementById('bioCanvas');
+    const ctx = canvas.getContext('2d');
+
+    bioPose = new Pose({
+        locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+    });
+
+    bioPose.setOptions({
+        modelComplexity: 1,
+        smoothLandmarks: true,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+    });
+
+    bioPose.onResults(results => {
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        if(!results.poseLandmarks) return;
+
+        drawConnectors(ctx, results.poseLandmarks, POSE_CONNECTIONS,
+            {color:'#00D9B1', lineWidth:2});
+        drawLandmarks(ctx, results.poseLandmarks,
+            {color:'#FF6B9D', lineWidth:1});
+
+        calcularBioScanner(results.poseLandmarks);
+    });
+
+    bioCamera = new Camera(video,{
+        onFrame: async () => {
+            await bioPose.send({image: video});
+        },
+        width:400,
+        height:400
+    });
+
+    bioCamera.start();
+}
+
+function calcularBioScanner(l){
+
+    const peso = parseFloat(document.getElementById("scannerPeso").value);
+    const altura = parseFloat(document.getElementById("scannerAltura").value)/100;
+    const idade = parseFloat(document.getElementById("scannerIdade").value);
+    const sexo = parseFloat(document.getElementById("scannerSexo").value);
+
+    if(!peso || !altura || !idade) return;
+
+    const larguraOmbro = Math.abs(l[11].x - l[12].x);
+    const larguraQuadril = Math.abs(l[23].x - l[24].x);
+    const proporcao = larguraQuadril / larguraOmbro;
+
+    const imc = peso/(altura*altura);
+
+    let gordura = 
+        (1.20 * imc) +
+        (0.23 * idade) -
+        (10.8 * sexo) -
+        5.4 +
+        (proporcao * 8);
+
+    gordura = parseFloat(gordura.toFixed(2));
+    const massaMagra = parseFloat((peso - (peso*gordura/100)).toFixed(2));
+
+    document.getElementById("bioScannerResultado").innerHTML =
+        `<div class="info-box">
+            <b>IMC:</b> ${imc.toFixed(2)}<br>
+            <b>Gordura Estimada:</b> ${gordura}%<br>
+            <b>Massa Magra:</b> ${massaMagra} kg
+        </div>`;
+
+    salvarBioScanner(peso, gordura, massaMagra);
+}
+
+async function salvarBioScanner(peso, gordura, magra){
+
+    const lista = load(DB.bio);
+    
+    lista.push({
+        data: new Date().toISOString(),
+        peso: peso,
+        gordura: gordura,
+        massaMagra: magra,
+        origem: "scanner_ia"
+    });
+
+    await save(DB.bio, lista);
+    loadBio();
+}
+function calcularResultadoScanner(){
+
+    const peso = parseFloat(document.getElementById("scannerPeso").value);
+    const altura = parseFloat(document.getElementById("scannerAltura").value)/100;
+    const idade = parseFloat(document.getElementById("scannerIdade").value);
+    const sexo = parseFloat(document.getElementById("scannerSexo").value);
+
+    if(!peso || !altura || !idade){
+        notify("Preencha todos os dados.");
+        return;
+    }
+
+    const imc = peso/(altura*altura);
+
+    let gordura =
+        (1.20 * imc) +
+        (0.23 * idade) -
+        (10.8 * sexo) -
+        5.4;
+
+    gordura = gordura.toFixed(2);
+
+    const massaMagra = (peso - (peso*gordura/100)).toFixed(2);
+
+    document.getElementById("scannerResultados").innerHTML = `
+        <div class="bio-metric-card">
+            <div class="bio-metric-value">${gordura}%</div>
+            <div class="bio-metric-label">Gordura Corporal</div>
+        </div>
+
+        <div class="bio-metric-card">
+            <div class="bio-metric-value">${massaMagra} kg</div>
+            <div class="bio-metric-label">Massa Magra</div>
+        </div>
+    `;
+}
     </script>
 </body>
 </html>
