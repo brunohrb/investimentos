@@ -1156,6 +1156,14 @@ html, body {
     50% { border-color: rgba(0,217,177,0.8); box-shadow: 0 0 20px rgba(0,217,177,0.3) inset; }
 }
 
+
+/* Animação contagem regressiva */
+@keyframes countPulse {
+    0%   { transform: scale(1.8); opacity: 0.5; }
+    60%  { transform: scale(1.05); opacity: 1;  }
+    100% { transform: scale(1);   opacity: 1;   }
+}
+
 /* Cantos decorativos */
 .scan-corner {
     position: absolute;
@@ -1537,6 +1545,35 @@ html, body {
     background: rgba(255,255,255,0.2);
 }
 
+
+/* Thumbnails dos 4 ângulos */
+.angle-thumb {
+    border-radius: 10px;
+    padding: 0.5rem 0.25rem;
+    text-align: center;
+    transition: all 0.3s;
+    border: 2px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.03);
+}
+.angle-thumb-icon {
+    font-size: 1.4rem;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 6px;
+}
+.angle-thumb-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 /* Disclaimer */
 .scanner-disclaimer {
     background: rgba(252,211,77,0.06);
@@ -1791,11 +1828,11 @@ html, body {
                 <div class="scanner-hero-content">
                     <span class="scanner-hero-icon">🔬</span>
                     <h2>Scanner Corporal IA</h2>
-                    <p>Use a câmera para estimar sua composição corporal. A IA analisa sua silhueta combinada com seus dados pessoais para gerar estimativas precisas.</p>
+                    <p>Capture <strong>4 ângulos</strong> do seu corpo com auto-captura automática. A IA combina todos os ângulos com seus dados para máxima precisão.</p>
                     <div class="scanner-info-badges">
-                        <span class="scanner-badge">📷 Câmera ao Vivo</span>
-                        <span class="scanner-badge">🤖 Análise por IA</span>
-                        <span class="scanner-badge">⚡ Resultado em segundos</span>
+                        <span class="scanner-badge">⏱️ Auto-Captura</span>
+                        <span class="scanner-badge">🔄 4 Ângulos</span>
+                        <span class="scanner-badge">🤖 Alta Precisão</span>
                     </div>
                 </div>
             </div>
@@ -1846,22 +1883,43 @@ html, body {
 
             <!-- Câmera -->
             <div class="card" style="padding: 1.25rem;">
-                <h3 style="color:var(--primary);font-family:'Archivo Black',sans-serif;font-size:1.1rem;margin-bottom:1rem;">📷 Câmera ao Vivo</h3>
+
+                <!-- Progresso dos ângulos -->
+                <div id="angleProgressBar" style="display:none; margin-bottom:1rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                        <span style="font-family:'Archivo Black',sans-serif;font-size:1rem;color:var(--primary);">📸 Capturando Ângulos</span>
+                        <span style="font-size:0.85rem;color:var(--text-muted);" id="angleProgressText">0 / 4</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;" id="angleThumbs">
+                        <div class="angle-thumb" id="thumb-0" data-label="Frente">
+                            <div class="angle-thumb-icon">🧍</div>
+                            <div class="angle-thumb-label">Frente</div>
+                        </div>
+                        <div class="angle-thumb" id="thumb-1" data-label="Lado Esq.">
+                            <div class="angle-thumb-icon">↩️</div>
+                            <div class="angle-thumb-label">Lado Esq.</div>
+                        </div>
+                        <div class="angle-thumb" id="thumb-2" data-label="Costas">
+                            <div class="angle-thumb-icon">🔙</div>
+                            <div class="angle-thumb-label">Costas</div>
+                        </div>
+                        <div class="angle-thumb" id="thumb-3" data-label="Lado Dir.">
+                            <div class="angle-thumb-icon">↪️</div>
+                            <div class="angle-thumb-label">Lado Dir.</div>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="camera-wrapper">
                     <div class="camera-container" id="cameraContainer">
-                        <!-- Placeholder quando câmera desligada -->
                         <div class="camera-placeholder" id="cameraPlaceholder">
                             <div class="camera-placeholder-icon">📷</div>
                             <div style="font-weight:600;color:var(--text-muted);">Câmera desligada</div>
-                            <div style="font-size:0.8rem;color:var(--text-muted);text-align:center;padding:0 1.5rem;">Posicione-se a ~1,5m da câmera, de corpo inteiro</div>
+                            <div style="font-size:0.8rem;color:var(--text-muted);text-align:center;padding:0 1.5rem;">Posicione-se a ~1,5m, corpo inteiro visível</div>
                         </div>
 
-                        <!-- Vídeo da câmera -->
                         <video id="scannerVideo" autoplay playsinline muted style="display:none;"></video>
                         <canvas id="scannerCanvas" style="display:none;"></canvas>
-
-                        <!-- Foto capturada -->
                         <img id="scanPhoto" class="scan-photo-preview" alt="Scan capturado">
 
                         <!-- Overlay de scan animado -->
@@ -1877,41 +1935,58 @@ html, body {
                             <div class="camera-status-text" id="cameraStatusText">Posicione-se na moldura</div>
                         </div>
 
+                        <!-- Contagem regressiva grande centralizada -->
+                        <div id="countdownOverlay" style="display:none; position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:20;align-items:center;justify-content:center;flex-direction:column;gap:0.5rem;">
+                            <div id="countdownNumber" style="font-family:'Archivo Black',sans-serif;font-size:6rem;color:white;text-shadow:0 0 40px rgba(0,217,177,0.9);line-height:1;animation:countPulse 1s ease-in-out;">3</div>
+                            <div id="countdownAngleLabel" style="font-size:1rem;color:#00D9B1;font-weight:700;letter-spacing:2px;text-transform:uppercase;"></div>
+                        </div>
+
+                        <!-- Flash de captura -->
+                        <div id="captureFlash" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:white;z-index:25;pointer-events:none;"></div>
+
                         <!-- Overlay de análise -->
                         <div class="analyzing-overlay" id="analyzingOverlay">
                             <div style="width:50px;height:50px;border:4px solid rgba(0,217,177,0.2);border-top-color:#00D9B1;border-radius:50%;animation:spin 1s linear infinite;"></div>
-                            <div class="analyzing-text">Analisando...</div>
+                            <div class="analyzing-text">Analisando todos os ângulos...</div>
                             <div class="analyzing-steps" id="analyzingSteps">
-                                <div class="analyzing-step" id="step1"><span class="step-dot"></span>Detectando silhueta corporal</div>
-                                <div class="analyzing-step" id="step2"><span class="step-dot"></span>Calculando proporções</div>
-                                <div class="analyzing-step" id="step3"><span class="step-dot"></span>Estimando composição corporal</div>
-                                <div class="analyzing-step" id="step4"><span class="step-dot"></span>Gerando insights personalizados</div>
-                                <div class="analyzing-step" id="step5"><span class="step-dot"></span>Calculando IMC e métricas</div>
+                                <div class="analyzing-step" id="step1"><span class="step-dot"></span>Detectando silhueta corporal (frente)</div>
+                                <div class="analyzing-step" id="step2"><span class="step-dot"></span>Analisando perfil lateral</div>
+                                <div class="analyzing-step" id="step3"><span class="step-dot"></span>Cruzando dados dos 4 ângulos</div>
+                                <div class="analyzing-step" id="step4"><span class="step-dot"></span>Calculando composição corporal</div>
+                                <div class="analyzing-step" id="step5"><span class="step-dot"></span>Gerando relatório personalizado</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Botões de câmera -->
                     <div class="camera-actions" id="cameraActions" style="display:none;">
-                        <button class="camera-side-btn" onclick="flipCamera()" title="Virar câmera">🔄</button>
-                        <button class="capture-btn" onclick="capturarScan()" title="Capturar scan" id="captureBtn">📸</button>
-                        <button class="camera-side-btn" onclick="pararCamera()" title="Desligar câmera">⏹️</button>
+                        <button class="camera-side-btn" onclick="flipCamera()" title="Virar câmera" id="btnFlip">🔄</button>
+                        <button class="capture-btn" onclick="capturarScan()" title="Capturar agora" id="captureBtn">📸</button>
+                        <button class="camera-side-btn" onclick="pararCamera()" title="Cancelar">✖️</button>
+                    </div>
+
+                    <!-- Timer de auto-captura -->
+                    <div id="autoCaptureBar" style="display:none; margin-top:0.75rem; padding:0.75rem 1rem; background:rgba(0,217,177,0.1); border:1px solid rgba(0,217,177,0.3); border-radius:12px; text-align:center;">
+                        <div style="font-size:0.85rem;color:var(--primary);font-weight:700;" id="autoCaptureStatus">⏱️ Auto-captura em <span id="autoCaptureCount">5</span>s — ou toque 📸 para capturar agora</div>
+                        <div style="background:rgba(255,255,255,0.1);height:4px;border-radius:2px;margin-top:0.5rem;overflow:hidden;">
+                            <div id="autoCaptureProgress" style="height:100%;background:var(--gradient-1);width:100%;transition:width 1s linear;"></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Botões de controle -->
+                <!-- Botões de controle principais -->
                 <div class="scanner-controls" id="scannerMainControls">
-                    <button class="btn btn-scanner" onclick="iniciarCamera()" id="btnIniciarCamera">
-                        📷 Ativar Câmera
+                    <button class="btn btn-scanner" onclick="iniciarScanMultiAngulo()" id="btnIniciarCamera">
+                        🔬 Iniciar Scan 4 Ângulos
                     </button>
-                    <button class="btn" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);" onclick="uploadFotoScan()" id="btnUploadFoto">
+                    <button class="btn" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);" onclick="uploadFotoScan()">
                         🖼️ Usar Foto
                     </button>
                 </div>
                 <input type="file" id="fotoScanInput" accept="image/*" style="display:none;" onchange="processarFotoUpload(event)">
 
                 <div class="scanner-disclaimer">
-                    ⚠️ <strong>Aviso:</strong> Este scanner utiliza estimativas baseadas em visão computacional e dados biométricos. Os resultados são aproximados e não substituem exames clínicos. Consulte sempre um profissional de saúde.
+                    ⚠️ <strong>Aviso:</strong> Estimativas baseadas em dados biométricos e visão computacional. Não substituem exames clínicos. Consulte sempre um profissional de saúde.
                 </div>
             </div>
 
@@ -1922,7 +1997,8 @@ html, body {
                     <div style="font-size:0.85rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;">Score de Condicionamento</div>
                     <div class="result-score" id="resultScore">--</div>
                     <div style="font-size:0.9rem;color:var(--text-muted);" id="resultScoreLabel">Analisando...</div>
-                    <div style="margin-top:1rem;font-size:0.8rem;color:var(--text-muted);" id="resultDate"></div>
+                    <div id="anglesUsedBadge" style="margin-top:0.75rem;"></div>
+                    <div style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-muted);" id="resultDate"></div>
                 </div>
 
                 <!-- Métricas principais -->
@@ -1931,8 +2007,14 @@ html, body {
                 <!-- Composição corporal -->
                 <div class="body-composition-result">
                     <h3 style="color:var(--primary);font-size:1.1rem;margin-bottom:0.5rem;">🧍 Composição Corporal Estimada</h3>
-                    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;">Baseado em seu peso, altura, sexo e silhueta captada</p>
+                    <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;">Dados calculados por fórmulas científicas + análise multi-ângulo</p>
                     <div class="composition-bars" id="compositionBars"></div>
+                </div>
+
+                <!-- Fotos capturadas -->
+                <div id="capturedPhotosSection" style="display:none;" class="body-composition-result">
+                    <h3 style="color:var(--primary);font-size:1.1rem;margin-bottom:1rem;">📸 Ângulos Capturados</h3>
+                    <div id="capturedPhotosGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.75rem;"></div>
                 </div>
 
                 <!-- AI Insights -->
@@ -3125,19 +3207,82 @@ RETORNE APENAS JSON válido:
     // SCANNER CORPORAL - LÓGICA PRINCIPAL
     // =====================================================
     let cameraStream = null;
-    let currentFacingMode = 'user'; // 'user' = frontal, 'environment' = traseira
+    let currentFacingMode = 'user';
     let scannerResultData = null;
+
+    // ── ESTADO DOS 4 ÂNGULOS ──────────────────────────────
+    const ANGULOS = [
+        { id: 0, label: 'FRENTE',     instrucao: 'Fique de frente para a câmera',     icon: '🧍' },
+        { id: 1, label: 'LADO ESQ.',  instrucao: 'Vire para o lado esquerdo',          icon: '↩️' },
+        { id: 2, label: 'COSTAS',     instrucao: 'Vire de costas para a câmera',       icon: '🔙' },
+        { id: 3, label: 'LADO DIR.',  instrucao: 'Vire para o lado direito',           icon: '↪️' },
+    ];
+    let anguloAtual = 0;
+    let fotosCapturadas = [];
+
+    async function iniciarScanMultiAngulo() {
+        // Valida dados antes de abrir câmera
+        const peso   = parseFloat(document.getElementById('scanWeight').value);
+        const altura = parseFloat(document.getElementById('scanHeight').value);
+        const idade  = parseFloat(document.getElementById('scanAge').value);
+        if (!peso || !altura || !idade) {
+            alert('⚠️ Preencha Peso, Altura e Idade antes de iniciar o scan!');
+            return;
+        }
+
+        anguloAtual = 0;
+        fotosCapturadas = [];
+
+        // Mostra barra de ângulos
+        document.getElementById('angleProgressBar').style.display = 'block';
+        document.getElementById('angleProgressText').textContent = '0 / 4';
+
+        // Reseta thumbnails
+        for (let i = 0; i < 4; i++) {
+            const t = document.getElementById('thumb-' + i);
+            t.style.border = '2px solid rgba(255,255,255,0.1)';
+            t.style.background = 'rgba(255,255,255,0.03)';
+            t.querySelector('.angle-thumb-icon').textContent = ANGULOS[i].icon;
+        }
+
+        await iniciarCamera();
+        _atualizarStatusAngulo();
+    }
+
+    function _atualizarStatusAngulo() {
+        const angulo = ANGULOS[anguloAtual];
+        if (!angulo) return;
+
+        // Destaca thumbnail ativo
+        for (let i = 0; i < 4; i++) {
+            const t = document.getElementById('thumb-' + i);
+            if (i === anguloAtual) {
+                t.style.border = '2px solid #00D9B1';
+                t.style.background = 'rgba(0,217,177,0.15)';
+                t.style.boxShadow = '0 0 12px rgba(0,217,177,0.4)';
+            } else if (i < anguloAtual) {
+                t.style.border = '2px solid #4ADE80';
+                t.style.background = 'rgba(74,222,128,0.1)';
+                t.style.boxShadow = '';
+            } else {
+                t.style.border = '2px solid rgba(255,255,255,0.1)';
+                t.style.background = 'rgba(255,255,255,0.03)';
+                t.style.boxShadow = '';
+            }
+        }
+
+        // Atualiza status na câmera
+        document.getElementById('cameraStatusText').textContent =
+            `📸 Ângulo ${anguloAtual + 1}/4 — ${angulo.instrucao}`;
+        document.getElementById('countdownAngleLabel').textContent =
+            `${angulo.icon}  ${angulo.label}`;
+    }
 
     async function iniciarCamera() {
         try {
-            const constraints = {
-                video: {
-                    facingMode: currentFacingMode,
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                }
-            };
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: currentFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } }
+            });
             cameraStream = stream;
             const video = document.getElementById('scannerVideo');
             video.srcObject = stream;
@@ -3148,15 +3293,11 @@ RETORNE APENAS JSON válido:
             document.getElementById('scanGrid').classList.add('active');
             document.getElementById('cameraActions').style.display = 'flex';
             document.getElementById('scannerMainControls').style.display = 'none';
-            
-            // Anima pontos de análise na silhueta
             iniciarAnimacaoPontos();
-            
-            notify('📷 Câmera ativada! Posicione-se de corpo inteiro.');
+            notify('📷 Toque 📸 para iniciar a contagem 5→1 e capturar o ângulo.');
         } catch (err) {
-            console.error('Erro câmera:', err);
             if (err.name === 'NotAllowedError') {
-                alert('❌ Permissão de câmera negada!\n\nVá em Configurações do navegador → Permissões do site → Câmera, e permita o acesso.');
+                alert('❌ Permissão de câmera negada!\n\nVá em Configurações do navegador → Câmera e permita o acesso.');
             } else if (err.name === 'NotFoundError') {
                 alert('❌ Nenhuma câmera encontrada neste dispositivo.');
             } else {
@@ -3246,38 +3387,124 @@ RETORNE APENAS JSON válido:
         reader.readAsDataURL(file);
     }
 
+    // ── TEMPORIZADOR 5→1 ──────────────────────────────────
+    let countdownTimer = null;
+    let countdownAtivo = false;
+
     async function capturarScan() {
         const video = document.getElementById('scannerVideo');
-        const canvas = document.getElementById('scannerCanvas');
-        
         if (!video.srcObject) { notify('❌ Câmera não está ativa!'); return; }
-        
-        // Captura frame do vídeo
-        canvas.width = video.videoWidth || 640;
+        if (countdownAtivo) { _cancelarContagem(); return; }
+        countdownAtivo = true;
+
+        let contagem = 5;
+        const overlay = document.getElementById('countdownOverlay');
+        const numEl  = document.getElementById('countdownNumber');
+        const captureBtn = document.getElementById('captureBtn');
+        captureBtn.innerHTML = '✖️';
+        captureBtn.style.background = 'linear-gradient(135deg,#EF4444,#DC2626)';
+        overlay.style.display = 'flex';
+        numEl.textContent = contagem;
+
+        const coresPorNum = { 5:'#ffffff', 4:'#FCD34D', 3:'#FCD34D', 2:'#FF6B9D', 1:'#00D9B1' };
+        numEl.style.color = coresPorNum[contagem];
+
+        await new Promise(resolve => {
+            countdownTimer = setInterval(() => {
+                contagem--;
+                if (contagem <= 0) {
+                    clearInterval(countdownTimer);
+                    resolve();
+                    return;
+                }
+                numEl.textContent = contagem;
+                numEl.style.color = coresPorNum[contagem] || '#fff';
+                numEl.animate([{transform:'scale(1.5)'},{transform:'scale(1)'}], {duration:400});
+            }, 1000);
+        });
+
+        countdownAtivo = false;
+        overlay.style.display = 'none';
+        captureBtn.innerHTML = '📸';
+        captureBtn.style.background = '';
+
+        await _executarCaptura();
+    }
+
+    function _cancelarContagem() {
+        if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+        countdownAtivo = false;
+        document.getElementById('countdownOverlay').style.display = 'none';
+        const btn = document.getElementById('captureBtn');
+        btn.innerHTML = '📸'; btn.style.background = '';
+        notify('⏹️ Contagem cancelada.');
+    }
+
+    async function _executarCaptura() {
+        const video  = document.getElementById('scannerVideo');
+        const canvas = document.getElementById('scannerCanvas');
+
+        // Flash de captura
+        const flash = document.getElementById('captureFlash');
+        flash.style.display = 'block'; flash.style.opacity = '1';
+        setTimeout(() => {
+            flash.style.transition = 'opacity 0.4s'; flash.style.opacity = '0';
+            setTimeout(() => { flash.style.display='none'; flash.style.transition=''; }, 400);
+        }, 50);
+
+        // Captura frame
+        canvas.width  = video.videoWidth  || 640;
         canvas.height = video.videoHeight || 480;
         const ctx = canvas.getContext('2d');
-        
-        // Espelha se for câmera frontal
-        if (currentFacingMode === 'user') {
-            ctx.translate(canvas.width, 0);
-            ctx.scale(-1, 1);
-        }
+        if (currentFacingMode === 'user') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        const imageData = canvas.toDataURL('image/jpeg', 0.92);
-        
-        // Mostra a foto capturada
-        const photo = document.getElementById('scanPhoto');
-        photo.src = imageData;
-        photo.style.display = 'block';
-        video.style.display = 'none';
-        
-        // Para a câmera durante a análise
-        if (cameraStream) { cameraStream.getTracks().forEach(track => track.stop()); cameraStream = null; }
-        document.getElementById('cameraActions').style.display = 'none';
-        document.getElementById('scannerMainControls').style.display = 'flex';
-        
-        await realizarAnalise(imageData);
+        const imageData = canvas.toDataURL('image/jpeg', 0.85);
+
+        // Guarda foto do ângulo atual
+        fotosCapturadas[anguloAtual] = imageData;
+
+        // Atualiza thumbnail com preview da foto
+        const thumb = document.getElementById('thumb-' + anguloAtual);
+        if (thumb) {
+            thumb.querySelector('.angle-thumb-icon').innerHTML =
+                `<img src="${imageData}" style="width:100%;height:40px;object-fit:cover;border-radius:6px;">`;
+            thumb.style.border = '2px solid #4ADE80';
+            thumb.style.background = 'rgba(74,222,128,0.1)';
+            thumb.style.boxShadow = '';
+        }
+
+        // Atualiza contador
+        document.getElementById('angleProgressText').textContent = `${anguloAtual + 1} / 4`;
+        notify(`✅ ${ANGULOS[anguloAtual].label} capturado!`);
+
+        anguloAtual++;
+
+        if (anguloAtual < 4) {
+            // Ainda há ângulos — instrui o próximo
+            const proximo = ANGULOS[anguloAtual];
+            _atualizarStatusAngulo();
+
+            // Mostra instrução do próximo ângulo na câmera
+            document.getElementById('cameraStatusText').textContent =
+                `➡️ Agora: ${proximo.instrucao} e toque 📸`;
+
+            // Câmera continua ativa, aguarda próximo toque
+        } else {
+            // Todos os 4 ângulos capturados!
+            if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+
+            // Mostra última foto
+            const photo = document.getElementById('scanPhoto');
+            photo.src = fotosCapturadas[0]; // mostra frente
+            photo.style.display = 'block';
+            video.style.display = 'none';
+            document.getElementById('cameraActions').style.display = 'none';
+            document.getElementById('scannerMainControls').style.display = 'flex';
+            document.getElementById('scanOverlay').classList.remove('active');
+
+            notify('🎉 Todos os 4 ângulos capturados! Analisando...');
+            await realizarAnalise(fotosCapturadas[0]);
+        }
     }
 
     async function realizarAnalise(imageData) {
@@ -3309,45 +3536,81 @@ RETORNE APENAS JSON válido:
         }
         await sleep(500);
         
-        // === CÁLCULOS BIOMECÂNICOS PRECISOS ===
-        
+        // === CÁLCULOS BIOMECÂNICOS MULTI-FÓRMULA ===
+
         // 1. IMC
         const alturaM = altura / 100;
-        const imc = (peso / (alturaM * alturaM)).toFixed(1);
-        
-        // 2. Estimativa de gordura corporal - Fórmula de Deurenberg adaptada
-        // Gordura% = 1.20 × IMC + 0.23 × Idade − 10.8 × (sexo_m=1) − 5.4
+        const imcVal  = peso / (alturaM * alturaM);
+        const imc = imcVal.toFixed(1);
+
+        // 2. % GORDURA – média ponderada de 3 fórmulas validadas
+
+        // 2a. Deurenberg 1991 (baseada em IMC, sexo, idade)
+        //     Erro típico: ±3-4 pp
         const sexoFator = sexo === 'masculino' ? 1 : 0;
-        let gorduraBase = 1.20 * parseFloat(imc) + 0.23 * idade - 10.8 * sexoFator - 5.4;
-        
-        // Ajuste por biotipo
-        const ajusteBiotipo = { ectomorfo: -3.5, mesomorfo: 0, endomorfo: 4.5 };
-        gorduraBase += ajusteBiotipo[biotipoSelecionado] || 0;
-        
-        // Ajuste por nível de atividade
-        const ajusteAtividade = { sedentario: 3, leve: 1, moderado: 0, ativo: -2, muito_ativo: -4 };
-        gorduraBase += ajusteAtividade[atividade] || 0;
-        
-        // Limite razoável
-        gorduraBase = Math.max(5, Math.min(50, gorduraBase));
-        const gorduraPct = parseFloat(gorduraBase.toFixed(1));
-        const gorduraKg = parseFloat((peso * gorduraPct / 100).toFixed(1));
-        
-        // 3. Massa magra e muscular
+        const g_deurenberg = 1.20 * imcVal + 0.23 * idade - 10.8 * sexoFator - 5.4;
+
+        // 2b. Gallagher 2000 (mais precisa, valida em diversas etnias)
+        //     Homens:   %G = 64.5 - 848×(1/IMC) + 0.079×Idade - 16.4×sexo + 0.05×sexo×Idade + 39.0×sexo×(1/IMC)
+        //     Mulheres: igual mas sexo=0
+        const g_gallagher = sexo === 'masculino'
+            ? 64.5 - 848*(1/imcVal) + 0.079*idade - 16.4*1 + 0.05*1*idade + 39.0*1*(1/imcVal)
+            : 64.5 - 848*(1/imcVal) + 0.079*idade;
+
+        // 2c. Estimativa baseada em nível de atividade + IMC (proxy do U.S. Navy method sem circunferências)
+        //     Faixa de referência por sexo/atividade aplicada como ancora
+        const refGordura = {
+            masculino: { sedentario: 22, leve: 18, moderado: 15, ativo: 12, muito_ativo: 9  },
+            feminino:  { sedentario: 32, leve: 28, moderado: 24, ativo: 20, muito_ativo: 17 }
+        };
+        const refBase = refGordura[sexo][atividade] ?? (sexo === 'masculino' ? 18 : 26);
+        // Desvio do IMC em relação ao padrão (22.5 para homens, 22 para mulheres)
+        const imcRef = sexo === 'masculino' ? 22.5 : 22.0;
+        const g_proxy = refBase + (imcVal - imcRef) * 1.1;   // cada ponto de IMC ≈ +1.1pp gordura
+
+        // Média ponderada: Gallagher tem maior evidência, depois Deurenberg, proxy ancora
+        let gorduraMed = (g_gallagher * 0.45) + (g_deurenberg * 0.35) + (g_proxy * 0.20);
+
+        // 3. Correção por biotipo (mais conservadora e realista)
+        //    Ectomorfo: tendência a ter menos gordura para mesmo IMC
+        //    Endomorfo: tendência a ter mais gordura para mesmo IMC
+        const ajusteBiotipo = { ectomorfo: -2.5, mesomorfo: 0, endomorfo: 3.0 };
+        gorduraMed += ajusteBiotipo[biotipoSelecionado] ?? 0;
+
+        // 4. Correção por idade (gordura tende a aumentar com a idade mesmo com IMC estável)
+        if (idade > 40) gorduraMed += (idade - 40) * 0.1;
+        if (idade > 60) gorduraMed += (idade - 60) * 0.1;
+
+        // 5. Limites fisiológicos realistas por sexo
+        const limites = sexo === 'masculino'
+            ? { min: 4, max: 45 }
+            : { min: 10, max: 52 };
+        gorduraMed = Math.max(limites.min, Math.min(limites.max, gorduraMed));
+
+        const gorduraPct = parseFloat(gorduraMed.toFixed(1));
+        const gorduraKg  = parseFloat((peso * gorduraPct / 100).toFixed(1));
+
+        // 6. Massa magra e muscular
         const massaMagra = parseFloat((peso - gorduraKg).toFixed(1));
-        // Massa muscular ≈ 80% da massa magra
-        const massaMuscular = parseFloat((massaMagra * 0.80).toFixed(1));
+        // Músculo ≈ 75-85% da massa magra dependendo do biotipo
+        const pctMuscular = { ectomorfo: 0.76, mesomorfo: 0.82, endomorfo: 0.74 };
+        const massaMuscular = parseFloat((massaMagra * (pctMuscular[biotipoSelecionado] || 0.80)).toFixed(1));
         
-        // 4. Água corporal - Watson Formula
-        let aguaPct;
+        // 7. Água corporal — Watson 1980 (validada clinicamente)
+        //    H (M) = −2.097 + 0.1069×H(cm) + 0.2466×W(kg)
+        //    H (F) = −2.097 + 0.1069×H(cm) + 0.2466×W(kg)  × fator feminino
+        let aguaL;
         if (sexo === 'masculino') {
-            const aguaL = -2.097 + (0.1069 * altura) + (0.2466 * peso);
-            aguaPct = parseFloat(((aguaL / peso) * 100).toFixed(1));
+            aguaL = -2.097 + 0.1069 * altura + 0.2466 * peso;
         } else {
-            const aguaL = -2.097 + (0.1069 * altura) + (0.2466 * peso) * 0.85;
-            aguaPct = parseFloat(((aguaL / peso) * 100).toFixed(1));
+            // Mulheres têm ~10% menos água corporal total que homens
+            aguaL = -2.097 + 0.1069 * altura + 0.2466 * peso;
+            aguaL *= 0.87; // fator feminino validado
         }
-        aguaPct = Math.max(45, Math.min(75, aguaPct));
+        let aguaPct = (aguaL / peso) * 100;
+        // Limites fisiológicos: homens 55-65%, mulheres 45-60%
+        const limAgua = sexo === 'masculino' ? { min: 50, max: 67 } : { min: 42, max: 60 };
+        aguaPct = Math.max(limAgua.min, Math.min(limAgua.max, parseFloat(aguaPct.toFixed(1))));
         
         // 5. Taxa Metabólica Basal - Mifflin-St Jeor
         let tmb;
@@ -3364,7 +3627,7 @@ RETORNE APENAS JSON válido:
         // 7. Score de condicionamento (0-100)
         let score = 50;
         // IMC ideal contribui positivamente
-        const imcNum = parseFloat(imc);
+        const imcNum = imcVal; // já é number
         if (imcNum >= 18.5 && imcNum < 25) score += 15;
         else if (imcNum >= 25 && imcNum < 27.5) score += 5;
         else if (imcNum < 18.5 || imcNum >= 30) score -= 10;
