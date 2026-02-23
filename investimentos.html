@@ -465,6 +465,8 @@
 
 }
 
+
+
 /* ===========================
    📱 PATRIMÔNIO – MOBILE
    =========================== */
@@ -539,7 +541,310 @@
 }
 
 
+/* ═══════════════════════════════
+   📈 SISTEMA DE AÇÕES — CSS
+   ═══════════════════════════════ */
 
+#acoesModal .modal-content {
+    padding: 0;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.acoes-header {
+    background: linear-gradient(135deg, #0f1923 0%, #1a2a3a 60%, #1e3a5f 100%);
+    border-bottom: 2px solid rgba(0,150,255,0.25);
+    padding: 20px 28px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.acoes-header h2 {
+    margin: 0;
+    color: white;
+    font-size: 20px;
+    letter-spacing: 0.3px;
+}
+
+.acoes-header-sub { margin: 3px 0 0; color: rgba(255,255,255,0.55); font-size: 11px; }
+.btn-acoes-icon {
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 7px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    width: auto;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+.btn-acoes-icon:hover { background: rgba(255,255,255,0.32); }
+
+.acoes-close {
+    cursor: pointer; color: white; font-size: 26px; line-height: 1;
+    background: none; border: none; width: auto; padding: 0 4px; opacity: 0.8;
+}
+.acoes-close:hover { opacity: 1; }
+
+.acoes-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--border-color);
+    padding: 0 25px;
+    background: var(--card-bg);
+    position: sticky;
+    top: 69px;
+    z-index: 15;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.acoes-tabs::-webkit-scrollbar { display: none; }
+
+.acoes-tab-btn {
+    background: none; border: none; color: var(--text-color);
+    padding: 13px 20px; cursor: pointer; font-size: 13px; font-weight: 600;
+    border-bottom: 3px solid transparent; margin-bottom: -2px; border-radius: 0;
+    width: auto; opacity: 0.45; transition: all 0.2s; white-space: nowrap;
+}
+.acoes-tab-btn.ativo { color: #fd7e14; border-bottom-color: #fd7e14; opacity: 1; }
+
+.acoes-body { padding: 22px 25px; }
+
+.acoes-dash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.acoes-table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+}
+
+.acoes-table { width: 100%; border-collapse: collapse; min-width: 750px; }
+
+.acoes-table th {
+    background: rgba(0,0,0,0.055);
+    color: #888; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.4px; padding: 11px 14px; text-align: left;
+    border-bottom: 1px solid var(--border-color); white-space: nowrap;
+}
+
+.acoes-table td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+.acoes-table tr:last-child td { border-bottom: none; }
+.acoes-table tr:hover td { background: rgba(253,126,20,0.04); }
+
+.ticker-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #e8700c, #ff9f43);
+    color: white; padding: 3px 9px; border-radius: 6px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+}
+
+.badge-compra { background: #28a745; color: white; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; }
+.badge-venda  { background: #dc3545; color: white; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; }
+
+.acoes-charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.acoes-chart-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 18px;
+}
+.acoes-chart-card h4 { margin: 0 0 14px 0; font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.3px; }
+
+.acoes-form-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 25px;
+    max-width: 700px;
+}
+
+.acoes-tipo-row { display: flex; gap: 10px; margin-bottom: 20px; }
+
+.acoes-tipo-btn {
+    flex: 1; padding: 13px; border: 2px solid var(--border-color);
+    border-radius: 10px; background: var(--card-bg); color: var(--text-color);
+    font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; width: auto;
+}
+.acoes-tipo-btn.compra-ativo { border-color: #28a745; background: rgba(40,167,69,0.1); color: #28a745; }
+.acoes-tipo-btn.venda-ativo  { border-color: #dc3545; background: rgba(220,53,69,0.1);  color: #dc3545; }
+
+.acoes-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+
+.acoes-form-group { display: flex; flex-direction: column; gap: 5px; }
+.acoes-form-group label { font-size: 11px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+.acoes-form-group input,
+.acoes-form-group select { padding: 11px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--card-bg); color: var(--text-color); width: 100%; }
+.acoes-form-group input:focus,
+.acoes-form-group select:focus { border-color: #fd7e14; outline: none; }
+
+.ticker-input-row { display: flex; gap: 8px; }
+.ticker-input-row input { flex: 1; }
+
+.btn-buscar-cot {
+    background: linear-gradient(135deg, #fd7e14, #ff9f43);
+    color: white; border: none; padding: 11px 13px; border-radius: 8px;
+    cursor: pointer; font-size: 12px; white-space: nowrap; width: auto; font-weight: bold;
+}
+
+.btn-salvar-acao {
+    background: linear-gradient(135deg, #e8700c, #fd7e14);
+    color: white; border: none; padding: 14px; border-radius: 10px;
+    font-size: 15px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 6px;
+    transition: opacity 0.2s;
+}
+.btn-salvar-acao:hover { opacity: 0.88; }
+
+.acoes-empty { text-align: center; padding: 40px 20px; color: #888; }
+.acoes-empty-icon { font-size: 48px; margin-bottom: 10px; }
+.acoes-empty h3 { margin: 0 0 6px; }
+
+@media (max-width: 768px) {
+    .acoes-charts-row   { grid-template-columns: 1fr; }
+    .acoes-form-grid    { grid-template-columns: 1fr; }
+    .acoes-body         { padding: 14px; }
+    #acoesModal .modal-content { width: 100% !important; max-width: 100% !important; height: 100vh !important; border-radius: 0 !important; }
+}
+
+/* ═══ LINHA EXPANDIDA DA AÇÃO ═══ */
+.acoes-expand-row td {
+    padding: 0 !important;
+    border-bottom: 2px solid rgba(253,126,20,0.3) !important;
+}
+.acoes-expand-inner {
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(253,126,20,0.04), rgba(0,123,255,0.04));
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    animation: expandIn 0.2s ease;
+}
+@keyframes expandIn {
+    from { opacity:0; transform: translateY(-8px); }
+    to   { opacity:1; transform: translateY(0); }
+}
+.expand-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 12px 14px;
+    text-align: center;
+}
+.expand-card .ec-label {
+    font-size: 10px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 5px;
+}
+.expand-card .ec-val {
+    font-size: 16px;
+    font-weight: 700;
+}
+.expand-card .ec-sub {
+    font-size: 10px;
+    color: #aaa;
+    margin-top: 3px;
+}
+.acoes-table tr.acoes-row-clickable {
+    cursor: pointer;
+}
+.acoes-table tr.acoes-row-clickable:hover td {
+    background: rgba(253,126,20,0.06) !important;
+}
+
+/* ═══ OPÇÕES: ESTRATÉGIAS + UPLOAD + CARDS ═══ */
+
+.opc-estrategia-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 8px;
+    margin-bottom: 18px;
+}
+.opc-estrategia-btn {
+    padding: 10px 8px;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--card-bg);
+    color: var(--text-color);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    width: auto;
+    transition: all 0.18s;
+    line-height: 1.3;
+}
+.opc-estrategia-btn:hover { border-color: #007bff; background: rgba(0,123,255,0.06); }
+.opc-estrategia-btn.ativo { border-color: #007bff; background: rgba(0,123,255,0.12); color: #007bff; }
+
+.opc-upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 18px;
+}
+.opc-upload-area:hover { border-color: #007bff; background: rgba(0,123,255,0.04); }
+.opc-upload-icon { font-size: 36px; margin-bottom: 8px; }
+.opc-upload-area p { margin: 4px 0; font-size: 13px; color: #888; }
+
+.opc-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+.opc-filter-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.opc-filter-row select,
+.opc-filter-row input {
+    padding: 8px 10px;
+    font-size: 13px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-color);
+    width: auto;
+    flex: 1;
+    min-width: 130px;
+}
+
+/* Upload preview table */
+.upload-preview { max-height: 220px; overflow-y: auto; margin-top: 12px; border-radius: 8px; border: 1px solid var(--border-color); }
+.upload-preview table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.upload-preview th, .upload-preview td { padding: 7px 10px; border-bottom: 1px solid var(--border-color); text-align: left; }
+.upload-preview th { background: rgba(0,0,0,0.05); color: #888; }
+
+/* Mobile opções */
+@media (max-width: 768px) {
+    .opc-estrategia-grid { grid-template-columns: repeat(2, 1fr); }
+    .opc-cards-grid { grid-template-columns: 1fr; }
+    .opc-filter-row { flex-direction: column; }
+    .opc-filter-row select, .opc-filter-row input { width: 100%; min-width: unset; }
+}
     </style>
 </head>
 <body>
@@ -800,8 +1105,7 @@
 </p>
 </div>
     
-    <div class="total-card" style="background: linear-gradient(135deg, #fd7e14, #ff9f43);"><h3>📈 Ações</h3><p id="patrimonioAcoes" class="hidden-value">R$ 0,00</p></div>
-    
+<div class="total-card" style="background: linear-gradient(135deg, #fd7e14, #ff9f43); cursor:pointer; transition: transform 0.15s, box-shadow 0.15s;" onclick="abrirAcoes()" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.25)'" onmouseout="this.style.transform=''; this.style.boxShadow=''"><h3>📈 Ações</h3><p id="patrimonioAcoes" class="hidden-value">R$ 0,00</p><p style="font-size:11px; opacity:0.75; margin:4px 0 0;">clique para abrir ↗</p></div>    
     <!-- Linha 2: 5 cards de informações (um vai quebrar para linha 3 ou podemos ajustar depois) -->
     <div class="stats-card"><h4>Aportado BRL</h4><p id="totalAportadoBRL" class="hidden-value">R$ 0,00</p></div>
     
@@ -812,6 +1116,10 @@
     <div class="stats-card"><h4>Dólar com Lucro</h4><p id="valorDolarComLucroConsolidado" class="hidden-value">R$ 0,00</p></div>
     
     <div class="stats-card"><h4>Ganho sobre Aportado</h4><p id="rendimentoMedioTotal" class="hidden-value">0,00%</p></div>
+<div class="stats-card" onclick="abrirFuncionalidades()" style="cursor:pointer; border: 1px solid #0056b3; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,86,179,0.08)'" onmouseout="this.style.background=''">
+    <h4>🛠️ Outras Funcionalidades</h4>
+    <p style="font-size:14px; color:#0056b3;">Calculadora · ···</p>
+</div>
 </div>
 
 <div class="controls">
@@ -919,6 +1227,29 @@ let dolarFallbackHoje = null;
     let senhaMestra = localStorage.getItem('investflow_pass') || '1234';
     let privacidadeAtiva = true;
 let modoExcluirBanco = false;
+// 🔐 AUTO-LOGIN: verifica se já tem sessão salva
+document.addEventListener('DOMContentLoaded', async () => {
+    const sessaoSalva = localStorage.getItem('invest_sessao');
+    if (sessaoSalva) {
+        try {
+            const senhaSalva = atob(sessaoSalva);
+            showLoading(true);
+            const { data, error } = await sb
+                .from('usuarios')
+                .select('senha_hash')
+                .eq('username', 'bruno')
+                .single();
+            showLoading(false);
+
+            if (!error && data && data.senha_hash === senhaSalva) {
+                entrarNoSistema(); // entra direto!
+                return;
+            }
+        } catch(e) {}
+        // Se falhou, limpa sessão e pede senha normalmente
+        localStorage.removeItem('invest_sessao');
+    }
+});
 
 async function login() {
     const senhaDigitada = document.getElementById('mainPassword').value;
@@ -937,14 +1268,19 @@ async function login() {
     }
     
     if (data.senha_hash === senhaDigitada) {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('mainContainer').style.display = 'block';
-        inicializarSistema();
+        // 🔐 Salva sessão no localStorage
+        localStorage.setItem('invest_sessao', btoa(senhaDigitada));
+        entrarNoSistema();
     } else {
         alert('Senha incorreta!');
     }
 }
 
+function entrarNoSistema() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainContainer').style.display = 'block';
+    inicializarSistema();
+}
  async function inicializarSistema() {
     await carregarBancos();
     await carregarTodosRegistros();
@@ -2700,7 +3036,7 @@ function calcularRentabilidadeAcumuladaSimples(patrimonioAtual) {
     });
 
     if (totalAportado <= 0) {
-        document.getElementById('rendimentoMedio').textContent = '0,00%';
+document.getElementById('rendimentoMedio').textContent = '0,00%';
         if (bancoSelecionadoId === 'consolidado_total') {
             document.getElementById('rendimentoMedioTotal').textContent = '0,00%';
         }
@@ -3345,6 +3681,188 @@ async function carregarPatrimonio() {
         formatarMoeda(totalPrincipalNumero + totalImoveis);
 }
 
+// ==============================
+// 🛠️ OUTRAS FUNCIONALIDADES
+// ==============================
+
+let calcChartInstance = null;
+let tabelaCalcExpandida = false;
+let dadosTabela = [];
+
+function abrirFuncionalidades() {
+    document.getElementById('funcionalidadesModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function fecharFuncionalidades() {
+    document.getElementById('funcionalidadesModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function mostrarSecao(id) {
+    const secoes = ['secCalcJuros', 'secFunc2', 'secFunc3', 'secFunc4'];
+    const btns   = ['btnCalcJuros', 'btnFunc2', 'btnFunc3', 'btnFunc4'];
+    const secMap = { secCalcJuros: 'btnCalcJuros', secFunc2: 'btnFunc2', secFunc3: 'btnFunc3', secFunc4: 'btnFunc4' };
+
+    secoes.forEach(s => document.getElementById(s).style.display = 'none');
+
+    btns.forEach(b => {
+        const el = document.getElementById(b);
+        el.style.borderColor = 'var(--border-color)';
+        el.style.background   = 'var(--card-bg)';
+        el.style.opacity = '0.6';
+    });
+
+    document.getElementById(id).style.display = 'block';
+    const btnAtivo = document.getElementById(secMap[id]);
+    btnAtivo.style.borderColor = '#0056b3';
+    btnAtivo.style.background  = 'rgba(0,86,179,0.1)';
+    btnAtivo.style.opacity = '1';
+}
+
+function calcularJuros() {
+    const inicial   = desformatarMoeda(document.getElementById('calcInicial').value) || 0;
+    const mensal    = desformatarMoeda(document.getElementById('calcMensal').value)  || 0;
+    const prazo     = parseInt(document.getElementById('calcPrazo').value)           || 0;
+    const rentMes   = parseFloat(document.getElementById('calcRentMes').value)       || 0;
+    const adicional = desformatarMoeda(document.getElementById('calcAdicional').value) || 0;
+    const adicMes   = parseInt(document.getElementById('calcAdicionalMes').value)    || 0;
+
+    if (!prazo || !rentMes) {
+        alert('Preencha pelo menos o Prazo e a Rentabilidade ao Mês!');
+        return;
+    }
+
+    const taxa = rentMes / 100;
+    dadosTabela = [];
+
+    let saldo = inicial;
+    let totalInvestido = inicial;
+    let totalJuros = 0;
+
+    const labelsChart = [];
+    const saldosChart = [];
+    const investidoChart = [];
+
+    for (let mes = 1; mes <= prazo; mes++) {
+        const saldoInicial    = saldo;
+        const juros           = saldoInicial * taxa;
+        const saldoComJuros   = saldoInicial + juros;
+        const aporteAdicional = (mes === adicMes && adicional > 0) ? adicional : 0;
+        const saldoFinal      = saldoComJuros + mensal + aporteAdicional;
+
+        totalInvestido += mensal + aporteAdicional;
+        totalJuros     += juros;
+        saldo           = saldoFinal;
+
+        dadosTabela.push({ mes, saldoInicial, juros, saldoComJuros, mensal, aporteAdicional, saldoFinal });
+
+        // Marcadores: mês 1, cada 6 meses, último mês
+        if (mes === 1 || mes % 6 === 0 || mes === prazo) {
+            labelsChart.push(`Mês ${mes}`);
+            saldosChart.push(saldoFinal);
+            investidoChart.push(totalInvestido);
+        }
+    }
+
+    const rentTotal = totalInvestido > 0 ? ((saldo - totalInvestido) / totalInvestido) * 100 : 0;
+
+    // Atualiza cards
+    document.getElementById('resSaldoFinal').textContent     = formatarMoeda(saldo);
+    document.getElementById('resTotalInvestido').textContent = formatarMoeda(totalInvestido);
+    document.getElementById('resJurosTotal').textContent     = formatarMoeda(totalJuros);
+    document.getElementById('resRentTotal').textContent      = rentTotal.toFixed(2) + '%';
+
+    document.getElementById('calcResultados').style.display = 'block';
+
+    // Gráfico
+    if (calcChartInstance) calcChartInstance.destroy();
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#e0e0e0' : '#666';
+    const ctx = document.getElementById('calcChart').getContext('2d');
+    calcChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labelsChart,
+            datasets: [
+                {
+                    label: 'Saldo Total',
+                    data: saldosChart,
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40,167,69,0.15)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Total Investido',
+                    data: investidoChart,
+                    borderColor: '#0056b3',
+                    backgroundColor: 'rgba(0,86,179,0.08)',
+                    fill: true,
+                    tension: 0.4,
+                    borderDash: [5, 5]
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                tooltip: { callbacks: { label: c => c.dataset.label + ': ' + formatarMoeda(c.raw) } },
+                legend: { labels: { color: textColor } }
+            },
+            scales: {
+                x: { ticks: { color: textColor } },
+                y: { ticks: { color: textColor, callback: v => 'R$ ' + v.toLocaleString('pt-BR') } }
+            }
+        }
+    });
+
+    // Tabela: mostra primeiros 12 meses, resto oculto
+    renderizarTabelaCalc();
+    tabelaCalcExpandida = false;
+    document.getElementById('calcTabelaOculta').style.display = 'none';
+    document.getElementById('btnToggleTabela').textContent = '▼ Ver todos os meses';
+    if (prazo <= 12) document.getElementById('btnToggleTabela').style.display = 'none';
+    else document.getElementById('btnToggleTabela').style.display = 'inline-block';
+}
+
+function renderizarTabelaCalc() {
+    const corpo       = document.getElementById('calcTabelaCorpo');
+    const corpoOculto = document.getElementById('calcTabelaCorpoOculta');
+    corpo.innerHTML       = '';
+    corpoOculto.innerHTML = '';
+
+    const visiveis = dadosTabela.slice(0, 12);
+    const ocultos  = dadosTabela.slice(12);
+
+    const criarLinha = (r) => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid var(--border-color)';
+        tr.innerHTML = `
+            <td style="padding:9px 10px; font-weight:bold;">${r.mes}</td>
+            <td style="padding:9px 10px; text-align:right;">${formatarMoeda(r.saldoInicial)}</td>
+            <td style="padding:9px 10px; text-align:right; color:#28a745; font-weight:bold;">${formatarMoeda(r.juros)}</td>
+            <td style="padding:9px 10px; text-align:right;">${formatarMoeda(r.saldoComJuros)}</td>
+            <td style="padding:9px 10px; text-align:right;">${r.mensal > 0 ? formatarMoeda(r.mensal) : '-'}</td>
+            <td style="padding:9px 10px; text-align:right;">${r.aporteAdicional > 0 ? formatarMoeda(r.aporteAdicional) : '-'}</td>
+            <td style="padding:9px 10px; text-align:right; font-weight:bold; color:#0056b3;">${formatarMoeda(r.saldoFinal)}</td>
+        `;
+        return tr;
+    };
+
+    visiveis.forEach(r => corpo.appendChild(criarLinha(r)));
+    ocultos.forEach(r  => corpoOculto.appendChild(criarLinha(r)));
+}
+
+function toggleTabelaCalc() {
+    tabelaCalcExpandida = !tabelaCalcExpandida;
+    document.getElementById('calcTabelaOculta').style.display = tabelaCalcExpandida ? 'block' : 'none';
+    document.getElementById('btnToggleTabela').textContent = tabelaCalcExpandida
+        ? '▲ Recolher tabela'
+        : '▼ Ver todos os meses';
+}
+
 function editarImovel(id, descricao, valor) {
     document.getElementById('patDesc').value = descricao;
     document.getElementById('patValor').value = formatarMoeda(Number(valor));
@@ -3407,8 +3925,1634 @@ async function excluirPatrimonio(id) {
     await carregarPatrimonio();
 }
 
+// Ao abrir o modal
+function abrirFuncionalidades() {
+    document.getElementById('funcionalidadesModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    history.pushState({ modal: 'funcionalidades' }, ''); // 👈 adiciona ao histórico
+}
+
+function fecharFuncionalidades() {
+    document.getElementById('funcionalidadesModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+// Intercepta o botão de voltar do navegador
+window.addEventListener('popstate', function(event) {
+    const modal = document.getElementById('funcionalidadesModal');
+    if (modal && modal.style.display === 'block') {
+        fecharFuncionalidades();
+    }
+});
+
+
+// ═══════════════════════════════════════════════
+//  📈 SISTEMA DE AÇÕES
+// ═══════════════════════════════════════════════
+
+let acoesTransacoes = [];
+let acoesCotacoes   = {};
+let acoesChartPizza = null;
+let acoesChartLine  = null;
+
+// ── Abrir / Fechar ──────────────────────────────
+async function abrirAcoes() {
+    document.getElementById('acoesModal').style.display = 'flex';
+    history.pushState({ modal: 'acoes' }, '');
+    await carregarAcoes();
+}
+
+function fecharAcoes() {
+    document.getElementById('acoesModal').style.display = 'none';
+}
+
+// Adiciona ao popstate existente — se já tiver o listener, inclua esta linha dentro dele:
+window.addEventListener('popstate', function(e) {
+    if (document.getElementById('acoesModal')?.style.display === 'flex') {
+        fecharAcoes(); return;
+    }
+});
+
+// ── Tabs ────────────────────────────────────────
+function acoesTab(aba) {
+    ['carteira','transacoes','adicionar'].forEach(a => {
+        document.getElementById('secao-' + a).style.display = a === aba ? 'block' : 'none';
+        document.getElementById('tab-' + a).classList.toggle('ativo', a === aba);
+    });
+    if (aba === 'transacoes') renderizarTransacoes();
+}
+
+// ── Carregar do Supabase ─────────────────────────
+async function carregarAcoes() {
+    showLoading(true);
+    const { data, error } = await sb
+        .from('acoes_transacoes')
+        .select('*')
+        .order('data', { ascending: false });
+    showLoading(false);
+
+    if (error) {
+        document.getElementById('acoes-status').textContent =
+            error.code === '42P01'
+                ? '⚠️ Tabela não encontrada — execute o SQL do Passo 1'
+                : '❌ Erro: ' + error.message;
+        return;
+    }
+
+    acoesTransacoes = data || [];
+    popularFiltroTicker();
+    await atualizarCotacoesAcoes();
+    renderizarCarteira();
+    renderizarTransacoes();
+    renderizarGraficoLinha();
+}
+
+// ── Cotações via brapi.dev ───────────────────────
+async function atualizarCotacoesAcoes() {
+    const tickers = [...new Set(
+    acoesTransacoes
+        .filter(t => !t.nome?.startsWith('CALL') && !t.nome?.startsWith('PUT'))
+        .map(t => t.ticker)
+)];
+    if (!tickers.length) {
+        document.getElementById('acoes-status').textContent = 'Nenhuma ação cadastrada';
+        return;
+    }
+
+    // Tenta brapi primeiro (sem chave, limite 15/min)
+    let sucesso = false;
+    try {
+        const tickerStr = tickers.slice(0, 20).join(',');
+        const res  = await fetch(`https://brapi.dev/api/quote/${tickerStr}?fundamental=false`);
+        if (!res.ok) throw new Error('status ' + res.status);
+        const data = await res.json();
+
+        if (data.results && data.results.length > 0) {
+            data.results.forEach(s => {
+                if (s.regularMarketPrice) {
+                    acoesCotacoes[s.symbol] = {
+                        price:     s.regularMarketPrice,
+                        change:    s.regularMarketChange    || 0,
+                        changePct: s.regularMarketChangePercent || 0,
+                        nome:      s.longName || s.shortName || s.symbol
+                    };
+                }
+            });
+            sucesso = true;
+        }
+    } catch(e) {
+        console.warn('brapi falhou:', e.message);
+    }
+
+    // Fallback: busca ticker por ticker individualmente (pega os que faltaram)
+    const semCotacao = tickers.filter(t => !acoesCotacoes[t] || !acoesCotacoes[t].price);
+for (const ticker of semCotacao) {
+        // Tenta brapi primeiro
+        try {
+            const res  = await fetch(`https://brapi.dev/api/quote/${ticker}?fundamental=false&dividends=false`);
+            const data = await res.json();
+            if (data.results?.[0]?.regularMarketPrice) {
+                const s = data.results[0];
+                acoesCotacoes[ticker] = { price: s.regularMarketPrice, change: s.regularMarketChange||0, changePct: s.regularMarketChangePercent||0, nome: s.longName||s.shortName||ticker };
+                sucesso = true;
+                await new Promise(r => setTimeout(r, 200));
+                continue;
+            }
+        } catch(e) { /* tenta Yahoo */ }
+
+   // Fallback Yahoo Finance
+        try {
+            const sufixo = /^[A-Z]{4}\d/.test(ticker) ? '.SA' : '';
+            const _yUrl  = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker+sufixo}?interval=1d&range=1d`;
+            const res    = await fetch(`https://corsproxy.io/?` + encodeURIComponent(_yUrl));
+            const data   = await res.json();
+            const meta   = data?.chart?.result?.[0]?.meta;
+            if (meta?.regularMarketPrice) {
+                acoesCotacoes[ticker] = { price: meta.regularMarketPrice, change: 0, changePct: meta.regularMarketChangePercent||0, nome: meta.longName||meta.shortName||ticker };
+                sucesso = true;
+            }
+        } catch(e) { /* silencioso */ }
+
+        await new Promise(r => setTimeout(r, 200));
+    }
+    const hora = new Date().toLocaleTimeString('pt-BR');
+    const comCot = tickers.filter(t => acoesCotacoes[t]?.price).length;
+    document.getElementById('acoes-status').textContent = sucesso
+        ? `🟢 ${comCot}/${tickers.length} cotações às ${hora}`
+        : `🟡 API offline — cotações manuais`;
+
+    renderizarCarteira();
+    atualizarDashboardAcoes();
+}
+// ── Calcular Posições (FIFO/PM) ──────────────────
+function calcularPosicoes() {
+    const pos = {};
+    [...acoesTransacoes]
+        .sort((a,b) => new Date(a.data) - new Date(b.data))
+        .forEach(t => {
+            if (!pos[t.ticker]) pos[t.ticker] = { ticker: t.ticker, nome: t.nome || t.ticker, qtd: 0, custoTotal: 0, plRealizado: 0 };
+            const p = pos[t.ticker];
+            if (t.tipo === 'compra') {
+                p.custoTotal += t.quantidade * t.preco_unitario;
+                p.qtd        += t.quantidade;
+                if (!p.nome || p.nome === p.ticker) p.nome = t.nome || t.ticker;
+            } else {
+                const pm      = p.qtd > 0 ? p.custoTotal / p.qtd : 0;
+                p.plRealizado += (t.preco_unitario - pm) * t.quantidade;
+                p.custoTotal  -= pm * t.quantidade;
+                p.qtd         -= t.quantidade;
+            }
+        });
+    return Object.values(pos).filter(p => p.qtd > 0.0001);
+}
+
+// ── Renderizar Carteira ─────────────────────────
+function renderizarCarteira() {
+    const pos   = calcularPosicoes();
+    const tbody = document.getElementById('acoes-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    document.getElementById('acoes-count-pos').textContent =
+        pos.length + ' ativo' + (pos.length !== 1 ? 's' : '');
+
+    if (!pos.length) {
+        tbody.innerHTML = `<tr><td colspan="10"><div class="acoes-empty">
+            <div class="acoes-empty-icon">📉</div>
+            <h3>Carteira vazia</h3>
+            <p>Clique em <strong>Registrar</strong> para adicionar sua primeira ação</p>
+        </div></td></tr>`;
+        renderizarGraficoPizza([]);
+        return;
+    }
+
+    pos.forEach(p => {
+        const pm    = p.qtd > 0 ? p.custoTotal / p.qtd : 0;
+        const cot   = acoesCotacoes[p.ticker];
+        const preco = cot ? cot.price : null;
+        if (cot?.nome && (!p.nome || p.nome === p.ticker)) p.nome = cot.nome;
+
+        const valorAtual = preco !== null ? preco * p.qtd : null;
+        const pl    = valorAtual !== null ? valorAtual - p.custoTotal : null;
+        const plPct = p.custoTotal > 0 && pl !== null ? (pl / p.custoTotal) * 100 : null;
+        const hide  = privacidadeAtiva ? 'hidden-value' : '';
+
+        const cotDisplay   = preco !== null ? `<strong>${formatarMoeda(preco)}</strong>` : `<span style="color:#aaa;font-size:11px;">sem cotação</span>`;
+        const valDisplay   = valorAtual !== null ? `<span class="${hide} ${pl>=0?'pos':'neg'}">${formatarMoeda(valorAtual)}</span>` : `<span class="${hide}" style="color:#aaa">${formatarMoeda(p.custoTotal)}</span>`;
+        const plDisplay    = pl !== null ? `<span class="${hide} ${pl>=0?'pos':'neg'}">${formatarMoeda(pl)}</span>` : `<span style="color:#aaa">—</span>`;
+        const plPctDisplay = plPct !== null ? `<span class="${pl>=0?'pos':'neg'}">${plPct.toFixed(2)}%</span>` : `<span style="color:#aaa">—</span>`;
+        const diaDisplay   = cot ? `<span class="${cot.changePct>=0?'pos':'neg'}" style="font-size:12px;">${cot.changePct>=0?'▲':'▼'} ${Math.abs(cot.changePct).toFixed(2)}%</span>` : `<span style="color:#aaa">—</span>`;
+
+        // Linha principal (clicável)
+        const tr = document.createElement('tr');
+        tr.className = 'acoes-row-clickable';
+        tr.dataset.ticker = p.ticker;
+        tr.innerHTML = `
+            <td><span class="ticker-badge">${p.ticker}</span></td>
+            <td style="color:#888;font-size:12px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${p.nome}">${p.nome}</td>
+            <td class="${hide}">${p.qtd % 1 === 0 ? p.qtd.toFixed(0) : p.qtd.toFixed(4)}</td>
+            <td class="${hide}">${formatarMoeda(pm)}</td>
+            <td>${cotDisplay}</td>
+            <td>${valDisplay}</td>
+            <td>${plDisplay}</td>
+            <td>${plPctDisplay}</td>
+            <td>${diaDisplay}</td>
+            <td>
+                <div style="display:flex; gap:6px;">
+                    <button title="Registrar ajuste" onclick="event.stopPropagation(); abrirEditarPosicao('${p.ticker}')"
+                        style="background:#007bff; color:white; border:none; padding:6px 9px; border-radius:6px; cursor:pointer; font-size:13px; width:auto;">✏️</button>
+                    <button title="Excluir todas as transações" onclick="event.stopPropagation(); confirmarZerarPosicao('${p.ticker}')"
+                        style="background:#dc3545; color:white; border:none; padding:6px 9px; border-radius:6px; cursor:pointer; font-size:13px; width:auto;">🗑</button>
+                </div>
+            </td>
+        `;
+        tr.onclick = () => toggleExpandirAcao(p.ticker, p.qtd, pm);
+        tbody.appendChild(tr);
+
+        // Linha expandida (oculta inicialmente)
+        const trExp = document.createElement('tr');
+        trExp.id = `expand-${p.ticker}`;
+        trExp.className = 'acoes-expand-row';
+        trExp.style.display = 'none';
+        trExp.innerHTML = `<td colspan="10"><div class="acoes-expand-inner" id="expand-inner-${p.ticker}">Carregando...</div></td>`;
+        tbody.appendChild(trExp);
+    });
+
+    renderizarGraficoPizza(pos);
+    renderPLRealizado();
+    atualizarDashboardAcoes();
+}
+function renderPLRealizado() {
+    const todos = {};
+    [...acoesTransacoes].sort((a,b) => new Date(a.data)-new Date(b.data)).forEach(t => {
+        if (!todos[t.ticker]) todos[t.ticker] = { qtd:0, custo:0, pl:0 };
+        const p = todos[t.ticker];
+        if (t.tipo === 'compra') { p.custo += t.quantidade * t.preco_unitario; p.qtd += t.quantidade; }
+        else { const pm = p.qtd>0 ? p.custo/p.qtd : 0; p.pl += (t.preco_unitario - pm)*t.quantidade; p.custo -= pm*t.quantidade; p.qtd -= t.quantidade; }
+    });
+    const total = Object.values(todos).reduce((a,p) => a+p.pl, 0);
+    const box   = document.getElementById('acoes-pl-realizado-box');
+    if (Math.abs(total) > 0.01) {
+        box.style.display = 'block';
+        box.style.background   = total>=0 ? 'rgba(40,167,69,0.08)'  : 'rgba(220,53,69,0.08)';
+        box.style.borderColor  = total>=0 ? 'rgba(40,167,69,0.25)'  : 'rgba(220,53,69,0.25)';
+        box.style.border       = '1px solid';
+        document.getElementById('acoes-pl-realizado').textContent = formatarMoeda(total);
+        document.getElementById('acoes-pl-realizado').style.color = total>=0 ? '#28a745' : '#dc3545';
+    } else {
+        box.style.display = 'none';
+    }
+}
+
+// ── Gráfico Pizza ───────────────────────────────
+function renderizarGraficoPizza(pos) {
+    if (acoesChartPizza) { acoesChartPizza.destroy(); acoesChartPizza = null; }
+    const ctx = document.getElementById('acoes-pizza')?.getContext('2d');
+    if (!ctx || !pos.length) return;
+
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    const cores  = ['#fd7e14','#ff9f43','#28a745','#007bff','#6f42c1','#e83e8c','#20c997','#00bfff','#ffc107','#dc3545'];
+    const labels = pos.map(p => p.ticker);
+    const vals   = pos.map(p => acoesCotacoes[p.ticker] ? acoesCotacoes[p.ticker].price * p.qtd : p.custoTotal);
+
+    acoesChartPizza = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels, datasets: [{ data: vals, backgroundColor: cores.slice(0, labels.length), borderWidth: 2 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { color: isDark?'#e0e0e0':'#555', font:{size:11}, padding:10 } },
+                tooltip: { callbacks: { label: c => { const total=vals.reduce((a,b)=>a+b,0); return `${c.label}: ${formatarMoeda(c.raw)} (${(c.raw/total*100).toFixed(1)}%)`; } } }
+            }
+        }
+    });
+}
+
+// ── Gráfico Linha ───────────────────────────────
+function renderizarGraficoLinha() {
+    if (acoesChartLine) { acoesChartLine.destroy(); acoesChartLine = null; }
+    const ctx = document.getElementById('acoes-line')?.getContext('2d');
+    if (!ctx || !acoesTransacoes.length) return;
+
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    const meses = {};
+    let acum = 0;
+    [...acoesTransacoes].sort((a,b) => new Date(a.data)-new Date(b.data)).forEach(t => {
+        acum += t.tipo === 'compra' ? t.quantidade * t.preco_unitario : -(t.quantidade * t.preco_unitario);
+        meses[t.data.substring(0,7)] = Math.max(0, acum);
+    });
+
+    acoesChartLine = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Object.keys(meses),
+            datasets: [{ label: 'Capital Investido', data: Object.values(meses), borderColor:'#fd7e14', backgroundColor:'rgba(253,126,20,0.1)', fill:true, tension:0.35, pointRadius:4, pointBackgroundColor:'#fd7e14' }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend:{display:false}, tooltip:{ callbacks:{ label: c => formatarMoeda(c.raw) } } },
+            scales: {
+                x: { ticks:{ color: isDark?'#999':'#666', font:{size:10} } },
+                y: { ticks:{ color: isDark?'#999':'#666', callback: v => 'R$ '+v.toLocaleString('pt-BR') } }
+            }
+        }
+    });
+}
+
+// ── Dashboard Cards ─────────────────────────────
+function atualizarDashboardAcoes() {
+    const pos = calcularPosicoes();
+    let investido = 0, mercado = 0;
+    pos.forEach(p => {
+        investido += p.custoTotal;
+        mercado   += acoesCotacoes[p.ticker] ? acoesCotacoes[p.ticker].price * p.qtd : p.custoTotal;
+    });
+    const pl  = mercado - investido;
+    const pct = investido > 0 ? (pl / investido) * 100 : 0;
+    const cor = pl >= 0 ? 'linear-gradient(135deg, #28a745, #20c997)' : 'linear-gradient(135deg, #dc3545, #e83e8c)';
+
+    document.getElementById('acoes-total-investido').textContent = formatarMoeda(investido);
+    document.getElementById('acoes-valor-mercado').textContent   = formatarMoeda(mercado);
+    document.getElementById('acoes-pl').textContent              = formatarMoeda(pl);
+    document.getElementById('acoes-rentabilidade').textContent   = pct.toFixed(2) + '%';
+    document.getElementById('acoes-card-pl').style.background    = cor;
+    document.getElementById('acoes-card-rent').style.background  = cor;
+
+    // Atualiza card do Consolidado Total
+    const elPrincipal = document.getElementById('patrimonioAcoes');
+    if (elPrincipal) elPrincipal.textContent = formatarMoeda(mercado);
+}
+
+// ── Renderizar Transações ────────────────────────
+function renderizarTransacoes() {
+    const tbody = document.getElementById('acoes-trans-tbody');
+    if (!tbody) return;
+    const filtTick = document.getElementById('acoes-filtro-ticker')?.value || '';
+    const filtTipo = document.getElementById('acoes-filtro-tipo')?.value  || '';
+
+    let lista = [...acoesTransacoes];
+    if (filtTick) lista = lista.filter(t => t.ticker === filtTick);
+    if (filtTipo) lista = lista.filter(t => t.tipo   === filtTipo);
+
+    tbody.innerHTML = '';
+    if (!lista.length) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:#888;">Nenhuma transação encontrada</td></tr>`;
+        return;
+    }
+
+    lista.forEach(t => {
+        const total = t.quantidade * t.preco_unitario;
+        const hide  = privacidadeAtiva ? 'hidden-value' : '';
+        const tr    = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-size:12px;color:#888;">${formatarDataBR(t.data)}</td>
+            <td><span class="ticker-badge">${t.ticker}</span></td>
+            <td><span class="${t.tipo==='compra'?'badge-compra':'badge-venda'}">${t.tipo==='compra'?'▲ COMPRA':'▼ VENDA'}</span></td>
+            <td class="${hide}">${t.quantidade%1===0?t.quantidade.toFixed(0):t.quantidade.toFixed(4)}</td>
+            <td class="${hide}">${formatarMoeda(t.preco_unitario)}</td>
+            <td class="${hide}"><strong>${formatarMoeda(total)}</strong></td>
+            <td style="font-size:12px;color:#888;">${t.corretora||'—'}</td>
+            <td><button class="btn-delete" style="padding:5px 8px;font-size:11px;" onclick="excluirAcaoTransacao('${t.id}')">✕</button></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// ── Selecionar Tipo (Compra/Venda) ───────────────
+function selecionarTipoAcao(tipo) {
+    document.getElementById('acaoTipo').value = tipo;
+    document.getElementById('btnTipoCompra').className = 'acoes-tipo-btn' + (tipo==='compra' ? ' compra-ativo' : '');
+    document.getElementById('btnTipoVenda').className  = 'acoes-tipo-btn' + (tipo==='venda'  ? ' venda-ativo'  : '');
+}
+
+// ── Buscar Cotação Manual ────────────────────────
+async function buscarCotacaoManual() {
+    const ticker = document.getElementById('acaoTicker').value.trim().toUpperCase();
+    if (!ticker) { alert('Digite o ticker primeiro!'); return; }
+
+    // 1️⃣ Cache local
+    if (acoesCotacoes[ticker]?.price) {
+        const pre = document.getElementById('acaoPreco');
+        pre.value = acoesCotacoes[ticker].price.toFixed(2);
+        mascaraMoeda(pre, 'BRL');
+        document.getElementById('acaoNome').value = acoesCotacoes[ticker].nome || ticker;
+        calcularTotalAcao();
+        alert(`✅ ${ticker}: ${formatarMoeda(acoesCotacoes[ticker].price)}`);
+        return;
+    }
+
+    let preco = null, nome = null;
+
+    // 2️⃣ Tenta brapi.dev
+    try {
+        const res = await fetch(`https://brapi.dev/api/quote/${ticker}?fundamental=false&dividends=false`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.results?.[0]?.regularMarketPrice) {
+                preco = data.results[0].regularMarketPrice;
+                nome  = data.results[0].longName || data.results[0].shortName || ticker;
+            }
+        }
+    } catch(e) { console.warn('brapi falhou:', e.message); }
+
+    // 3️⃣ Fallback: Yahoo Finance (.SA para ações BR, sem sufixo para EUA)
+    if (!preco) {
+        try {
+            const sufixo  = /^[A-Z]{4}\d/.test(ticker) ? '.SA' : ''; // BBAS3 → .SA, AAPL → sem sufixo
+            const symbol  = ticker + sufixo;
+           const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`;
+            const res     = await fetch(`https://corsproxy.io/?` + encodeURIComponent(yahooUrl));
+            if (res.ok) {
+                const data = await res.json();
+                const meta = data?.chart?.result?.[0]?.meta;
+                if (meta?.regularMarketPrice) {
+                    preco = meta.regularMarketPrice;
+                    nome  = meta.longName || meta.shortName || ticker;
+                }
+            }
+        } catch(e) { console.warn('Yahoo Finance falhou:', e.message); }
+    }
+
+    // 4️⃣ Resultado
+    if (preco) {
+        const pre = document.getElementById('acaoPreco');
+        pre.value = preco.toFixed(2);
+        mascaraMoeda(pre, 'BRL');
+        document.getElementById('acaoNome').value = nome || ticker;
+        acoesCotacoes[ticker] = { price: preco, change: 0, changePct: 0, nome: nome || ticker };
+        calcularTotalAcao();
+        alert(`✅ ${ticker}: ${formatarMoeda(preco)}`);
+    } else {
+        alert(`⚠️ Não foi possível buscar ${ticker} automaticamente.\nPreencha o preço manualmente.`);
+    }
+}
+
+// ── Preview Total da Operação ────────────────────
+function calcularTotalAcao() {
+    const qtd   = parseFloat(document.getElementById('acaoQtd').value) || 0;
+    const preco = desformatarMoeda(document.getElementById('acaoPreco').value);
+    const prev  = document.getElementById('acao-preview');
+    if (qtd > 0 && preco > 0) {
+        document.getElementById('acao-preview-valor').textContent = formatarMoeda(qtd * preco);
+        prev.style.display = 'block';
+    } else {
+        prev.style.display = 'none';
+    }
+}
+
+// ── Salvar Transação ─────────────────────────────
+async function salvarAcaoTransacao() {
+    const ticker    = document.getElementById('acaoTicker').value.trim().toUpperCase();
+    const nome      = document.getElementById('acaoNome').value.trim();
+    const tipo      = document.getElementById('acaoTipo').value;
+    const qtd       = parseFloat(document.getElementById('acaoQtd').value);
+    const preco     = desformatarMoeda(document.getElementById('acaoPreco').value);
+    const data      = document.getElementById('acaoData').value;
+    const corretora = document.getElementById('acaoCorretora').value.trim();
+
+    if (!ticker || !qtd || !preco || !data) { alert('Preencha: Ticker, Quantidade, Preço e Data!'); return; }
+    if (qtd <= 0 || preco <= 0)             { alert('Quantidade e preço devem ser maiores que zero!'); return; }
+
+    showLoading(true);
+    const { error } = await sb.from('acoes_transacoes').insert([{
+        ticker, nome: nome || ticker, tipo, quantidade: qtd,
+        preco_unitario: preco, data, corretora: corretora || null
+    }]);
+    showLoading(false);
+
+    if (error) { alert('Erro ao salvar: ' + error.message); return; }
+
+    // Limpar campos
+    ['acaoTicker','acaoNome','acaoQtd','acaoCorretora'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('acaoPreco').value = '';
+    document.getElementById('acao-preview').style.display = 'none';
+    document.getElementById('acaoData').value = new Date().toISOString().split('T')[0];
+
+    await carregarAcoes();
+    acoesTab('carteira');
+    alert('✅ Operação registrada com sucesso!');
+}
+
+// ── Excluir Transação ────────────────────────────
+async function excluirAcaoTransacao(id) {
+    if (!confirm('Excluir esta transação?')) return;
+    showLoading(true);
+    await sb.from('acoes_transacoes').delete().eq('id', id);
+    showLoading(false);
+    await carregarAcoes();
+}
+
+// ── Popular filtro de ticker ─────────────────────
+function popularFiltroTicker() {
+    const sel = document.getElementById('acoes-filtro-ticker');
+    if (!sel) return;
+    const tickers = [...new Set(acoesTransacoes.map(t => t.ticker))].sort();
+    sel.innerHTML = '<option value="">Todos os tickers</option>';
+    tickers.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o); });
+}
+
+// ── Helpers ──────────────────────────────────────
+function formatarDataBR(dataISO) {
+    if (!dataISO) return '—';
+    const [a, m, d] = dataISO.split('-');
+    return `${d}/${m}/${a}`;
+}
+
+// Seta data padrão ao abrir aba Registrar
+document.addEventListener('DOMContentLoaded', () => {
+    const el = document.getElementById('acaoData');
+    if (el) el.value = new Date().toISOString().split('T')[0];
+});
+
+function abrirEditarPosicao(ticker) {
+    // Vai para aba registrar já com o ticker preenchido
+    acoesTab('adicionar');
+    document.getElementById('acaoTicker').value = ticker;
+    // Busca o nome da posição
+    const pos = calcularPosicoes().find(p => p.ticker === ticker);
+    if (pos) document.getElementById('acaoNome').value = pos.nome;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    alert(`✏️ Registre um ajuste de compra ou venda para ${ticker}`);
+}
+
+async function confirmarZerarPosicao(ticker) {
+    const pos = calcularPosicoes().find(p => p.ticker === ticker);
+    if (!pos) return;
+    if (!confirm(`⚠️ Isso irá excluir TODAS as transações de ${ticker} (${pos.qtd} ações).\n\nTem certeza?`)) return;
+
+    showLoading(true);
+    await sb.from('acoes_transacoes').delete().eq('ticker', ticker);
+    showLoading(false);
+    await carregarAcoes();
+}
+
+// ══════════════════════════════
+// ⚡ SISTEMA DE OPÇÕES
+// ══════════════════════════════
+
+let listaOpcoes = [];
+let uploadOpcoesPendentes = [];
+
+const ESTRATEGIAS_CONFIG = {
+    venda_coberta_call: { label:'Venda Coberta de CALL', tipo:'venda',  modal:'call', cor:'#e8700c' },
+    venda_coberta_put:  { label:'Venda Coberta de PUT',  tipo:'venda',  modal:'put',  cor:'#6f42c1' },
+    compra_call:        { label:'Compra de CALL',        tipo:'compra', modal:'call', cor:'#007bff' },
+    compra_put:         { label:'Compra de PUT',         tipo:'compra', modal:'put',  cor:'#6f42c1' },
+    strangle_venda:     { label:'Strangle (Venda)',      tipo:'venda',  modal:'call', cor:'#28a745' },
+    strangle_compra:    { label:'Strangle (Compra)',     tipo:'compra', modal:'call', cor:'#17a2b8' },
+    straddle_venda:     { label:'Straddle (Venda)',      tipo:'venda',  modal:'call', cor:'#fd7e14' },
+    straddle_compra:    { label:'Straddle (Compra)',     tipo:'compra', modal:'call', cor:'#20c997' },
+    bull_call_spread:   { label:'Bull Call Spread',      tipo:'compra', modal:'call', cor:'#28a745' },
+    bear_put_spread:    { label:'Bear Put Spread',       tipo:'compra', modal:'put',  cor:'#dc3545' },
+    personalizado:      { label:'Personalizado',         tipo:'compra', modal:'call', cor:'#888'    },
+};
+
+function acoesTab(aba) {
+    ['carteira','transacoes','adicionar','opcoes'].forEach(a => {
+        const sec = document.getElementById('secao-' + a);
+        const tab = document.getElementById('tab-' + a);
+        if (sec) sec.style.display = a === aba ? 'block' : 'none';
+        if (tab) tab.classList.toggle('ativo', a === aba);
+    });
+    if (aba === 'transacoes') renderizarTransacoes();
+    if (aba === 'opcoes')     { carregarOpcoes(); }
+}
+
+function selecionarEstrategia(key) {
+    document.getElementById('opcEstrategia').value = key;
+    // Destaca botão ativo
+    document.querySelectorAll('.opc-estrategia-btn').forEach(b => b.classList.remove('ativo'));
+    event.currentTarget.classList.add('ativo');
+    // Preenche tipo e modalidade automaticamente
+    const cfg = ESTRATEGIAS_CONFIG[key];
+    if (cfg) {
+        selecionarTipoOpcao(cfg.tipo);
+        selecionarModalidade(cfg.modal);
+    }
+}
+
+function selecionarTipoOpcao(tipo) {
+    document.getElementById('opcTipo').value = tipo;
+    document.getElementById('btnOpcCompra').className = 'acoes-tipo-btn' + (tipo==='compra'?' compra-ativo':'');
+    document.getElementById('btnOpcVenda').className  = 'acoes-tipo-btn' + (tipo==='venda'?' venda-ativo':'');
+}
+
+function selecionarModalidade(mod) {
+    document.getElementById('opcModalidade').value = mod;
+    const callBtn = document.getElementById('btnOpcCall');
+    const putBtn  = document.getElementById('btnOpcPut');
+    if (!callBtn || !putBtn) return;   // ← LINHA ADICIONADA
+    
+    const callStyle = mod==='call'
+        ? 'flex:1;border-color:#007bff;background:rgba(0,123,255,0.12);color:#007bff;padding:13px;border:2px solid;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;width:auto;'
+        : 'flex:1;border-color:var(--border-color);background:var(--card-bg);color:var(--text-color);padding:13px;border:2px solid;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;width:auto;';
+    const putStyle  = mod==='put'
+        ? 'flex:1;border-color:#6f42c1;background:rgba(111,66,193,0.12);color:#6f42c1;padding:13px;border:2px solid;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;width:auto;'
+        : 'flex:1;border-color:var(--border-color);background:var(--card-bg);color:var(--text-color);padding:13px;border:2px solid;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;width:auto;';
+    callBtn.style.cssText = callStyle;
+    putBtn.style.cssText  = putStyle;
+}
+
+// Auto-detecta ativo objeto pelo código da opção (PETRH240 → PETR4)
+function autoDetectAtivo() {
+    const ticker = document.getElementById('opcTicker').value;
+    if (ticker.length >= 4) {
+        const base = ticker.slice(0, 4).toUpperCase();
+        // Mapeamento comum B3
+        const map = { PETR:'PETR4', VALE:'VALE3', BBAS:'BBAS3', ITUB:'ITUB4', BBDC:'BBDC4',
+                      WEGE:'WEGE3', MGLU:'MGLU3', ABEV:'ABEV3', RENT:'RENT3', JBSS:'JBSS3',
+                      SUZB:'SUZB3', GGBR:'GGBR4', CSNA:'CSNA3', USIM:'USIM5', BRAP:'BRAP4' };
+        if (map[base] && !document.getElementById('opcAtivo').value) {
+            document.getElementById('opcAtivo').value = map[base];
+        }
+    }
+}
+
+function calcularTotalOpcao() {
+    const qtd    = parseFloat(document.getElementById('opcQtd').value)  || 0;
+    const premio = desformatarMoeda(document.getElementById('opcPremio').value);
+    const prev   = document.getElementById('opc-preview');
+    if (qtd > 0 && premio > 0) {
+        document.getElementById('opc-preview-valor').textContent = formatarMoeda(qtd * premio);
+        prev.style.display = 'block';
+    } else {
+        prev.style.display = 'none';
+    }
+}
+
+async function salvarOpcao() {
+    const ticker     = document.getElementById('opcTicker').value.trim().toUpperCase();
+    const ativo      = document.getElementById('opcAtivo').value.trim().toUpperCase();
+    const tipo       = document.getElementById('opcTipo').value;
+    const modalidade = document.getElementById('opcModalidade').value;
+    const estrategia = document.getElementById('opcEstrategia').value;
+    const strike     = desformatarMoeda(document.getElementById('opcStrike').value);
+    const premio     = desformatarMoeda(document.getElementById('opcPremio').value);
+    const qtd        = parseFloat(document.getElementById('opcQtd').value);
+    const vencimento = document.getElementById('opcVencimento').value;
+    const data       = document.getElementById('opcData').value;
+    const corretora  = document.getElementById('opcCorretora').value.trim();
+
+    if (!ticker || !premio || !qtd || !vencimento || !data) {
+        alert('Preencha: Código, Prêmio, Quantidade, Vencimento e Data!');
+        return;
+    }
+
+    const estratLabel = ESTRATEGIAS_CONFIG[estrategia]?.label || '';
+    const nomeBase    = `${modalidade.toUpperCase()} ${ativo||ticker} Strike ${formatarMoeda(strike)}`;
+    const nomeFinal   = estratLabel ? `${nomeBase} | ${estratLabel}` : nomeBase;
+
+    showLoading(true);
+    const { error } = await sb.from('acoes_transacoes').insert([{
+        ticker,
+        nome:           nomeFinal,
+        tipo,
+        quantidade:     qtd,
+        preco_unitario: premio,
+        data,
+        corretora:      corretora || null,
+    }]);
+    showLoading(false);
+
+    if (error) { alert('Erro: ' + error.message); return; }
+
+    ['opcTicker','opcAtivo','opcCorretora'].forEach(id => document.getElementById(id).value='');
+    ['opcStrike','opcPremio'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('opcQtd').value = '';
+    document.getElementById('opc-preview').style.display = 'none';
+    document.querySelectorAll('.opc-estrategia-btn').forEach(b => b.classList.remove('ativo'));
+
+    await carregarAcoes();
+    alert('✅ Opção registrada!');
+    carregarOpcoes();
+}
+
+async function carregarOpcoes() {
+    const { data } = await sb
+        .from('acoes_transacoes')
+        .select('*')
+        .or('nome.ilike.CALL%,nome.ilike.PUT%')
+        .order('data', { ascending: false });
+
+    listaOpcoes = data || [];
+    preencherFiltrosOpcoes();
+    renderizarOpcoes();
+    atualizarCardsOpcoes();
+}
+
+function preencherFiltrosOpcoes() {
+    const ativos = [...new Set(listaOpcoes.map(o => {
+        const partes = o.nome?.split(' ') || [];
+        return partes[1] || '';
+    }).filter(Boolean))].sort();
+
+    ['opc-filtro-ativo','opc-tabela-filtro-ativo'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        const val = sel.value;
+        sel.innerHTML = '<option value="">Todos os ativos</option>';
+        ativos.forEach(a => { const o = document.createElement('option'); o.value=a; o.textContent=a; sel.appendChild(o); });
+        sel.value = val;
+    });
+}
+
+function atualizarCardsOpcoes() {
+    const filtroAtivo = document.getElementById('opc-filtro-ativo')?.value || '';
+    const filtroDe    = document.getElementById('opc-filtro-de')?.value    || '';
+    const filtroAte   = document.getElementById('opc-filtro-ate')?.value   || '';
+
+    let lista = [...listaOpcoes];
+
+    if (filtroAtivo) lista = lista.filter(o => (o.nome?.split(' ')[1]||'') === filtroAtivo);
+    if (filtroDe)    lista = lista.filter(o => o.data >= filtroDe);
+    if (filtroAte)   lista = lista.filter(o => o.data <= filtroAte);
+
+    let investido = 0, lucro = 0;
+    lista.forEach(o => {
+        const total = o.quantidade * o.preco_unitario;
+        if (o.tipo === 'compra') investido += total;
+        if (o.tipo === 'venda')  lucro     += total;  // recebeu
+        if (o.tipo === 'compra') lucro     -= total;  // pagou
+    });
+
+    document.getElementById('opc-total-investido').textContent = formatarMoeda(investido);
+    document.getElementById('opc-lucro-liquido').textContent   = formatarMoeda(lucro);
+    document.getElementById('opc-total-ops').textContent       = lista.length;
+}
+
+function limparFiltrosOpcoes() {
+    ['opc-filtro-ativo','opc-filtro-de','opc-filtro-ate'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    atualizarCardsOpcoes();
+}
+
+function renderizarOpcoes() {
+    const tbody      = document.getElementById('opcoes-tbody');
+    if (!tbody) return;
+    const filtAtivo  = document.getElementById('opc-tabela-filtro-ativo')?.value || '';
+    const filtTipo   = document.getElementById('opc-tabela-filtro-tipo')?.value  || '';
+
+    let lista = [...listaOpcoes];
+    if (filtAtivo) lista = lista.filter(o => (o.nome?.split(' ')[1]||'') === filtAtivo);
+    if (filtTipo)  lista = lista.filter(o => o.tipo === filtTipo);
+
+    tbody.innerHTML = '';
+
+    if (!lista.length) {
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:#888;">Nenhuma opção encontrada</td></tr>`;
+        return;
+    }
+
+    lista.forEach(o => {
+        const isCall     = o.nome?.startsWith('CALL');
+        const hide       = privacidadeAtiva ? 'hidden-value' : '';
+        const total      = o.quantidade * o.preco_unitario;
+        const nomeParts  = o.nome?.split('|');
+        const nomeBase   = nomeParts?.[0]?.trim() || '';
+        const estrategia = nomeParts?.[1]?.trim() || '—';
+        const ativo      = nomeBase.split(' ')[1] || '—';
+        const strikeStr  = nomeBase.includes('Strike') ? nomeBase.split('Strike ')[1] : '—';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-size:12px;color:#888;">${formatarDataBR(o.data)}</td>
+            <td><span class="ticker-badge" style="background:${isCall?'linear-gradient(135deg,#0056b3,#007bff)':'linear-gradient(135deg,#6f42c1,#e83e8c)'}">${o.ticker}</span></td>
+            <td><span class="${o.tipo==='compra'?'badge-compra':'badge-venda'}">${o.tipo==='compra'?'▲ C':'▼ V'}</span></td>
+            <td><span style="font-weight:700;color:${isCall?'#007bff':'#6f42c1'}">${isCall?'CALL':'PUT'}</span></td>
+            <td style="font-size:12px;">${ativo}</td>
+            <td class="${hide}" style="font-size:12px;">${strikeStr}</td>
+            <td class="${hide}">${formatarMoeda(o.preco_unitario)}</td>
+            <td class="${hide}">${o.quantidade}</td>
+            <td class="${hide}"><strong>${formatarMoeda(total)}</strong></td>
+            <td style="font-size:11px;color:#888;max-width:120px;overflow:hidden;text-overflow:ellipsis;" title="${estrategia}">${estrategia}</td>
+            <td><button class="btn-delete" style="padding:5px 8px;font-size:11px;" onclick="excluirAcaoTransacao('${o.id}')">✕</button></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// ══════════════════════════════
+// 📤 UPLOAD EM LOTE
+// ══════════════════════════════
+
+function previewUploadOpcoes(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const wb    = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+        const ws    = wb.Sheets[wb.SheetNames[0]];
+        const rows  = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+        uploadOpcoesPendentes = [];
+        const tbody = document.getElementById('uploadPreviewBody');
+        tbody.innerHTML = '';
+
+        rows.forEach((row, idx) => {
+            const tipo = (row[0] || '').toString().trim().toUpperCase();
+            const cod  = (row[1] || '').toString().trim().toUpperCase();
+            const prm  = parseFloat(row[2]) || 0;
+            const qtd  = parseFloat(row[3]) || 0;
+
+            // Pula cabeçalho ou linhas inválidas
+            if (!cod || !prm || !qtd || (tipo !== 'C' && tipo !== 'V')) return;
+
+            const tipoNome   = tipo === 'C' ? 'compra' : 'venda';
+            const isCall     = /^[A-Z]{4}[B-H]/.test(cod); // simplificado: B-H = CALL no padrão B3
+            const modalidade = isCall ? 'call' : 'put';
+            const total      = prm * qtd;
+
+            uploadOpcoesPendentes.push({ tipo: tipoNome, ticker: cod, preco_unitario: prm, quantidade: qtd, modalidade, total });
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${uploadOpcoesPendentes.length}</td>
+                <td><span class="${tipoNome==='compra'?'badge-compra':'badge-venda'}">${tipoNome==='compra'?'▲ C':'▼ V'}</span></td>
+                <td><strong>${cod}</strong></td>
+                <td>${formatarMoeda(prm)}</td>
+                <td>${qtd}</td>
+                <td><strong>${formatarMoeda(total)}</strong></td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById('uploadPreviewArea').style.display = 'block';
+        document.getElementById('uploadPreviewLabel').textContent = `${uploadOpcoesPendentes.length} operações encontradas`;
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+async function confirmarImportacaoOpcoes() {
+    if (!uploadOpcoesPendentes.length) return;
+
+    const data     = document.getElementById('uploadOpcData').value;
+    const ativoPad = document.getElementById('uploadOpcAtivo').value.trim().toUpperCase();
+
+    if (!data) { alert('Informe a data das operações!'); return; }
+
+    showLoading(true);
+    let erros = 0;
+
+    for (const op of uploadOpcoesPendentes) {
+        // Auto-detecta ativo pelo ticker
+        const base  = op.ticker.slice(0, 4);
+        const mapAt = { PETR:'PETR4', VALE:'VALE3', BBAS:'BBAS3', ITUB:'ITUB4', BBDC:'BBDC4',
+                        WEGE:'WEGE3', MGLU:'MGLU3', ABEV:'ABEV3', BRAP:'BRAP4', GGBR:'GGBR4' };
+        const ativo = mapAt[base] || ativoPad || base;
+        const nome  = `${op.modalidade.toUpperCase()} ${ativo} Strike R$ 0,00`;
+
+        const { error } = await sb.from('acoes_transacoes').insert([{
+            ticker:         op.ticker,
+            nome,
+            tipo:           op.tipo,
+            quantidade:     op.quantidade,
+            preco_unitario: op.preco_unitario,
+            data,
+            corretora:      null
+        }]);
+        if (error) erros++;
+    }
+
+    showLoading(false);
+
+    if (erros > 0) alert(`⚠️ ${erros} erro(s) na importação.`);
+    else           alert(`✅ ${uploadOpcoesPendentes.length} opções importadas com sucesso!`);
+
+    // Reset
+    uploadOpcoesPendentes = [];
+    document.getElementById('uploadPreviewArea').style.display = 'none';
+    document.getElementById('uploadOpcFile').value = '';
+
+    await carregarAcoes();
+    carregarOpcoes();
+}
+
+// Inicializa datas
+document.addEventListener('DOMContentLoaded', () => {
+    const hoje = new Date().toISOString().split('T')[0];
+    ['opcData','uploadOpcData','acaoData'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = hoje;
+    });
+    // NÃO chama selecionarModalidade aqui — elementos ainda não existem no DOM oculto
+});// ══════════════════════════════════════════
+// 📊 EXPANDIR LINHA DA AÇÃO
+// ══════════════════════════════════════════
+
+const _expandAbertos = new Set();
+
+async function toggleExpandirAcao(ticker, qtd, pm) {
+    const trExp = document.getElementById(`expand-${ticker}`);
+    if (!trExp) return;
+
+    if (_expandAbertos.has(ticker)) {
+        trExp.style.display = 'none';
+        _expandAbertos.delete(ticker);
+        return;
+    }
+
+    trExp.style.display = 'table-row';
+    _expandAbertos.add(ticker);
+    await preencherExpandido(ticker, qtd, pm);
+}
+
+async function preencherExpandido(ticker, qtd, pm) {
+    const inner = document.getElementById(`expand-inner-${ticker}`);
+    if (!inner) return;
+
+    // ─── Coleta opções relacionadas a este ticker (ativo objeto)
+    const opcRelacionadas = acoesTransacoes.filter(t => {
+        if (!t.nome?.startsWith('CALL') && !t.nome?.startsWith('PUT')) return false;
+        // Extrai o ativo objeto do nome: "CALL PETR4 Strike R$ 30,00" → PETR4
+        const partes = t.nome.split(' ');
+        const ativo  = partes[1] || '';
+        return ativo === ticker || t.ticker.startsWith(ticker.slice(0,4));
+    });
+
+    // Prêmios por modalidade e direção
+    let callVendida = 0, callComprada = 0, putVendida = 0, putComprada = 0;
+    opcRelacionadas.forEach(o => {
+        const isCall = o.nome.startsWith('CALL');
+        const total  = o.quantidade * o.preco_unitario;
+        if (isCall && o.tipo === 'venda')  callVendida  += total;
+        if (isCall && o.tipo === 'compra') callComprada += total;
+        if (!isCall && o.tipo === 'venda') putVendida   += total;
+        if (!isCall && o.tipo === 'compra') putComprada += total;
+    });
+
+    const callLiquido = callVendida - callComprada;  // positivo = recebeu mais do que pagou
+    const putLiquido  = putVendida  - putComprada;
+    const premioTotal = callLiquido + putLiquido;
+
+    // ─── Dividendos
+    let dividendos = 0;
+    try {
+        const { data } = await sb
+            .from('acoes_dividendos')
+            .select('valor')
+            .eq('ticker', ticker);
+        dividendos = (data || []).reduce((s, d) => s + Number(d.valor), 0);
+    } catch(e) {}
+
+    // ─── PM Ajustado = (custo - prêmios recebidos líquidos - dividendos) / qtd
+    const custoTotal   = pm * qtd;
+    const custoAjust   = custoTotal - premioTotal - dividendos;
+    const pmAjustado   = qtd > 0 ? custoAjust / qtd : 0;
+
+    const hide = privacidadeAtiva ? 'hidden-value' : '';
+
+    const cardCall = `
+        <div class="expand-card">
+            <div class="ec-label">📈 CALL Líquido</div>
+            <div class="ec-val ${callLiquido>=0?'pos':'neg'} ${hide}">${formatarMoeda(callLiquido)}</div>
+            <div class="ec-sub">+${formatarMoeda(callVendida)} vendida / -${formatarMoeda(callComprada)} comprada</div>
+        </div>`;
+
+    const cardPut = `
+        <div class="expand-card">
+            <div class="ec-label">📉 PUT Líquido</div>
+            <div class="ec-val ${putLiquido>=0?'pos':'neg'} ${hide}">${formatarMoeda(putLiquido)}</div>
+            <div class="ec-sub">+${formatarMoeda(putVendida)} vendida / -${formatarMoeda(putComprada)} comprada</div>
+        </div>`;
+
+    const cardPremio = `
+        <div class="expand-card" style="border-color:rgba(253,126,20,0.4);">
+            <div class="ec-label">⚡ Prêmio Total Líquido</div>
+            <div class="ec-val ${premioTotal>=0?'pos':'neg'} ${hide}">${formatarMoeda(premioTotal)}</div>
+            <div class="ec-sub">${opcRelacionadas.length} operação(ões) de opções</div>
+        </div>`;
+
+    const cardDiv = `
+        <div class="expand-card" style="border-color:rgba(40,167,69,0.4);">
+            <div class="ec-label">💵 Dividendos Recebidos</div>
+            <div class="ec-val pos ${hide}">${formatarMoeda(dividendos)}</div>
+            <div class="ec-sub" style="display:flex;justify-content:center;gap:6px;margin-top:6px;">
+                <button onclick="event.stopPropagation(); abrirRegistrarDividendo('${ticker}')"
+                    style="font-size:10px;padding:3px 8px;background:#28a745;color:white;border:none;border-radius:5px;cursor:pointer;width:auto;">
+                    + Dividendo
+                </button>
+            </div>
+        </div>`;
+
+    const cardPMAjust = `
+        <div class="expand-card" style="border-color:rgba(111,66,193,0.4);">
+            <div class="ec-label">🎯 PM Ajustado</div>
+            <div class="ec-val ${hide}" style="color:#6f42c1;">${formatarMoeda(pmAjustado)}</div>
+            <div class="ec-sub">PM real: ${formatarMoeda(pm)}</div>
+        </div>`;
+
+    inner.innerHTML = cardCall + cardPut + cardPremio + cardDiv + cardPMAjust;
+}
+
+// ══════════════════════════════════════════
+// 💵 DIVIDENDOS
+// ══════════════════════════════════════════
+
+function abrirRegistrarDividendo(ticker) {
+    const modal = document.getElementById('dividendoModal');
+    document.getElementById('divTicker').value  = ticker;
+    document.getElementById('divValor').value   = '';
+    document.getElementById('divData').value    = new Date().toISOString().split('T')[0];
+    modal.style.display = 'flex';
+}
+
+function fecharDividendoModal() {
+    document.getElementById('dividendoModal').style.display = 'none';
+}
+
+async function salvarDividendo() {
+    const ticker = document.getElementById('divTicker').value;
+    const valor  = desformatarMoeda(document.getElementById('divValor').value);
+    const data   = document.getElementById('divData').value;
+    const tipo   = document.getElementById('divTipo').value;
+
+    if (!ticker || !valor || !data) { alert('Preencha todos os campos!'); return; }
+
+    showLoading(true);
+    const { error } = await sb.from('acoes_dividendos').insert([{ ticker, valor, data, tipo }]);
+    showLoading(false);
+
+    if (error) {
+        // Se a tabela não existe ainda, instrui criar
+        if (error.code === '42P01') {
+            alert('⚠️ Execute o SQL abaixo no Supabase:\n\nCREATE TABLE acoes_dividendos (\n  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,\n  ticker text NOT NULL,\n  valor numeric NOT NULL,\n  data date NOT NULL,\n  tipo text DEFAULT \'dividendo\',\n  criado_em timestamptz DEFAULT now()\n);');
+        } else {
+            alert('Erro: ' + error.message);
+        }
+        return;
+    }
+
+    fecharDividendoModal();
+    // Recarrega o expandido se estiver aberto
+    const pos = calcularPosicoes().find(p => p.ticker === ticker);
+    if (pos && _expandAbertos.has(ticker)) {
+        await preencherExpandido(ticker, pos.qtd, pos.custoTotal / pos.qtd);
+    }
+    alert(`✅ ${tipo === 'jcp' ? 'JCP' : 'Dividendo'} de ${formatarMoeda(valor)} registrado para ${ticker}!`);
+}
 
 </script>
+<!-- 🛠️ MODAL OUTRAS FUNCIONALIDADES -->
+<div id="funcionalidadesModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg-color); z-index:8000; overflow-y:auto;">
+    
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #0056b3, #00bfff); padding: 20px 30px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:10;">
+        <h2 style="color:white; margin:0; font-size:20px;">🛠️ Outras Funcionalidades</h2>
+        <button onclick="fecharFuncionalidades()" style="background:rgba(255,255,255,0.2); border:none; color:white; font-size:22px; width:40px; height:40px; border-radius:50%; cursor:pointer;">✕</button>
+    </div>
+
+    <div style="max-width: 1100px; margin: 30px auto; padding: 0 20px;">
+
+        <!-- Grid de Funcionalidades -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 35px;">
+            
+            <div onclick="mostrarSecao('secCalcJuros')" class="func-card func-card-active" id="btnCalcJuros"
+                style="padding:20px; border-radius:12px; cursor:pointer; border:2px solid #0056b3; background:rgba(0,86,179,0.1); text-align:center;">
+                <div style="font-size:32px;">📈</div>
+                <div style="font-weight:bold; margin-top:8px; color:#0056b3;">Calculadora de Juros</div>
+                <div style="font-size:12px; color:#888; margin-top:4px;">Juros compostos + tabela mensal</div>
+            </div>
+
+            <div onclick="mostrarSecao('secFunc2')" id="btnFunc2"
+                style="padding:20px; border-radius:12px; cursor:pointer; border:2px solid var(--border-color); background:var(--card-bg); text-align:center; opacity:0.6;">
+                <div style="font-size:32px;">🔜</div>
+                <div style="font-weight:bold; margin-top:8px;">Função 2</div>
+                <div style="font-size:12px; color:#888; margin-top:4px;">Em breve</div>
+            </div>
+
+            <div onclick="mostrarSecao('secFunc3')" id="btnFunc3"
+                style="padding:20px; border-radius:12px; cursor:pointer; border:2px solid var(--border-color); background:var(--card-bg); text-align:center; opacity:0.6;">
+                <div style="font-size:32px;">🔜</div>
+                <div style="font-weight:bold; margin-top:8px;">Função 3</div>
+                <div style="font-size:12px; color:#888; margin-top:4px;">Em breve</div>
+            </div>
+
+            <div onclick="mostrarSecao('secFunc4')" id="btnFunc4"
+                style="padding:20px; border-radius:12px; cursor:pointer; border:2px solid var(--border-color); background:var(--card-bg); text-align:center; opacity:0.6;">
+                <div style="font-size:32px;">🔜</div>
+                <div style="font-weight:bold; margin-top:8px;">Função 4</div>
+                <div style="font-size:12px; color:#888; margin-top:4px;">Em breve</div>
+            </div>
+        </div>
+
+        <!-- ===========================
+             📈 CALCULADORA DE JUROS
+             =========================== -->
+        <div id="secCalcJuros">
+
+            <!-- Inputs -->
+            <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:16px; padding:25px; margin-bottom:20px;">
+                <h3 style="margin:0 0 20px 0; color:var(--text-color);">📈 Calculadora de Juros Compostos</h3>
+                
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:15px;">
+                    <div>
+                        <label style="font-size:12px; color:#888; display:block; margin-bottom:5px;">💰 Investimento Inicial</label>
+                        <input type="text" id="calcInicial" placeholder="R$ 0,00" oninput="mascaraMoeda(this,'BRL')" style="width:100%">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; color:#888; display:block; margin-bottom:5px;">📅 Investimento Mensal</label>
+                        <input type="text" id="calcMensal" placeholder="R$ 0,00" oninput="mascaraMoeda(this,'BRL')" style="width:100%">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; color:#888; display:block; margin-bottom:5px;">⏳ Prazo (meses)</label>
+                        <input type="number" id="calcPrazo" placeholder="ex: 60" min="1" max="600" style="width:100%">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; color:#888; display:block; margin-bottom:5px;">📊 Rentabilidade ao Mês (%)</label>
+                        <input type="number" id="calcRentMes" placeholder="ex: 1.0" step="0.01" style="width:100%">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; color:#888; display:block; margin-bottom:5px;">➕ Aporte Adicional (único)</label>
+                        <input type="text" id="calcAdicional" placeholder="R$ 0,00 (opcional)" oninput="mascaraMoeda(this,'BRL')" style="width:100%">
+                        <span style="font-size:11px; color:#aaa;">mês de entrada:</span>
+                        <input type="number" id="calcAdicionalMes" placeholder="nº mês" min="1" style="width:100%; margin-top:4px;">
+                    </div>
+                    <div style="display:flex; align-items:flex-end;">
+                        <button onclick="calcularJuros()" class="btn-success" style="width:100%; padding:14px; font-size:15px;">
+                            ▶ Calcular
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cards de Resultado -->
+            <div id="calcResultados" style="display:none;">
+
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:15px; margin-bottom:20px;">
+                    <div class="total-card" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                        <h3>💰 Saldo Final</h3>
+                        <p id="resSaldoFinal">R$ 0,00</p>
+                    </div>
+                    <div class="total-card" style="background: linear-gradient(135deg, #0056b3, #00bfff);">
+                        <h3>📥 Total Investido</h3>
+                        <p id="resTotalInvestido">R$ 0,00</p>
+                    </div>
+                    <div class="total-card" style="background: linear-gradient(135deg, #6f42c1, #e83e8c);">
+                        <h3>📈 Juros Recebidos</h3>
+                        <p id="resJurosTotal">R$ 0,00</p>
+                    </div>
+                    <div class="total-card" style="background: linear-gradient(135deg, #fd7e14, #ff9f43);">
+                        <h3>🚀 Rentabilidade Total</h3>
+                        <p id="resRentTotal">0,00%</p>
+                    </div>
+                </div>
+
+                <!-- Gráfico -->
+                <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:12px; padding:20px; margin-bottom:20px;">
+                    <h3 style="margin:0 0 15px 0; font-size:15px;">📊 Evolução do Patrimônio</h3>
+                    <canvas id="calcChart" style="max-height:280px;"></canvas>
+                </div>
+
+                <!-- Tabela mensal -->
+                <div style="background:var(--card-bg); border:1px solid var(--border-color); border-radius:12px; padding:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                        <h3 style="margin:0; font-size:15px;">📋 Tabela Mês a Mês</h3>
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="toggleTabelaCalc()" id="btnToggleTabela" style="background:var(--card-bg); color:var(--text-color); border:1px solid var(--border-color); padding:8px 14px; border-radius:8px; font-size:13px; cursor:pointer; width:auto;">
+                                ▼ Ver todos os meses
+                            </button>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                            <thead>
+                                <tr style="background:rgba(0,0,0,0.05);">
+                                    <th style="padding:10px; text-align:left; color:#888;">Mês</th>
+                                    <th style="padding:10px; text-align:right; color:#888;">Saldo Inicial</th>
+                                    <th style="padding:10px; text-align:right; color:#888;">Juros</th>
+                                    <th style="padding:10px; text-align:right; color:#888;">Saldo + Juros</th>
+                                    <th style="padding:10px; text-align:right; color:#888;">Aporte Mensal</th>
+                                    <th style="padding:10px; text-align:right; color:#888;">Adicional</th>
+                                    <th style="padding:10px; text-align:right; color:#888; font-weight:bold;">Saldo Final</th>
+                                </tr>
+                            </thead>
+                            <tbody id="calcTabelaCorpo"></tbody>
+                        </table>
+                    </div>
+                    <div id="calcTabelaOculta" style="overflow-x:auto; display:none; margin-top:10px;">
+                        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                            <thead>
+                                <tr style="background:rgba(0,0,0,0.05);">
+                                    <th style="padding:10px; text-align:left; color:#888;">Mês</th>
+                                    <th style="padding:10px; text-align:right; color:#888;">Saldo Inicial</th>
+                                    <th style="padding:10px; text-align:right; color:#888;">Juros</th>
+                                    <th style="padding:10px; text-align:right; color:#888;">Saldo + Juros</th>
+                                    <th style="padding:10px; text-align:right; color:#888;">Aporte Mensal</th>
+                                    <th style="padding:10px; text-align:right; color:#888;">Adicional</th>
+                                    <th style="padding:10px; text-align:right; color:#888; font-weight:bold;">Saldo Final</th>
+                                </tr>
+                            </thead>
+                            <tbody id="calcTabelaCorpoOculta"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Placeholders -->
+        <div id="secFunc2" style="display:none; text-align:center; padding:60px 20px; color:#888;">
+            <div style="font-size:60px;">🔜</div>
+            <h2>Função 2</h2>
+            <p>Em construção — em breve disponível!</p>
+        </div>
+        <div id="secFunc3" style="display:none; text-align:center; padding:60px 20px; color:#888;">
+            <div style="font-size:60px;">🔜</div>
+            <h2>Função 3</h2>
+            <p>Em construção — em breve disponível!</p>
+        </div>
+        <div id="secFunc4" style="display:none; text-align:center; padding:60px 20px; color:#888;">
+            <div style="font-size:60px;">🔜</div>
+            <h2>Função 4</h2>
+            <p>Em construção — em breve disponível!</p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     📈 MODAL SISTEMA DE AÇÕES
+     ═══════════════════════════════════════ -->
+<div id="acoesModal" class="modal">
+<div class="modal-content" style="width:100%; max-width:100%; height:100vh; border-radius:0 !important; overflow-y:auto;">
+        <!-- Header -->
+        <div class="acoes-header">
+            <div>
+                <h2>📈 Carteira de Ações</h2>
+                <p class="acoes-header-sub" id="acoes-status">Carregando...</p>
+            </div>
+            <div class="acoes-header-actions">
+                <button class="btn-acoes-icon" onclick="atualizarCotacoesAcoes()">🔄 Cotações</button>
+                <button class="acoes-close" onclick="fecharAcoes()">×</button>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="acoes-tabs">
+            <button class="acoes-tab-btn ativo" id="tab-carteira"    onclick="acoesTab('carteira')">📊 Carteira</button>
+            <button class="acoes-tab-btn"       id="tab-transacoes"  onclick="acoesTab('transacoes')">📋 Transações</button>
+            <button class="acoes-tab-btn"       id="tab-adicionar"   onclick="acoesTab('adicionar')">➕ Registrar</button>
+             <button class="acoes-tab-btn" id="tab-opcoes" onclick="acoesTab('opcoes')">⚡ Opções</button>
+        </div>
+
+        <!-- Body -->
+        <div class="acoes-body">
+
+            <!-- Cards principais -->
+            <div class="acoes-dash-grid">
+                <div class="total-card" style="background: linear-gradient(135deg, #2d3436, #636e72);">
+                    <h3>💰 Total Investido</h3>
+                    <p id="acoes-total-investido" class="hidden-value">R$ 0,00</p>
+                </div>
+                <div class="total-card" style="background: linear-gradient(135deg, #c0580a, #fd7e14);">
+                    <h3>📊 Valor de Mercado</h3>
+                    <p id="acoes-valor-mercado" class="hidden-value">R$ 0,00</p>
+                </div>
+                <div class="total-card" id="acoes-card-pl" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                    <h3>📈 Lucro / Prejuízo</h3>
+                    <p id="acoes-pl" class="hidden-value">R$ 0,00</p>
+                </div>
+                <div class="total-card" id="acoes-card-rent" style="background: linear-gradient(135deg, #007bff, #00bfff);">
+                    <h3>🚀 Rentabilidade</h3>
+                    <p id="acoes-rentabilidade" class="hidden-value">0,00%</p>
+                </div>
+            </div>
+
+            <!-- ─── TAB CARTEIRA ─── -->
+            <div id="secao-carteira">
+                <div class="acoes-charts-row">
+                    <div class="acoes-chart-card">
+                        <h4>🥧 Distribuição da Carteira</h4>
+                        <div style="height:210px; position:relative;"><canvas id="acoes-pizza"></canvas></div>
+                    </div>
+                    <div class="acoes-chart-card">
+                        <h4>📈 Capital Investido ao longo do tempo</h4>
+                        <div style="height:210px; position:relative;"><canvas id="acoes-line"></canvas></div>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h3 style="margin:0; font-size:15px;">Posições Abertas</h3>
+                    <span id="acoes-count-pos" style="font-size:12px; color:#888;"></span>
+                </div>
+
+                <div class="acoes-table-wrap">
+                    <table class="acoes-table">
+                        <thead>
+                            <tr>
+                                <th>Ticker</th>
+                                <th>Nome</th>
+                                <th>Qtd</th>
+                                <th>Preço Médio</th>
+                                <th>Cotação Atual</th>
+                                <th>Valor Atual</th>
+                                <th>P&amp;L R$</th>
+                                <th>P&amp;L %</th>
+                                <th>Variação Dia</th>
+	     <th>Editar</th>
+
+                            </tr>
+                        </thead>
+                        <tbody id="acoes-tbody"></tbody>
+                    </table>
+                </div>
+
+                <!-- P&L Realizado -->
+                <div id="acoes-pl-realizado-box" style="display:none; border-radius:10px; padding:13px 18px; font-size:13px; margin-top:5px;">
+                    💼 <strong>P&amp;L Realizado (posições encerradas):</strong>
+                    <span id="acoes-pl-realizado" style="font-weight:bold; margin-left:6px;"></span>
+                </div>
+            </div>
+
+            <!-- ─── TAB TRANSAÇÕES ─── -->
+            <div id="secao-transacoes" style="display:none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+                    <h3 style="margin:0; font-size:15px;">Histórico de Transações</h3>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <select id="acoes-filtro-ticker" onchange="renderizarTransacoes()" style="padding:8px 10px; font-size:13px; border-radius:8px; border:1px solid var(--border-color); background:var(--card-bg); color:var(--text-color); width:auto;">
+                            <option value="">Todos os tickers</option>
+                        </select>
+                        <select id="acoes-filtro-tipo" onchange="renderizarTransacoes()" style="padding:8px 10px; font-size:13px; border-radius:8px; border:1px solid var(--border-color); background:var(--card-bg); color:var(--text-color); width:auto;">
+                            <option value="">Compras e Vendas</option>
+                            <option value="compra">Só Compras</option>
+                            <option value="venda">Só Vendas</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="acoes-table-wrap">
+                    <table class="acoes-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th><th>Ticker</th><th>Tipo</th><th>Qtd</th>
+                                <th>Preço Unit.</th><th>Total</th><th>Corretora</th><th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="acoes-trans-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ─── TAB REGISTRAR ─── -->
+            <div id="secao-adicionar" style="display:none;">
+                <div class="acoes-form-card">
+                    <h3 style="margin: 0 0 18px; font-size:17px;">📝 Registrar Operação</h3>
+
+                    <div class="acoes-tipo-row">
+                        <button class="acoes-tipo-btn compra-ativo" id="btnTipoCompra" onclick="selecionarTipoAcao('compra')">▲ COMPRA</button>
+                        <button class="acoes-tipo-btn"              id="btnTipoVenda"  onclick="selecionarTipoAcao('venda')">▼ VENDA</button>
+                    </div>
+                    <input type="hidden" id="acaoTipo" value="compra">
+
+                    <div class="acoes-form-grid">
+                        <div class="acoes-form-group">
+                            <label>Ticker *</label>
+                            <div class="ticker-input-row">
+                                <input type="text" id="acaoTicker" placeholder="PETR4, VALE3, AAPL..." oninput="this.value=this.value.toUpperCase()">
+                                <button class="btn-buscar-cot" onclick="buscarCotacaoManual()">🔍 Buscar</button>
+                            </div>
+                        </div>
+                        <div class="acoes-form-group">
+                            <label>Nome da Empresa</label>
+                            <input type="text" id="acaoNome" placeholder="Auto ou manual">
+                        </div>
+                        <div class="acoes-form-group">
+                            <label>Quantidade *</label>
+                            <input type="number" id="acaoQtd" placeholder="100" min="0.0001" step="1" oninput="calcularTotalAcao()">
+                        </div>
+                        <div class="acoes-form-group">
+                            <label>Preço Unitário (R$) *</label>
+                            <input type="text" id="acaoPreco" placeholder="R$ 0,00" oninput="mascaraMoeda(this,'BRL'); calcularTotalAcao()">
+                        </div>
+                        <div class="acoes-form-group">
+                            <label>Data *</label>
+                            <input type="date" id="acaoData">
+                        </div>
+                        <div class="acoes-form-group">
+                            <label>Corretora</label>
+                            <input type="text" id="acaoCorretora" placeholder="XP, Clear, Rico...">
+                        </div>
+                    </div>
+
+                    <!-- Preview -->
+                    <div id="acao-preview" style="display:none; background:rgba(253,126,20,0.08); border:1px solid rgba(253,126,20,0.22); border-radius:8px; padding:11px 15px; margin-bottom:14px; font-size:14px;">
+                        💰 Total da operação: <strong id="acao-preview-valor" style="color:#fd7e14;"></strong>
+                    </div>
+
+          <button class="btn-salvar-acao" onclick="salvarAcaoTransacao()">✅ Registrar Operação</button>
+                </div>
+            </div>
+
+<!-- ─── TAB OPÇÕES ─── -->
+<div id="secao-opcoes" style="display:none;">
+
+    <!-- CARDS TOPO -->
+    <div class="opc-cards-grid" id="opc-cards-topo">
+        <div class="total-card" style="background:linear-gradient(135deg,#2d3436,#636e72);">
+            <h3>💰 Total Investido</h3>
+            <p id="opc-total-investido">R$ 0,00</p>
+        </div>
+        <div class="total-card" style="background:linear-gradient(135deg,#28a745,#20c997);">
+            <h3>🏆 Lucro Líquido Prêmios</h3>
+            <p id="opc-lucro-liquido">R$ 0,00</p>
+        </div>
+        <div class="total-card" style="background:linear-gradient(135deg,#0056b3,#00bfff);">
+            <h3>📊 Operações</h3>
+            <p id="opc-total-ops">0</p>
+        </div>
+    </div>
+
+    <!-- FILTROS DOS CARDS -->
+    <div class="opc-filter-row">
+        <label style="font-size:12px;color:#888;white-space:nowrap;align-self:center;">Filtrar por:</label>
+        <select id="opc-filtro-ativo" onchange="atualizarCardsOpcoes()">
+            <option value="">Todos os ativos</option>
+        </select>
+        <input type="date" id="opc-filtro-de" onchange="atualizarCardsOpcoes()" placeholder="De">
+        <input type="date" id="opc-filtro-ate" onchange="atualizarCardsOpcoes()" placeholder="Até">
+        <button onclick="limparFiltrosOpcoes()" style="background:var(--card-bg);color:var(--text-color);border:1px solid var(--border-color);padding:8px 12px;border-radius:8px;font-size:12px;cursor:pointer;width:auto;">✕ Limpar</button>
+    </div>
+
+    <!-- FORMULÁRIO -->
+    <div class="acoes-form-card" style="margin-bottom:22px;">
+        <h3 style="margin:0 0 14px;font-size:17px;">⚡ Registrar Opção</h3>
+
+        <!-- ESTRATÉGIAS -->
+        <p style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;font-weight:700;">Estratégia</p>
+        <div class="opc-estrategia-grid" id="opc-estrategias-grid">
+            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('venda_coberta_call')">📤 Venda Coberta<br>de CALL</button>
+            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('venda_coberta_put')">📤 Venda Coberta<br>de PUT</button>
+            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('compra_call')">📈 Compra<br>de CALL</button>
+            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('compra_put')">📉 Compra<br>de PUT</button>
+            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('strangle_venda')">🔀 Strangle<br>(Venda)</button>
+            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('strangle_compra')">🔀 Strangle<br>(Compra)</button>
+            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('straddle_venda')">⚖️ Straddle<br>(Venda)</button>
+            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('straddle_compra')">⚖️ Straddle<br>(Compra)</button>
+            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('bull_call_spread')">🐂 Bull Call<br>Spread</button>
+            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('bear_put_spread')">🐻 Bear Put<br>Spread</button>
+            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('personalizado')">✏️ Personalizado</button>
+        </div>
+        <input type="hidden" id="opcEstrategia" value="">
+
+        <!-- TIPO + MODALIDADE -->
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+            <button class="acoes-tipo-btn compra-ativo" id="btnOpcCompra" onclick="selecionarTipoOpcao('compra')" style="flex:1;">▲ COMPRA</button>
+            <button class="acoes-tipo-btn" id="btnOpcVenda" onclick="selecionarTipoOpcao('venda')" style="flex:1;">▼ VENDA</button>
+            <button class="acoes-tipo-btn" id="btnOpcCall" onclick="selecionarModalidade('call')"
+                style="flex:1;border-color:#007bff;background:rgba(0,123,255,0.12);color:#007bff;">📈 CALL</button>
+            <button class="acoes-tipo-btn" id="btnOpcPut" onclick="selecionarModalidade('put')" style="flex:1;">📉 PUT</button>
+        </div>
+        <input type="hidden" id="opcTipo" value="compra">
+        <input type="hidden" id="opcModalidade" value="call">
+
+        <!-- CAMPOS -->
+        <div class="acoes-form-grid">
+            <div class="acoes-form-group">
+                <label>Código da Opção *</label>
+                <input type="text" id="opcTicker" placeholder="ex: PETRH240" oninput="this.value=this.value.toUpperCase(); autoDetectAtivo()">
+            </div>
+            <div class="acoes-form-group">
+                <label>Ativo Objeto</label>
+                <input type="text" id="opcAtivo" placeholder="ex: PETR4" oninput="this.value=this.value.toUpperCase()">
+            </div>
+            <div class="acoes-form-group">
+                <label>Strike (Preço de Exercício)</label>
+                <input type="text" id="opcStrike" placeholder="R$ 0,00" oninput="mascaraMoeda(this,'BRL')">
+            </div>
+            <div class="acoes-form-group">
+                <label>Prêmio *</label>
+                <input type="text" id="opcPremio" placeholder="R$ 0,00" oninput="mascaraMoeda(this,'BRL'); calcularTotalOpcao()">
+            </div>
+            <div class="acoes-form-group">
+                <label>Quantidade *</label>
+                <input type="number" id="opcQtd" placeholder="100" min="1" oninput="calcularTotalOpcao()">
+            </div>
+            <div class="acoes-form-group">
+                <label>Vencimento *</label>
+                <input type="date" id="opcVencimento">
+            </div>
+            <div class="acoes-form-group">
+                <label>Data da Operação *</label>
+                <input type="date" id="opcData">
+            </div>
+            <div class="acoes-form-group">
+                <label>Corretora</label>
+                <input type="text" id="opcCorretora" placeholder="XP, Clear...">
+            </div>
+        </div>
+
+        <div id="opc-preview" style="display:none;background:rgba(0,123,255,0.08);border:1px solid rgba(0,123,255,0.22);border-radius:8px;padding:11px 15px;margin-bottom:14px;font-size:14px;">
+            💰 Total do prêmio: <strong id="opc-preview-valor" style="color:#007bff;"></strong>
+        </div>
+
+        <button onclick="salvarOpcao()" style="background:linear-gradient(135deg,#0056b3,#007bff);color:white;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:bold;cursor:pointer;width:100%;margin-top:6px;">
+            ✅ Registrar Opção
+        </button>
+    </div>
+
+    <!-- UPLOAD EM LOTE -->
+    <div class="acoes-form-card" style="margin-bottom:22px;">
+        <h3 style="margin:0 0 6px;font-size:16px;">📤 Importar Lote (Excel)</h3>
+        <p style="font-size:12px;color:#888;margin:0 0 14px;">Colunas: <strong>C/V | Código | Prêmio | Quantidade</strong> (igual ao seu Excel)</p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div class="acoes-form-group">
+                <label>Data das Operações *</label>
+                <input type="date" id="uploadOpcData">
+            </div>
+            <div class="acoes-form-group">
+                <label>Ativo Objeto (padrão)</label>
+                <input type="text" id="uploadOpcAtivo" placeholder="ex: PETR4" oninput="this.value=this.value.toUpperCase()">
+            </div>
+        </div>
+
+        <div class="opc-upload-area" onclick="document.getElementById('uploadOpcFile').click()">
+            <div class="opc-upload-icon">📂</div>
+            <p><strong>Clique para selecionar o arquivo Excel</strong></p>
+            <p>.xlsx / .xls</p>
+        </div>
+        <input type="file" id="uploadOpcFile" accept=".xlsx,.xls" style="display:none" onchange="previewUploadOpcoes(event)">
+
+        <!-- Preview -->
+        <div id="uploadPreviewArea" style="display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span id="uploadPreviewLabel" style="font-size:13px;color:#888;"></span>
+                <button onclick="confirmarImportacaoOpcoes()" class="btn-success" style="width:auto;padding:8px 18px;font-size:13px;">
+                    ✅ Importar tudo
+                </button>
+            </div>
+            <div class="upload-preview">
+                <table>
+                    <thead><tr><th>#</th><th>Tipo</th><th>Código</th><th>Prêmio</th><th>Qtd</th><th>Total</th></tr></thead>
+                    <tbody id="uploadPreviewBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABELA DE OPÇÕES REGISTRADAS -->
+    <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px;">
+            <h3 style="font-size:15px;margin:0;">📋 Opções Registradas</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <select id="opc-tabela-filtro-ativo" onchange="renderizarOpcoes()" style="padding:7px 10px;font-size:12px;border-radius:7px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);width:auto;">
+                    <option value="">Todos os ativos</option>
+                </select>
+                <select id="opc-tabela-filtro-tipo" onchange="renderizarOpcoes()" style="padding:7px 10px;font-size:12px;border-radius:7px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);width:auto;">
+                    <option value="">Todos</option>
+                    <option value="compra">Compras</option>
+                    <option value="venda">Vendas</option>
+                </select>
+            </div>
+        </div>
+        <div class="acoes-table-wrap">
+            <table class="acoes-table">
+                <thead>
+                    <tr>
+                        <th>Data</th><th>Código</th><th>Tipo</th><th>Modal.</th><th>Ativo</th>
+                        <th>Strike</th><th>Prêmio</th><th>Qtd</th><th>Total</th><th>Estratégia</th><th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="opcoes-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 💵 MODAL DIVIDENDO -->
+<div id="dividendoModal" class="modal">
+    <div class="modal-content" style="max-width:380px;">
+        <div class="modal-header">
+            <h3>💵 Registrar Dividendo / JCP</h3>
+            <span class="close-modal" onclick="fecharDividendoModal()">×</span>
+        </div>
+        <div style="display:grid; gap:12px;">
+            <div>
+                <label style="font-size:12px;color:#888;">Ticker</label>
+                <input type="text" id="divTicker" readonly style="background:rgba(0,0,0,0.05);">
+            </div>
+            <div>
+                <label style="font-size:12px;color:#888;">Tipo</label>
+                <select id="divTipo">
+                    <option value="dividendo">💰 Dividendo</option>
+                    <option value="jcp">📋 JCP</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size:12px;color:#888;">Valor Total Recebido (R$)</label>
+                <input type="text" id="divValor" placeholder="R$ 0,00" oninput="mascaraMoeda(this,'BRL')">
+            </div>
+            <div>
+                <label style="font-size:12px;color:#888;">Data do Pagamento</label>
+                <input type="date" id="divData">
+            </div>
+            <button onclick="salvarDividendo()" class="btn-success" style="padding:13px; font-size:15px;">
+                ✅ Salvar
+            </button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
 
