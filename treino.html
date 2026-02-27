@@ -2332,6 +2332,21 @@ header {
             <button class="btn btn-primary" onclick="openModal('treinoMan')">➕ Adicionar</button>
         </div>
     </div>
+    <!-- Contador de treinos / auto-renovação -->
+    <div id="contadorTreinoBar" style="display:none;background:rgba(102,126,234,0.08);border:1px solid rgba(102,126,234,0.25);border-radius:14px;padding:0.75rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+        <span style="font-size:1.2rem;">🔄</span>
+        <div style="flex:1;min-width:0;">
+            <div style="font-size:0.8rem;font-weight:700;color:#a78bfa;">Renovação automática</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);" id="contadorTreinoTexto">Trocar treino a cada <strong id="limiteContadorDisplay">8</strong> sessões</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.4rem;">
+            <span style="font-size:0.75rem;color:var(--text-muted);">Trocar a cada</span>
+            <input type="number" id="limiteContador" value="8" min="1" max="99" step="1"
+                   style="width:52px;padding:0.3rem 0.4rem;font-size:0.85rem;border-radius:8px;text-align:center;background:var(--dark-lighter);border:1px solid rgba(255,255,255,0.15);color:var(--text);"
+                   onchange="salvarLimiteContador(this.value)">
+            <span style="font-size:0.75rem;color:var(--text-muted);">sessões</span>
+        </div>
+    </div>
     <div id="treinosList"></div>
 </section>
 
@@ -3866,7 +3881,7 @@ Crie exatamente ${frequencia} treino(s) diferentes. NÃO INCLUA LINKS DO YOUTUBE
                     tipo: 'IA',
                     dataCriacao: agora,
                     progresso: {},
-                    config: { objetivo, nivel, focoTreino, frequencia, duracao },
+                    config: { objetivo, nivel, focoTreino, frequencia, duracao, restricoes, observacoes, equipamentos },
                     // Contexto que foi usado para gerar (para diagnóstico)
                     _contexto: { temBio: !!bioRecente, temExames: exames.length > 0, temScanner: !!ultimoScan, temHistorico: ultimas30Sessoes.length > 0 }
                 });
@@ -4039,6 +4054,8 @@ Crie exatamente ${frequencia} treino(s) diferentes. NÃO INCLUA LINKS DO YOUTUBE
     container.innerHTML = html;
     // Sincroniza o início sempre que treinos mudam
     if (document.getElementById('treinosRapidosLista')) updateDashboard();
+    // Atualiza contadores de sessão em cada card
+    setTimeout(atualizarContadoresTreino, 50);
 }
 
 function renderTreino(treino) {
@@ -4104,8 +4121,11 @@ function renderTreino(treino) {
             ${restConfigHtml}${justHtml}${exHtml}
             ${getHistoricoTreinoDia(treino.id)}
             <div class="treino-item-controls">
-                <button class="btn btn-success" onclick="iniciarCronometro(${treino.id}, '${treino.nome.replace(/'/g, "\\'")}')">⏱️ Iniciar</button>
-                <button class="btn btn-danger" onclick="deleteTreino(${treino.id})">🗑️ Excluir</button>
+                <button class="btn btn-success" onclick="iniciarCronometro(${treino.id}, '${treino.nome.replace(/'/g, "\\'")}')">
+                    ⏱️ Iniciar
+                    <span id="sessCount_${treino.id}" style="margin-left:0.4rem;background:rgba(255,255,255,0.15);padding:0.1rem 0.5rem;border-radius:8px;font-size:0.8rem;"></span>
+                </button>
+                <button class="btn btn-danger" onclick="deleteTreino(${treino.id})">🗑️</button>
             </div>
         </div>
     </div>`;
@@ -4219,14 +4239,103 @@ function toggleVersionGroup(versaoIdx) {
     function finalizarTimer() {
         clearInterval(timerInterval);
         const sessoes = load(DB.sessoes);
-        sessoes.push({ id: Date.now(), treinoId: currentWorkout.id, treinoNome: currentWorkout.nome, data: new Date().toISOString(), duracao: timerSeconds });
+        const novaSessao = {
+            id: Date.now(),
+            treinoId: currentWorkout.id,
+            treinoNome: currentWorkout.nome,
+            data: new Date().toISOString(),
+            duracao: timerSeconds
+        };
+        sessoes.push(novaSessao);
         save(DB.sessoes, sessoes);
-        notify(`Treino finalizado! ⏱️ ${formatTime(timerSeconds)} 🔥`);
+
+        // ── Contador de sessões para renovação ──
+        const limite = parseInt(localStorage.getItem('bhr_limite_contador') || '8');
+        const sessoesDoTreino = sessoes.filter(s => s.treinoId === currentWorkout.id);
+        const totalSessoesTreino = sessoesDoTreino.length;
+        const progresso = totalSessoesTreino % limite;
+
+        notify(`✅ Treino finalizado! ⏱️ ${formatTime(timerSeconds)} 🔥  •  Sessão ${totalSessoesTreino} (${progresso === 0 ? limite : progresso}/${limite})`);
+
         timerSeconds = 0; timerPaused = false; updateTimerDisplay();
         document.getElementById('startBtn').style.display = 'inline-flex';
         document.getElementById('pauseBtn').style.display = 'none';
         document.getElementById('finishBtn').style.display = 'none';
-        closeModal('cronometroModal'); loadTreinos(); updateDashboard();
+        closeModal('cronometroModal');
+        loadTreinos();
+        updateDashboard();
+        atualizarContadoresTreino();
+
+        // Verifica se chegou no limite → pergunta se quer renovar
+        if (progresso === 0) {
+            setTimeout(() => {
+                const confirma = confirm(`🔄 Você completou ${limite} treinos com "${currentWorkout.nome}"!\n\nDeseja gerar um NOVO treino automaticamente com os mesmos critérios?`);
+                if (confirma) renovarTreino(currentWorkout.id);
+            }, 800);
+        }
+    }
+
+    function deleteSessao(sessaoId) {
+        if (!confirm('🗑️ Apagar este registro de treino?')) return;
+        const list = load(DB.sessoes).filter(s => s.id !== sessaoId);
+        save(DB.sessoes, list);
+        updateDashboard();
+        atualizarContadoresTreino();
+        loadRelatorio(); // refresh relatorio
+        notify('🗑️ Sessão removida.');
+    }
+
+    function salvarLimiteContador(val) {
+        const v = Math.max(1, parseInt(val) || 8);
+        localStorage.setItem('bhr_limite_contador', v);
+        document.getElementById('limiteContadorDisplay').textContent = v;
+        atualizarContadoresTreino();
+    }
+
+    function atualizarContadoresTreino() {
+        const limite = parseInt(localStorage.getItem('bhr_limite_contador') || '8');
+        const sessoes = load(DB.sessoes);
+        const treinos = load(DB.treinos);
+        // Update input display
+        const inp = document.getElementById('limiteContador');
+        if (inp) inp.value = limite;
+        const disp = document.getElementById('limiteContadorDisplay');
+        if (disp) disp.textContent = limite;
+        // Show bar if there are treinos
+        const bar = document.getElementById('contadorTreinoBar');
+        if (bar && treinos.length > 0) bar.style.display = 'flex';
+        // Update each treino badge
+        treinos.forEach(t => {
+            const badge = document.getElementById(`sessCount_${t.id}`);
+            if (!badge) return;
+            const total = sessoes.filter(s => s.treinoId === t.id).length;
+            const prog = total % limite;
+            badge.textContent = `${prog === 0 && total > 0 ? limite : prog}/${limite}`;
+            badge.style.background = prog >= limite - 1 ? 'rgba(252,211,77,0.3)' : 'rgba(255,255,255,0.15)';
+        });
+    }
+
+    async function renovarTreino(treinoIdOrigem) {
+        const treinos = load(DB.treinos);
+        const treinoOrigem = treinos.find(t => t.id === treinoIdOrigem);
+        if (!treinoOrigem || !treinoOrigem.config) {
+            notify('⚠️ Configuração original não encontrada. Gere um novo treino manualmente.');
+            return;
+        }
+        notify('🤖 Gerando novo treino...');
+        const config = treinoOrigem.config;
+        // Pre-fill the form with original config
+        try {
+            document.getElementById('objetivo').value     = config.objetivo || '';
+            document.getElementById('nivel').value        = config.nivel || '';
+            document.getElementById('focoTreino').value   = config.focoTreino || '';
+            document.getElementById('frequencia').value   = config.frequencia || '';
+            document.getElementById('duracao').value      = config.duracao || '';
+            if (config.restricoes) document.getElementById('restricoes').value = config.restricoes;
+            if (config.observacoes) document.getElementById('observacoes').value = config.observacoes;
+        } catch(e) {}
+        // Trigger AI generation
+        await gerarTreinoIA();
     }
 
     function updateTimerDisplay() { document.getElementById('timerDisplay').textContent = formatTime(timerSeconds); }
@@ -4564,8 +4673,22 @@ function toggleVersionGroup(versaoIdx) {
 
         <div style="margin-top:1.25rem;" class="${totalSessoes > 0 ? 'info-box' : 'warning-box'}">
             <strong>💪 Consistência nos últimos ${dias} dias:</strong><br>${consistenciaMsg}
-            ${totalSessoes > 0 ? `<br><span style="font-size:0.85rem;color:var(--text-muted);">${sessoes.slice(-3).map(s => `${new Date(s.data).toLocaleDateString('pt-BR')} — ${s.treinoNome} (${formatTime(s.duracao)})`).join('<br>')}</span>` : ''}
         </div>
+
+        ${totalSessoes > 0 ? `
+        <div style="margin-top:1.5rem;">
+            <h3 style="color:var(--primary);font-size:1.05rem;margin-bottom:0.75rem;font-family:'Archivo Black',sans-serif;">📋 Sessões realizadas (${totalSessoes})</h3>
+            <div style="display:flex;flex-direction:column;gap:0.4rem;">
+                ${[...sessoes].reverse().map(s => `
+                <div style="display:flex;align-items:center;gap:0.6rem;background:var(--dark-lighter);padding:0.7rem 0.9rem;border-radius:12px;border-left:3px solid var(--primary);">
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:0.85rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.treinoNome || 'Treino'}</div>
+                        <div style="font-size:0.75rem;color:var(--text-muted);">${new Date(s.data).toLocaleDateString('pt-BR', {weekday:'short',day:'2-digit',month:'short'})} &nbsp;•&nbsp; ⏱️ ${formatTime(s.duracao)}</div>
+                    </div>
+                    <button onclick="deleteSessao(${s.id})" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#EF4444;border-radius:9px;width:34px;height:34px;font-size:0.9rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;" title="Apagar sessão">🗑️</button>
+                </div>`).join('')}
+            </div>
+        </div>` : ''}
 
         ${bioHtml}${scanHtml}${examesHtml}${ativHtml}
         ${totalSessoes === 0 && bioList.length === 0 && scans.length === 0 ? `<div class="warning-box" style="margin-top:1rem;"><strong>📋 Sem dados neste período.</strong><br>Comece um treino, faça um scan ou adicione medições de bioimpedância!</div>` : ''}
