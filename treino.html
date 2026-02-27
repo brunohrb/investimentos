@@ -3439,47 +3439,173 @@ CREATE POLICY "user_own" ON bhr_scans      FOR ALL USING (auth.uid()::text = use
     async function gerarTreinoIA(e) {
         e.preventDefault();
         if (!checkApiKey()) { alert('Configure sua chave OpenAI nas configurações primeiro! ⚙️'); closeModal('gerarTreinoModal'); switchTab('perfil'); return; }
-        const objetivo = document.getElementById('objetivo').value;
-        const nivel = document.getElementById('nivel').value;
-        const focoTreino = document.getElementById('focoTreino').value;
-        const frequencia = document.getElementById('frequencia').value;
-        const duracao = document.getElementById('duracao').value;
+
+        const objetivo    = document.getElementById('objetivo').value;
+        const nivel       = document.getElementById('nivel').value;
+        const focoTreino  = document.getElementById('focoTreino').value;
+        const frequencia  = document.getElementById('frequencia').value;
+        const duracao     = document.getElementById('duracao').value;
         const equipamentos = Array.from(document.getElementById('equipamentos').selectedOptions).map(o => o.text);
-        const outrasAtividades = document.getElementById('outrasAtividades').value;
+        const outrasAtividades   = document.getElementById('outrasAtividades').value;
         const detalhesAtividades = document.getElementById('detalhesAtividades').value;
-        const restricoes = document.getElementById('restricoes').value;
+        const restricoes  = document.getElementById('restricoes').value;
         const observacoes = document.getElementById('observacoes').value;
-        const bioData = load(DB.bio);
-        const bioRecente = bioData.length > 0 ? bioData[bioData.length - 1] : null;
+
+        // ── COLETA TODOS OS DADOS DO USUÁRIO ────────────────
+        const perfil   = loadSingle(DB.perfil) || {};
+        const bioData  = load(DB.bio).sort((a, b) => new Date(a.data) - new Date(b.data));
+        const exames   = load(DB.exames).sort((a, b) => new Date(b.data) - new Date(a.data));
+        const sessoes  = load(DB.sessoes).sort((a, b) => new Date(b.data) - new Date(a.data));
+        const scans    = load(DB.scans).sort((a, b) => new Date(b.data) - new Date(a.data));
+        const atividades = load(DB.atividades).sort((a, b) => new Date(b.data) - new Date(a.data));
+        const treinosExistentes = load(DB.treinos);
+
+        // Bio: evolução completa (não só o mais recente)
+        const bioRecente   = bioData.length > 0 ? bioData[bioData.length - 1] : null;
+        const bioPrimeiro  = bioData.length > 1 ? bioData[0] : null;
+        const bioEvolucao  = (bioRecente && bioPrimeiro) ? {
+            deltaPeso:    (bioRecente.peso    - bioPrimeiro.peso).toFixed(1),
+            deltaGordura: (bioRecente.gordura - bioPrimeiro.gordura).toFixed(1),
+            deltaMassa:   (bioRecente.massa   - bioPrimeiro.massa).toFixed(1),
+            medicoes:     bioData.length,
+            periodo:      `${new Date(bioPrimeiro.data).toLocaleDateString('pt-BR')} → ${new Date(bioRecente.data).toLocaleDateString('pt-BR')}`
+        } : null;
+
+        // Exames: extrai alertas e valores alterados
+        const alertasExames = exames.flatMap(ex => {
+            if (!ex.analiseIA) return [];
+            const alertas = [];
+            if (ex.analiseIA.urgencia && ex.analiseIA.urgencia !== 'Baixa') {
+                alertas.push(`⚠️ [${ex.tipo || 'Exame'}] urgência ${ex.analiseIA.urgencia}: ${ex.analiseIA.analise_geral?.substring(0, 120) || ''}`);
+            }
+            if (ex.analiseIA.valores_alterados?.length > 0) {
+                alertas.push(`📋 [${ex.tipo || 'Exame'}] valores alterados: ${ex.analiseIA.valores_alterados.join(', ')}`);
+            }
+            if (ex.analiseIA.recomendacoes?.length > 0) {
+                alertas.push(`💡 [${ex.tipo || 'Exame'}] recomendações: ${ex.analiseIA.recomendacoes.slice(0, 2).join('; ')}`);
+            }
+            return alertas;
+        });
+
+        // Scanner: último resultado
+        const ultimoScan = scans.length > 0 ? scans[0] : null;
+
+        // Sessões: frequência real, treinos feitos, volume
+        const ultimas30Sessoes = sessoes.slice(0, 30);
+        const diasTreinados = new Set(ultimas30Sessoes.map(s => new Date(s.data).toISOString().split('T')[0])).size;
+        const mediaMinutosPorTreino = ultimas30Sessoes.length > 0
+            ? Math.round(ultimas30Sessoes.reduce((s, ses) => s + ses.duracao, 0) / ultimas30Sessoes.length / 60)
+            : 0;
+
+        // Exercícios já usados nos treinos existentes (para evitar repetição)
+        const exerciciosJaUsados = [...new Set(
+            treinosExistentes.flatMap(t => (t.exercicios || []).map(ex => (ex.nome || '').toLowerCase()))
+        )];
+
+        // Seed de variação: muda a cada geração para forçar variedade
+        const seed = `VARIACAO_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
         closeModal('gerarTreinoModal');
         document.getElementById('loadingOverlay').classList.add('active');
-        document.getElementById('loadingTitle').textContent = '🤖 Gerando treino com IA...';
-        document.getElementById('loadingMessage').innerHTML = 'Estamos criando seu treino personalizado.<br>Isso pode levar alguns segundos. Aguarde! ⏳';
+        document.getElementById('loadingTitle').textContent = '🤖 Analisando todos os seus dados...';
+        document.getElementById('loadingMessage').innerHTML = 'Lendo bio, exames, scanner e histórico de treinos.<br>Gerando treino 100% personalizado para você! ⏳';
+
         try {
-            const prompt = `Crie um treino personalizado COMPLETO baseado em:
-OBJETIVO: ${objetivo}
-NÍVEL: ${nivel}
-FOCO: ${focoTreino === 'superior' ? 'Maior ênfase em membros superiores' : focoTreino === 'inferior' ? 'Maior ênfase em membros inferiores' : 'Corpo Todo equilibrado'}
-DURAÇÃO: ${duracao} minutos
-EQUIPAMENTOS: ${equipamentos.join(', ')}
-${outrasAtividades === 'sim' ? `OUTRAS ATIVIDADES: ${detalhesAtividades}` : ''}
-${restricoes ? `RESTRIÇÕES: ${restricoes}` : ''}
-${observacoes ? `OBSERVAÇÕES: ${observacoes}` : ''}
-${bioRecente ? `BIOIMPEDÂNCIA: Peso ${bioRecente.peso}kg, Gordura ${bioRecente.gordura}%, Massa ${bioRecente.massa}kg` : ''}
-IMPORTANTE: Crie exatamente ${frequencia} treinos diferentes. NÃO INCLUA LINKS DO YOUTUBE.
-RETORNE APENAS JSON válido:
-[{ "nome": "Treino A - [Nome]", "foco": "${focoTreino}", "exercicios": [{ "nome": "Nome do Exercício", "series": "4x10", "observacao": "Dica técnica" }] }]`;
+            // ── BLOCO DE CONTEXTO COMPLETO ──────────────────────
+            const contextoBio = bioRecente ? `
+📊 BIOIMPEDÂNCIA (${bioData.length} medições):
+- Atual: Peso ${bioRecente.peso}kg | Gordura ${bioRecente.gordura}% | Massa muscular ${bioRecente.massa}kg | IMC ${bioRecente.imc} | Água ${bioRecente.agua}%
+${bioEvolucao ? `- Evolução em ${bioEvolucao.medicoes} medições (${bioEvolucao.periodo}):
+  • Peso: ${bioEvolucao.deltaPeso > 0 ? '+' : ''}${bioEvolucao.deltaPeso}kg
+  • Gordura: ${bioEvolucao.deltaGordura > 0 ? '+' : ''}${bioEvolucao.deltaGordura}%
+  • Massa muscular: ${bioEvolucao.deltaMassa > 0 ? '+' : ''}${bioEvolucao.deltaMassa}kg` : ''}
+- IMPACTO NO TREINO: ${_interpretarBioParaTreino(bioRecente, objetivo)}` : '(Sem dados de bioimpedância)';
+
+            const contextoExames = exames.length > 0 ? `
+🩺 EXAMES MÉDICOS (${exames.length} exame(s)):
+${alertasExames.length > 0 ? alertasExames.join('\n') : '✅ Sem valores alterados relevantes'}
+- IMPACTO NO TREINO: ${alertasExames.length > 0 ? 'ATENÇÃO - ajuste intensidade/exercícios conforme alertas acima' : 'Pode treinar sem restrições médicas identificadas'}` : '(Sem exames cadastrados)';
+
+            const contextoScanner = ultimoScan ? `
+🔬 SCANNER CORPORAL (${new Date(ultimoScan.data).toLocaleDateString('pt-BR')}):
+- Score de condicionamento: ${ultimoScan.score}/100 (${ultimoScan.scoreLabel || ''})
+- IMC: ${ultimoScan.imc} | Gordura: ${ultimoScan.gorduraPct}% | Massa muscular: ${ultimoScan.massaMuscular}kg
+- TMB: ${ultimoScan.tmb}kcal | Gasto diário: ${ultimoScan.tdee}kcal
+- Biotipo: ${ultimoScan.biotipoSelecionado || 'não definido'}
+- IMPACTO NO TREINO: ${_interpretarScannerParaTreino(ultimoScan, objetivo)}` : '(Sem dados de scanner)';
+
+            const contextoHistorico = ultimas30Sessoes.length > 0 ? `
+📋 HISTÓRICO REAL DE TREINOS (últimas ${ultimas30Sessoes.length} sessões):
+- Dias treinados nos últimos 30 dias: ${diasTreinados}
+- Média de duração: ${mediaMinutosPorTreino} minutos por treino
+- Frequência real: ~${(diasTreinados / 4.3).toFixed(1)}x/semana
+- Últimos treinos: ${ultimas30Sessoes.slice(0, 5).map(s => `${s.treinoNome} (${new Date(s.data).toLocaleDateString('pt-BR')})`).join(', ')}
+- IMPACTO NO TREINO: ${mediaMinutosPorTreino > 0 && parseInt(duracao) > mediaMinutosPorTreino * 1.3 ? `⚠️ Usuário costuma treinar ${mediaMinutosPorTreino}min — não exagere na duração` : '✅ Duração solicitada compatível com histórico'}` : '(Sem histórico de treinos ainda)';
+
+            const contextoExerciciosAntigos = exerciciosJaUsados.length > 0 ? `
+🔄 EXERCÍCIOS JÁ EXISTENTES NOS TREINOS (EVITE REPETIR OS MESMOS):
+${exerciciosJaUsados.slice(0, 25).join(', ')}
+→ OBRIGATÓRIO: Use exercícios DIFERENTES dos listados acima. Varie as variações (ex: se tem Supino Reto, use Supino Inclinado ou Crucifixo). Só repita se for indispensável para o objetivo.` : '';
+
+            const contextoAtividades = atividades.length > 0 ? `
+🏃 ATIVIDADES EXTRAS: ${atividades.slice(0, 5).map(a => `${a.tipo || a.nome} (${a.duracao}min)`).join(', ')}
+→ Considere fadiga acumulada ao definir volume e intensidade.` : '';
+
+            const prompt = `Você é um personal trainer especialista. Analise TODOS os dados abaixo e crie um treino verdadeiramente personalizado.
+
+━━━ PERFIL DO USUÁRIO ━━━
+Nome: ${perfil.nome || 'não informado'} | Idade: ${perfil.idade || 'não informada'}
+Objetivo: ${objetivo} | Nível: ${nivel}
+Foco: ${focoTreino === 'superior' ? 'Membros superiores' : focoTreino === 'inferior' ? 'Membros inferiores' : 'Corpo todo'}
+Frequência desejada: ${frequencia}x/semana | Duração: ${duracao} minutos
+Equipamentos: ${equipamentos.join(', ')}
+${outrasAtividades === 'sim' ? `Outras atividades: ${detalhesAtividades}` : ''}
+${restricoes ? `Restrições/Lesões: ${restricoes}` : ''}
+${observacoes ? `Observações: ${observacoes}` : ''}
+
+━━━ DADOS BIOLÓGICOS E DE SAÚDE ━━━
+${contextoBio}
+${contextoExames}
+${contextoScanner}
+
+━━━ HISTÓRICO DE TREINO REAL ━━━
+${contextoHistorico}
+${contextoExerciciosAntigos}
+${contextoAtividades}
+
+━━━ INSTRUÇÃO DE VARIAÇÃO (CRÍTICO) ━━━
+SEED DE VARIAÇÃO: ${seed}
+Este é um NOVO treino gerado em ${new Date().toLocaleString('pt-BR')}.
+É PROIBIDO repetir a mesma sequência de exercícios de treinos anteriores.
+Crie uma combinação NOVA e DIFERENTE, ajustada ao contexto acima.
+Ajuste séries/reps baseado nos dados biológicos (ex: mais volume se massa muscular baixa, menos intensidade se exame alterado, etc).
+
+━━━ FORMATO DE SAÍDA ━━━
+RETORNE APENAS JSON válido — sem texto antes ou depois:
+[{
+  "nome": "Treino A - [Nome descritivo]",
+  "foco": "${focoTreino}",
+  "justificativa": "1-2 frases explicando POR QUE este treino foi escolhido para este usuário baseado nos dados",
+  "exercicios": [
+    { "nome": "Nome do Exercício", "series": "4x10-12", "observacao": "Dica técnica ou motivo da escolha baseado nos dados do usuário" }
+  ]
+}]
+
+Crie exatamente ${frequencia} treino(s) diferentes. NÃO INCLUA LINKS DO YOUTUBE.`;
+
             let resposta, treinos;
             let tentativas = 0;
             while (tentativas < 3) {
-                resposta = await callIA(prompt);
+                resposta = await callIA(prompt, 'treino');
                 try {
                     const jsonMatch = resposta.match(/\[[\s\S]*\]/);
                     if (!jsonMatch) throw new Error('JSON não encontrado');
                     treinos = JSON.parse(jsonMatch[0]);
+                    if (!Array.isArray(treinos) || treinos.length === 0) throw new Error('Array vazio');
                     break;
-                } catch (err) { tentativas++; if (tentativas >= 3) throw new Error('IA não conseguiu gerar treino.'); }
+                } catch (err) { tentativas++; if (tentativas >= 3) throw new Error('IA não conseguiu gerar treino após 3 tentativas.'); }
             }
+
             let videosEncontrados = 0;
             treinos.forEach(treino => {
                 treino.exercicios = treino.exercicios.map(ex => {
@@ -3488,20 +3614,84 @@ RETORNE APENAS JSON válido:
                     return norm;
                 });
             });
+
             const listaTreinos = load(DB.treinos);
+            const agora = new Date().toISOString();
             treinos.forEach(treino => {
-                listaTreinos.push({ id: Date.now() + Math.random(), nome: treino.nome, foco: treino.foco || focoTreino, exercicios: treino.exercicios, tipo: 'IA', dataCriacao: new Date().toISOString(), progresso: {}, config: { objetivo, nivel, focoTreino, frequencia, duracao } });
+                listaTreinos.push({
+                    id: Date.now() + Math.random(),
+                    nome: treino.nome,
+                    foco: treino.foco || focoTreino,
+                    justificativa: treino.justificativa || '',
+                    exercicios: treino.exercicios,
+                    tipo: 'IA',
+                    dataCriacao: agora,
+                    progresso: {},
+                    config: { objetivo, nivel, focoTreino, frequencia, duracao },
+                    // Contexto que foi usado para gerar (para diagnóstico)
+                    _contexto: { temBio: !!bioRecente, temExames: exames.length > 0, temScanner: !!ultimoScan, temHistorico: ultimas30Sessoes.length > 0 }
+                });
             });
+
             save(DB.treinos, listaTreinos);
             document.getElementById('formGerarTreino').reset();
             loadTreinos();
             document.getElementById('loadingOverlay').classList.remove('active');
             switchTab('treinos');
-            notify(`✅ ${treinos.length} treino(s) criado(s)! ${videosEncontrados} vídeo(s) adicionado(s) 💪🔥`);
+
+            // Mensagem de feedback informando o que foi usado
+            const fontesUsadas = [
+                bioRecente ? '📊 bio' : null,
+                exames.length > 0 ? '🩺 exames' : null,
+                ultimoScan ? '🔬 scanner' : null,
+                ultimas30Sessoes.length > 0 ? '📋 histórico' : null,
+            ].filter(Boolean);
+            const msgFontes = fontesUsadas.length > 0 ? ` Usando: ${fontesUsadas.join(', ')}.` : ' (sem dados de saúde ainda)';
+            notify(`✅ ${treinos.length} treino(s) criado(s) com IA!${msgFontes} 💪🔥`);
         } catch (error) {
             notify('❌ Erro ao gerar treino: ' + error.message);
             document.getElementById('loadingOverlay').classList.remove('active');
         }
+    }
+
+    // Interpreta dados de bio para orientar a IA no treino
+    function _interpretarBioParaTreino(bio, objetivo) {
+        const msgs = [];
+        if (!bio) return 'sem dados';
+        const gordura = parseFloat(bio.gordura);
+        const massa   = parseFloat(bio.massa);
+        const peso    = parseFloat(bio.peso);
+        const imc     = parseFloat(bio.imc);
+
+        if (gordura > 30) msgs.push('gordura ALTA — priorize cardio/HIIT no aquecimento, volume moderado');
+        else if (gordura > 22) msgs.push('gordura acima do ideal — misture exercícios compostos com tempo de descanso menor');
+        else if (gordura < 10) msgs.push('gordura BAIXA — foco em hipertrofia, descanso adequado');
+
+        const massaIdealMin = peso * 0.38;
+        if (massa < massaIdealMin) msgs.push(`massa muscular abaixo do esperado (${massa}kg) — treino de força com progressão de carga`);
+        else msgs.push(`boa massa muscular (${massa}kg) — pode aumentar intensidade progressivamente`);
+
+        if (imc > 29) msgs.push('IMC elevado — evite impacto excessivo, prefira máquinas e pesos controlados');
+        if (bio.agua && parseFloat(bio.agua) < 50) msgs.push('hidratação baixa — reforce instrução de beber água durante treino');
+
+        if (objetivo === 'hipertrofia' && gordura > 25) msgs.push('objetivo de hipertrofia com gordura alta → considere mesociclo de definição primeiro');
+        if (objetivo === 'emagrecimento' && massa < massaIdealMin) msgs.push('emagrecimento com pouca massa → preservar músculo é prioritário, déficit moderado');
+
+        return msgs.length > 0 ? msgs.join('; ') : 'composição dentro do esperado';
+    }
+
+    // Interpreta dados do scanner para orientar a IA
+    function _interpretarScannerParaTreino(scan, objetivo) {
+        const msgs = [];
+        if (!scan) return 'sem dados';
+        if (scan.score < 40) msgs.push('condicionamento baixo — comece com volume menor e progressão gradual');
+        else if (scan.score >= 75) msgs.push('bom condicionamento — pode usar técnicas avançadas (drop-set, superset)');
+        if (scan.gorduraPct > 28) msgs.push('gordura elevada no scan — inclua circuitos ou supersets para gasto calórico maior');
+        if (scan.massaMuscular < 30) msgs.push('baixa massa muscular no scan — exercícios compostos multiarticulares são prioridade');
+        if (scan.biotipoSelecionado === 'endomorfo') msgs.push('biotipo endomorfo — menor tempo de descanso, mais volume, cardio no final');
+        if (scan.biotipoSelecionado === 'ectomorfo') msgs.push('biotipo ectomorfo — mais descanso, foco em força, pouco cardio');
+        if (scan.tdee) msgs.push(`TDEE ${scan.tdee}kcal — treino deve gerar gasto adicional de ~${Math.round(scan.tdee * 0.08)}-${Math.round(scan.tdee * 0.12)}kcal`);
+        return msgs.length > 0 ? msgs.join('; ') : 'scanner dentro do esperado';
     }
 
     // =====================================================
@@ -3597,6 +3787,12 @@ function renderTreino(treino) {
     const concluidos = Object.values(treino.progresso || {}).filter(Boolean).length;
     const pct = totalEx > 0 ? Math.round((concluidos / totalEx) * 100) : 0;
 
+    const justHtml = treino.justificativa
+        ? `<div style="background:rgba(102,126,234,0.1);border-left:3px solid #667eea;padding:0.75rem 1rem;border-radius:0 10px 10px 0;margin-bottom:0.75rem;font-size:0.82rem;color:#9CA3AF;font-style:italic;">
+            🤖 <span style="color:#a78bfa;">${treino.justificativa}</span>
+           </div>`
+        : '';
+
     const exHtml = exercicios.map((ex, idx) => {
         const done = treino.progresso && treino.progresso[idx];
         const ytUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(ex.nome + ' execução correta')}`;
@@ -3628,7 +3824,7 @@ function renderTreino(treino) {
             <div class="treino-item-progress-bar-fill" style="width:${pct}%"></div>
         </div>
         <div class="treino-item-body" id="treino-content-${treino.id}">
-            ${exHtml}
+            ${justHtml}${exHtml}
             ${getHistoricoTreinoDia(treino.id)}
             <div class="treino-item-controls">
                 <button class="btn btn-success" onclick="iniciarCronometro(${treino.id}, '${treino.nome.replace(/'/g, "\\'")}')">⏱️ Iniciar</button>
