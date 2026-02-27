@@ -2065,6 +2065,118 @@ header {
     padding: 0.7rem 0.5rem;
 }
 
+/* Rest Timer button */
+.ex-rest-btn {
+    width: 36px;
+    height: 36px;
+    background: rgba(252,211,77,0.12);
+    border: 1px solid rgba(252,211,77,0.3);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    color: var(--warning);
+    position: relative;
+}
+.ex-rest-btn:active { background: rgba(252,211,77,0.3); }
+.ex-rest-btn.running {
+    background: rgba(252,211,77,0.25);
+    border-color: var(--warning);
+    animation: restPulse 1s ease-in-out infinite;
+}
+@keyframes restPulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(252,211,77,0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(252,211,77,0); }
+}
+
+/* Rest timer config row */
+.rest-timer-config {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.75rem;
+    background: rgba(252,211,77,0.06);
+    border: 1px solid rgba(252,211,77,0.2);
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+.rest-timer-config label {
+    font-size: 0.75rem;
+    color: var(--warning);
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0;
+    white-space: nowrap;
+}
+.rest-timer-config input[type=number] {
+    width: 64px;
+    min-height: 32px;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* Floating rest timer */
+#restTimerFloat {
+    position: fixed;
+    bottom: 5rem;
+    right: 1rem;
+    background: var(--dark-card);
+    border: 2px solid var(--warning);
+    border-radius: 20px;
+    padding: 1rem 1.25rem;
+    z-index: 4000;
+    text-align: center;
+    min-width: 160px;
+    box-shadow: 0 8px 30px rgba(252,211,77,0.3);
+    display: none;
+    animation: slideUp 0.3s ease-out;
+}
+#restTimerFloat.active { display: block; }
+#restTimerFloat .rt-label {
+    font-size: 0.75rem;
+    color: var(--warning);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.25rem;
+}
+#restTimerFloat .rt-time {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 2.8rem;
+    color: var(--warning);
+    line-height: 1;
+    margin: 0.25rem 0;
+}
+#restTimerFloat .rt-bar-wrap {
+    background: rgba(255,255,255,0.08);
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 0.5rem 0;
+}
+#restTimerFloat .rt-bar {
+    height: 100%;
+    background: var(--warning);
+    border-radius: 3px;
+    transition: width 1s linear;
+}
+#restTimerFloat .rt-ex-name {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
     </style>
 </head>
 <body>
@@ -2670,8 +2782,9 @@ header {
                         <textarea id="restricoes" rows="3" placeholder="Opcional: Descreva lesões ou limitações"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Observações Adicionais</label>
-                        <textarea id="observacoes" rows="3" placeholder="Opcional: Preferências específicas"></textarea>
+                        <label>⭐ Observações / Preferências (alta prioridade)</label>
+                        <textarea id="observacoes" rows="3" placeholder="Ex: quero exercícios com halteres, sem agachamento livre, prefiro supino inclinado, incluir flexão de braço..."></textarea>
+                        <small style="color:#a78bfa;font-size:0.78rem;margin-top:0.25rem;display:block;">💡 O que você escrever aqui tem prioridade máxima sobre qualquer sugestão da IA.</small>
                     </div>
                 </div>
                 <button type="submit" class="btn btn-ai btn-block">🚀 Gerar Treino Personalizado</button>
@@ -2754,84 +2867,142 @@ header {
         </div>
     </div>
 
-    <!-- MODAL: BIOIMPEDÂNCIA -->
+    <!-- MODAL: BIOIMPEDÂNCIA (BATCH) -->
     <div id="bioModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width:640px;">
             <div class="modal-header">
-                <h3 class="modal-title">📊 Upload Bioimpedância</h3>
-                <button class="modal-close" onclick="closeModal('bioModal')">×</button>
+                <h3 class="modal-title">📊 Bioimpedância</h3>
+                <button class="modal-close" onclick="closeModal('bioModal');resetBatchBio()">×</button>
             </div>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>📄 Upload do Resultado da Bioimpedância</label>
-                    <input type="file" id="bioArquivo" accept=".pdf,.jpg,.jpeg,.png,.txt" 
-                           style="padding:1rem; border:2px dashed var(--primary); background:rgba(0,217,177,0.05);">
-                    <small style="color: var(--text-muted); font-size: 0.85rem; display:block; margin-top:0.75rem;">
-                        📤 Faça upload do seu resultado (PDF, imagem ou texto) e a IA vai ler e extrair os dados automaticamente!
-                    </small>
+
+            <!-- ABAS -->
+            <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;">
+                <button id="bioTabUpload" onclick="switchBioTab('upload')" class="btn btn-primary" style="flex:1;font-size:0.85rem;">📤 Upload em Lote</button>
+                <button id="bioTabManual" onclick="switchBioTab('manual')" class="btn" style="flex:1;font-size:0.85rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);">✏️ Manual</button>
+            </div>
+
+            <!-- ABA UPLOAD EM LOTE -->
+            <div id="bioTabUploadContent">
+                <!-- Drop zone -->
+                <div id="bioBatchDropzone"
+                     onclick="document.getElementById('bioBatchInput').click()"
+                     ondragover="event.preventDefault();this.style.borderColor='var(--primary)';this.style.background='rgba(0,217,177,0.1)'"
+                     ondragleave="this.style.borderColor='';this.style.background=''"
+                     ondrop="bioBatchDrop(event)"
+                     style="border:2px dashed rgba(0,217,177,0.4);border-radius:16px;padding:2rem;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(0,217,177,0.03);margin-bottom:1rem;">
+                    <div style="font-size:2.5rem;margin-bottom:0.5rem;">📁</div>
+                    <div style="font-weight:700;color:var(--primary);margin-bottom:0.25rem;">Clique ou arraste os arquivos aqui</div>
+                    <div style="font-size:0.8rem;color:var(--text-muted);">PDF, imagem (JPG/PNG) ou texto • Vários arquivos de uma vez</div>
                 </div>
-                <button class="btn btn-ai btn-block" onclick="analisarBioUploadIA()">
-                    🤖 Analisar e Salvar Automaticamente
+                <input type="file" id="bioBatchInput" multiple accept=".pdf,.jpg,.jpeg,.png,.txt" style="display:none;" onchange="bioBatchAdicionarArquivos(this.files)">
+
+                <!-- Fila de arquivos -->
+                <div id="bioBatchFila" style="display:none;margin-bottom:1rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                        <span style="font-weight:700;color:var(--text);font-size:0.9rem;" id="bioBatchContador">0 arquivo(s) na fila</span>
+                        <button onclick="resetBatchBio()" style="background:none;border:none;color:var(--text-muted);font-size:0.8rem;cursor:pointer;">🗑️ Limpar tudo</button>
+                    </div>
+                    <div id="bioBatchListaArquivos" style="display:flex;flex-direction:column;gap:0.5rem;max-height:280px;overflow-y:auto;"></div>
+                </div>
+
+                <!-- Progresso geral -->
+                <div id="bioBatchProgressoGeral" style="display:none;margin-bottom:1rem;">
+                    <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:var(--text-muted);margin-bottom:0.4rem;">
+                        <span id="bioBatchProgressoTexto">Analisando...</span>
+                        <span id="bioBatchProgressoPct">0%</span>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.08);height:6px;border-radius:3px;overflow:hidden;">
+                        <div id="bioBatchProgressoBar" style="height:100%;background:var(--gradient-1);width:0%;transition:width 0.4s;border-radius:3px;"></div>
+                    </div>
+                </div>
+
+                <button id="bioBatchBtnAnalisar" class="btn btn-ai btn-block" onclick="analisarBioLote()" style="display:none;">
+                    🤖 Analisar Todos e Salvar
                 </button>
-                <div id="bioUploadStatus" style="margin-top:1rem;"></div>
-                
-                <div style="margin: 1.5rem 0; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem;">
-                    <h4 style="color: var(--primary); margin-bottom: 1rem;">Ou insira manualmente:</h4>
-                    <form onsubmit="addBioManual(event)">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Data</label>
-                                <input type="date" id="bioData">
-                            </div>
-                            <div class="form-group">
-                                <label>Peso (kg)</label>
-                                <input type="number" id="bioPeso" step="0.1" placeholder="Ex: 80.5">
-                            </div>
-                            <div class="form-group">
-                                <label>% Gordura</label>
-                                <input type="number" id="bioGordura" step="0.1" placeholder="Ex: 15.2">
-                            </div>
-                            <div class="form-group">
-                                <label>Massa Muscular (kg)</label>
-                                <input type="number" id="bioMassa" step="0.1" placeholder="Ex: 35.0">
-                            </div>
-                            <div class="form-group">
-                                <label>IMC</label>
-                                <input type="number" id="bioIMC" step="0.1" placeholder="Ex: 24.5">
-                            </div>
-                            <div class="form-group">
-                                <label>% Água</label>
-                                <input type="number" id="bioAgua" step="0.1" placeholder="Ex: 60.0">
-                            </div>
+                <div id="bioBatchResumo" style="display:none;"></div>
+            </div>
+
+            <!-- ABA MANUAL -->
+            <div id="bioTabManualContent" style="display:none;">
+                <form onsubmit="addBioManual(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Data</label>
+                            <input type="date" id="bioData">
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1rem;">💾 Salvar Manualmente</button>
-                    </form>
-                </div>
+                        <div class="form-group">
+                            <label>Peso (kg)</label>
+                            <input type="number" id="bioPeso" step="0.1" placeholder="Ex: 80.5">
+                        </div>
+                        <div class="form-group">
+                            <label>% Gordura</label>
+                            <input type="number" id="bioGordura" step="0.1" placeholder="Ex: 15.2">
+                        </div>
+                        <div class="form-group">
+                            <label>Massa Muscular (kg)</label>
+                            <input type="number" id="bioMassa" step="0.1" placeholder="Ex: 35.0">
+                        </div>
+                        <div class="form-group">
+                            <label>IMC</label>
+                            <input type="number" id="bioIMC" step="0.1" placeholder="Ex: 24.5">
+                        </div>
+                        <div class="form-group">
+                            <label>% Água</label>
+                            <input type="number" id="bioAgua" step="0.1" placeholder="Ex: 60.0">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" style="margin-top:1rem;">💾 Salvar</button>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- MODAL: EXAME -->
+    <!-- MODAL: EXAME (BATCH) -->
     <div id="exameModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width:640px;">
             <div class="modal-header">
-                <h3 class="modal-title">🩺 Upload de Exame</h3>
-                <button class="modal-close" onclick="closeModal('exameModal')">×</button>
+                <h3 class="modal-title">🩺 Exames</h3>
+                <button class="modal-close" onclick="closeModal('exameModal');resetBatchExame()">×</button>
             </div>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>📄 Upload do Resultado do Exame</label>
-                    <input type="file" id="exameArquivo" accept=".pdf,.jpg,.jpeg,.png,.txt" 
-                           style="padding:1rem; border:2px dashed var(--primary); background:rgba(0,217,177,0.05);">
-                    <small style="color: var(--text-muted); font-size: 0.85rem; display:block; margin-top:0.75rem;">
-                        📤 Faça upload do seu exame (PDF, imagem ou texto) e a IA vai ler e analisar automaticamente!
-                    </small>
+
+            <!-- Drop zone -->
+            <div id="exameBatchDropzone"
+                 onclick="document.getElementById('exameBatchInput').click()"
+                 ondragover="event.preventDefault();this.style.borderColor='var(--primary)';this.style.background='rgba(0,217,177,0.1)'"
+                 ondragleave="this.style.borderColor='';this.style.background=''"
+                 ondrop="exameBatchDrop(event)"
+                 style="border:2px dashed rgba(102,126,234,0.5);border-radius:16px;padding:2rem;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(102,126,234,0.03);margin-bottom:1rem;">
+                <div style="font-size:2.5rem;margin-bottom:0.5rem;">📋</div>
+                <div style="font-weight:700;color:#a78bfa;margin-bottom:0.25rem;">Clique ou arraste os exames aqui</div>
+                <div style="font-size:0.8rem;color:var(--text-muted);">PDF, imagem (JPG/PNG) ou texto • Vários de uma vez</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem;">Hemograma, colesterol, glicemia, hormônios, etc.</div>
+            </div>
+            <input type="file" id="exameBatchInput" multiple accept=".pdf,.jpg,.jpeg,.png,.txt" style="display:none;" onchange="exameBatchAdicionarArquivos(this.files)">
+
+            <!-- Fila de arquivos -->
+            <div id="exameBatchFila" style="display:none;margin-bottom:1rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                    <span style="font-weight:700;color:var(--text);font-size:0.9rem;" id="exameBatchContador">0 arquivo(s) na fila</span>
+                    <button onclick="resetBatchExame()" style="background:none;border:none;color:var(--text-muted);font-size:0.8rem;cursor:pointer;">🗑️ Limpar tudo</button>
                 </div>
-                <button class="btn btn-ai btn-block" onclick="analisarExameUploadIA()">
-                    🤖 Analisar e Salvar Automaticamente
-                </button>
-                <div id="exameUploadStatus" style="margin-top:1rem;"></div>
+                <div id="exameBatchListaArquivos" style="display:flex;flex-direction:column;gap:0.5rem;max-height:280px;overflow-y:auto;"></div>
             </div>
+
+            <!-- Progresso geral -->
+            <div id="exameBatchProgressoGeral" style="display:none;margin-bottom:1rem;">
+                <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:var(--text-muted);margin-bottom:0.4rem;">
+                    <span id="exameBatchProgressoTexto">Analisando...</span>
+                    <span id="exameBatchProgressoPct">0%</span>
+                </div>
+                <div style="background:rgba(255,255,255,0.08);height:6px;border-radius:3px;overflow:hidden;">
+                    <div id="exameBatchProgressoBar" style="height:100%;background:var(--gradient-ai);width:0%;transition:width 0.4s;border-radius:3px;"></div>
+                </div>
+            </div>
+
+            <button id="exameBatchBtnAnalisar" class="btn btn-ai btn-block" onclick="analisarExamesLote()" style="display:none;">
+                🤖 Analisar Todos e Salvar
+            </button>
+            <div id="exameBatchResumo" style="display:none;"></div>
         </div>
     </div>
 
@@ -2862,6 +3033,15 @@ header {
             <h3 id="loadingTitle">🤖 Gerando treino com IA...</h3>
             <p id="loadingMessage">Estamos criando seu treino personalizado.<br>Isso pode levar alguns segundos. Aguarde! ⏳</p>
         </div>
+    </div>
+
+    <!-- FLOATING REST TIMER -->
+    <div id="restTimerFloat">
+        <div class="rt-label">⏸️ Descanso</div>
+        <div class="rt-ex-name" id="rtExNome">—</div>
+        <div class="rt-time" id="rtDisplay">00</div>
+        <div class="rt-bar-wrap"><div class="rt-bar" id="rtBar" style="width:100%"></div></div>
+        <button onclick="cancelarRestTimer()" style="background:none;border:none;color:var(--text-muted);font-size:0.78rem;cursor:pointer;margin-top:0.25rem;">✕ cancelar</button>
     </div>
 
     <script>
@@ -3554,7 +3734,11 @@ ${exerciciosJaUsados.slice(0, 25).join(', ')}
 
             const prompt = `Você é um personal trainer especialista. Analise TODOS os dados abaixo e crie um treino verdadeiramente personalizado.
 
-━━━ PERFIL DO USUÁRIO ━━━
+${observacoes ? `⭐ PREFERÊNCIAS PRIORITÁRIAS DO USUÁRIO (máxima prioridade — aplique antes de qualquer outra regra):
+"${observacoes}"
+→ Isso é o que o usuário explicitamente pediu. Respeite integralmente. Se conflitar com sugestões técnicas, a preferência do usuário vence.
+
+` : ''}━━━ PERFIL DO USUÁRIO ━━━
 Nome: ${perfil.nome || 'não informado'} | Idade: ${perfil.idade || 'não informada'}
 Objetivo: ${objetivo} | Nível: ${nivel}
 Foco/Ênfase: ${
@@ -3567,8 +3751,7 @@ Foco/Ênfase: ${
 Frequência desejada: ${frequencia}x/semana | Duração: ${duracao} minutos
 Equipamentos: ${equipamentos.join(', ')}
 ${outrasAtividades === 'sim' ? `Outras atividades: ${detalhesAtividades}` : ''}
-${restricoes ? `Restrições/Lesões: ${restricoes}` : ''}
-${observacoes ? `Observações: ${observacoes}` : ''}
+${restricoes ? `Restrições/Lesões (respeitar obrigatoriamente): ${restricoes}` : ''}
 
 ━━━ DADOS BIOLÓGICOS E DE SAÚDE ━━━
 ${contextoBio}
@@ -3587,22 +3770,23 @@ Este é um NOVO treino gerado em ${new Date().toLocaleString('pt-BR')}.
 Crie uma combinação NOVA e DIFERENTE, ajustada ao contexto acima.
 Ajuste séries/reps baseado nos dados biológicos (ex: mais volume se massa muscular baixa, menos intensidade se exame alterado, etc).
 
-━━━ REGRAS INVIOLÁVEIS — LEIA ANTES DE GERAR ━━━
+━━━ REGRAS DE DIVISÃO DOS TREINOS — LEIA COM ATENÇÃO ━━━
+Você vai criar exatamente ${frequencia} treino(s). Distribua assim:
+
 ${focoTreino === 'superior' ? `
-⛔ REGRA ABSOLUTA — ÊNFASE EM SUPERIOR:
-- Os primeiros exercícios de cada treino DEVEM ser de peito, costas, ombros ou braços (é onde está o foco e o maior volume).
-- Mas OBRIGATORIAMENTE cada treino precisa conter NO MÍNIMO 2 exercícios de pernas/glúteos (ex: Agachamento, Leg Press, Stiff, Afundo, Cadeira Extensora, Cadeira Flexora, Panturrilha).
-- "Ênfase" NÃO significa excluir perna — significa que o superior recebe mais séries (ex: 5-6 exercícios de superior + 2-3 de perna).
-- Se você gerar um treino SEM exercício de perna, você terá falhado na tarefa.
+ÊNFASE EM SUPERIOR — divisão correta para ${frequencia} treino(s)/semana:
+- A MAIORIA dos treinos (${Math.max(1, parseInt(frequencia) - 1)} treinos) deve ser EXCLUSIVAMENTE de membros superiores: peito, costas, ombros, braços. SEM perna nesses treinos.
+- APENAS 1 treino da semana deve ser DEDICADO a pernas/glúteos (agachamento, leg press, stiff, afundo, extensora, flexora, panturrilha, glúteos).
+- Exemplo correto para ${frequencia}x/semana: ${_exemploDivisaoSuperior(parseInt(frequencia))}
+- ERRADO: colocar 1 exercício de perna em cada treino. CERTO: 1 dia inteiro dedicado a perna.
 ` : focoTreino === 'inferior' ? `
-⛔ REGRA ABSOLUTA — ÊNFASE EM INFERIOR:
-- Os primeiros exercícios de cada treino DEVEM ser de pernas e glúteos (é onde está o foco e o maior volume).
-- Mas OBRIGATORIAMENTE cada treino precisa conter NO MÍNIMO 2 exercícios de membros superiores (ex: Supino, Remada, Desenvolvimento, Puxada, Rosca, Tríceps).
-- "Ênfase" NÃO significa excluir superior — significa que inferior recebe mais séries (ex: 5-6 exercícios de perna + 2 de superior).
-- Se você gerar um treino SEM exercício de superior, você terá falhado na tarefa.
+ÊNFASE EM INFERIOR — divisão correta para ${frequencia} treino(s)/semana:
+- A MAIORIA dos treinos (${Math.max(1, parseInt(frequencia) - 1)} treinos) deve ser EXCLUSIVAMENTE de membros inferiores: pernas, glúteos, panturrilha. SEM superior nesses treinos.
+- APENAS 1 treino da semana deve ser DEDICADO a membros superiores (supino, remada, desenvolvimento, puxada, rosca, tríceps).
+- Exemplo correto para ${frequencia}x/semana: ${_exemploDivisaoInferior(parseInt(frequencia))}
+- ERRADO: colocar 1 exercício de superior em cada treino. CERTO: 1 dia inteiro dedicado a superior.
 ` : `
-⛔ REGRA ABSOLUTA — CORPO TODO:
-- Cada treino DEVE ter exercícios de superior, inferior e core. Nenhum grupo pode ser ignorado.
+CORPO TODO EQUILIBRADO — cada treino deve ter exercícios de superior, inferior e core de forma equilibrada.
 `}
 
 ━━━ FORMATO DE SAÍDA ━━━
@@ -3610,9 +3794,9 @@ RETORNE APENAS JSON válido — sem texto antes ou depois:
 [{
   "nome": "Treino A - [Nome descritivo]",
   "foco": "${focoTreino}",
-  "justificativa": "Explique quais grupos musculares receberam mais volume (foco) e quais foram incluídos como complemento obrigatório",
+  "justificativa": "Explique o papel deste treino na divisão semanal (ex: 'Treino focado em peito e tríceps, parte do split de ênfase superior')",
   "exercicios": [
-    { "nome": "Nome do Exercício", "series": "4x10-12", "observacao": "Dica técnica ou motivo da escolha" }
+    { "nome": "Nome do Exercício", "series": "4x10-12", "observacao": "Dica técnica" }
   ]
 }]
 
@@ -3628,22 +3812,27 @@ Crie exatamente ${frequencia} treino(s) diferentes. NÃO INCLUA LINKS DO YOUTUBE
                     treinos = JSON.parse(jsonMatch[0]);
                     if (!Array.isArray(treinos) || treinos.length === 0) throw new Error('Array vazio');
 
-                    // ── VALIDAÇÃO: verifica se regras de grupo muscular foram seguidas ──
+                    // ── VALIDAÇÃO: verifica se a divisão semanal está correta ──
                     if (focoTreino === 'superior' || focoTreino === 'inferior') {
-                        const palavrasPerna = ['agachamento','leg press','stiff','afundo','cadeira extensora','cadeira flexora','panturrilha','glúteo','gluteo','levantamento terra','hack squat','bulgaro','passada','lunge'];
-                        const palavrasSuperior = ['supino','remada','desenvolvimento','puxada','barra fixa','pulldown','rosca','tríceps','triceps','crucifixo','elevação lateral','elevação frontal','mergulho','flexão','flexao','ombro','peito','costas'];
-                        const grupoObrigatorio = focoTreino === 'superior' ? palavrasPerna : palavrasSuperior;
-                        const nomeGrupo = focoTreino === 'superior' ? 'perna/glúteo' : 'superior';
+                        const palavrasPerna = ['agachamento','leg press','stiff','afundo','cadeira extensora','cadeira flexora','panturrilha','glúteo','gluteo','levantamento terra','hack squat','bulgaro','passada','lunge','extensora','flexora'];
+                        const palavrasSuperior = ['supino','remada','desenvolvimento','puxada','barra fixa','pulldown','rosca','tríceps','triceps','crucifixo','elevação lateral','elevação frontal','mergulho','flexão','flexao','ombro','peito','costas','bíceps','biceps'];
 
-                        const treinoSemGrupo = treinos.find(t => {
+                        const temTreinoPerna = treinos.some(t => {
                             const nomes = (t.exercicios || []).map(ex => (ex.nome || '').toLowerCase());
-                            return !nomes.some(nome => grupoObrigatorio.some(p => nome.includes(p)));
+                            return nomes.some(nome => palavrasPerna.some(p => nome.includes(p)));
+                        });
+                        const temTreinoSuperior = treinos.some(t => {
+                            const nomes = (t.exercicios || []).map(ex => (ex.nome || '').toLowerCase());
+                            return nomes.some(nome => palavrasSuperior.some(p => nome.includes(p)));
                         });
 
-                        if (treinoSemGrupo) {
+                        // Ênfase superior: deve ter pelo menos 1 treino de perna E pelo menos 1 treino de superior
+                        // Ênfase inferior: deve ter pelo menos 1 treino de superior E pelo menos 1 treino de perna
+                        if (!temTreinoPerna || !temTreinoSuperior) {
                             tentativas++;
-                            console.warn(`⚠️ Tentativa ${tentativas}: treino "${treinoSemGrupo.nome}" sem exercício de ${nomeGrupo}. Regenerando...`);
-                            if (tentativas >= 3) throw new Error(`IA não incluiu exercício de ${nomeGrupo} após 3 tentativas.`);
+                            const faltando = !temTreinoPerna ? 'perna' : 'superior';
+                            console.warn(`⚠️ Tentativa ${tentativas}: nenhum treino de ${faltando} encontrado. Regenerando...`);
+                            if (tentativas >= 3) throw new Error(`IA não gerou treino de ${faltando} após 3 tentativas.`);
                             continue;
                         }
                     }
@@ -3704,7 +3893,28 @@ Crie exatamente ${frequencia} treino(s) diferentes. NÃO INCLUA LINKS DO YOUTUBE
         }
     }
 
-    // Interpreta dados de bio para orientar a IA no treino
+    // Exemplos de divisão correta por frequência
+    function _exemploDivisaoSuperior(freq) {
+        const exemplos = {
+            2: 'Treino A: Peito+Costas | Treino B: Pernas+Ombros',
+            3: 'Treino A: Peito+Tríceps | Treino B: Costas+Bíceps | Treino C: Pernas+Ombros',
+            4: 'Treino A: Peito+Tríceps | Treino B: Costas+Bíceps | Treino C: Ombros+Core | Treino D: Pernas (dia dedicado)',
+            5: 'Treino A: Peito | Treino B: Costas | Treino C: Ombros+Braços | Treino D: Peito+Tríceps | Treino E: Pernas (dia dedicado)',
+            6: 'Treino A: Peito | Treino B: Costas | Treino C: Ombros | Treino D: Braços | Treino E: Peito+Costas leve | Treino F: Pernas (dia dedicado)',
+        };
+        return exemplos[freq] || exemplos[4];
+    }
+
+    function _exemploDivisaoInferior(freq) {
+        const exemplos = {
+            2: 'Treino A: Quad+Glúteo | Treino B: Posterior+Superior',
+            3: 'Treino A: Quad+Glúteo | Treino B: Posterior+Panturrilha | Treino C: Superior+Core',
+            4: 'Treino A: Quad+Glúteo | Treino B: Posterior+Panturrilha | Treino C: Glúteo+Core | Treino D: Superior (dia dedicado)',
+            5: 'Treino A: Quad | Treino B: Glúteo+Posterior | Treino C: Panturrilha+Core | Treino D: Quad+Glúteo leve | Treino E: Superior (dia dedicado)',
+            6: 'Treino A: Quad | Treino B: Glúteo | Treino C: Posterior+Panturrilha | Treino D: Quad+Glúteo | Treino E: Core+Mobilidade | Treino F: Superior (dia dedicado)',
+        };
+        return exemplos[freq] || exemplos[4];
+    }
     function _interpretarBioParaTreino(bio, objetivo) {
         const msgs = [];
         if (!bio) return 'sem dados';
@@ -3836,6 +4046,8 @@ function renderTreino(treino) {
     const totalEx = exercicios.length;
     const concluidos = Object.values(treino.progresso || {}).filter(Boolean).length;
     const pct = totalEx > 0 ? Math.round((concluidos / totalEx) * 100) : 0;
+    const treinoRestKey = `rest_${treino.id}`;
+    const restSecs = parseInt(localStorage.getItem(treinoRestKey) || '60');
 
     const justHtml = treino.justificativa
         ? `<div style="background:rgba(102,126,234,0.1);border-left:3px solid #667eea;padding:0.75rem 1rem;border-radius:0 10px 10px 0;margin-bottom:0.75rem;font-size:0.82rem;color:#9CA3AF;font-style:italic;">
@@ -3843,11 +4055,23 @@ function renderTreino(treino) {
            </div>`
         : '';
 
+    // Config de descanso
+    const restConfigHtml = `
+        <div class="rest-timer-config">
+            <span>⏸️</span>
+            <label>Descanso entre séries:</label>
+            <input type="number" id="restInput_${treino.id}" value="${restSecs}" min="5" max="600" step="5"
+                   onchange="localStorage.setItem('rest_${treino.id}', this.value)"
+                   style="width:64px;">
+            <label style="color:var(--text-muted);font-weight:400;">seg</label>
+            <span style="font-size:0.72rem;color:var(--text-muted);">— toque ⏱️ no exercício para iniciar</span>
+        </div>`;
+
     const exHtml = exercicios.map((ex, idx) => {
         const done = treino.progresso && treino.progresso[idx];
         const ytUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(ex.nome + ' execução correta')}`;
         return `
-        <div class="ex-row ${done ? 'done' : ''}">
+        <div class="ex-row ${done ? 'done' : ''}" id="exrow_${treino.id}_${idx}">
             <div class="ex-info">
                 <div class="ex-nome ${done ? 'done' : ''}">${ex.nome}</div>
                 <div class="ex-series">${ex.series}</div>
@@ -3857,6 +4081,9 @@ function renderTreino(treino) {
                 <a href="${ytUrl}" target="_blank" rel="noopener noreferrer" class="ex-yt-btn" title="Ver no YouTube">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="#FF0000"><polygon points="5,3 19,12 5,21"></polygon></svg>
                 </a>
+                <button class="ex-rest-btn" id="restBtn_${treino.id}_${idx}"
+                        onclick="iniciarRestTimer(${treino.id}, ${idx}, '${ex.nome.replace(/'/g,"\\'")}')"
+                        title="Iniciar descanso">⏱️</button>
                 <button class="ex-del-btn" onclick="deleteExercicio(${treino.id}, ${idx}, '${ex.nome.replace(/'/g, "\\'")}')">🗑</button>
                 <div class="ex-check-btn ${done ? 'checked' : ''}" onclick="toggleExercicio(${treino.id}, ${idx})">${done ? '✓' : ''}</div>
             </div>
@@ -3874,7 +4101,7 @@ function renderTreino(treino) {
             <div class="treino-item-progress-bar-fill" style="width:${pct}%"></div>
         </div>
         <div class="treino-item-body" id="treino-content-${treino.id}">
-            ${justHtml}${exHtml}
+            ${restConfigHtml}${justHtml}${exHtml}
             ${getHistoricoTreinoDia(treino.id)}
             <div class="treino-item-controls">
                 <button class="btn btn-success" onclick="iniciarCronometro(${treino.id}, '${treino.nome.replace(/'/g, "\\'")}')">⏱️ Iniciar</button>
@@ -5744,6 +5971,397 @@ Use emojis, seja específico com números e seja muito motivador!`;
         save(DB.scans, load(DB.scans).filter(s => s.id !== id));
         loadScanHistory();
         notify('Scan excluído! 🗑️');
+    }
+
+    // =====================================================
+    // REST TIMER (descanso entre séries)
+    // =====================================================
+    let _restInterval = null;
+    let _restAtivo = false;
+    let _restBtnAtual = null;
+
+    function iniciarRestTimer(treinoId, exIdx, exNome) {
+        const input = document.getElementById(`restInput_${treinoId}`);
+        const segundos = parseInt(input ? input.value : 60) || 60;
+        const btn = document.getElementById(`restBtn_${treinoId}_${exIdx}`);
+
+        // Se já está rodando para este botão, cancela
+        if (_restAtivo && _restBtnAtual === btn) {
+            cancelarRestTimer();
+            return;
+        }
+
+        // Cancela qualquer timer anterior
+        cancelarRestTimer();
+
+        _restAtivo = true;
+        _restBtnAtual = btn;
+        if (btn) btn.classList.add('running');
+
+        let restante = segundos;
+        const total = segundos;
+
+        const float = document.getElementById('restTimerFloat');
+        const display = document.getElementById('rtDisplay');
+        const bar = document.getElementById('rtBar');
+        const nomeEl = document.getElementById('rtExNome');
+
+        float.classList.add('active');
+        nomeEl.textContent = exNome;
+
+        function atualizar() {
+            display.textContent = restante;
+            bar.style.width = (restante / total * 100) + '%';
+            // Muda cor conforme tempo passa
+            if (restante <= 10) {
+                bar.style.background = '#EF4444';
+                display.style.color = '#EF4444';
+            } else if (restante <= 20) {
+                bar.style.background = '#F97316';
+                display.style.color = '#F97316';
+            } else {
+                bar.style.background = 'var(--warning)';
+                display.style.color = 'var(--warning)';
+            }
+        }
+
+        atualizar();
+
+        _restInterval = setInterval(() => {
+            restante--;
+            atualizar();
+            if (restante <= 0) {
+                clearInterval(_restInterval);
+                _restAtivo = false;
+                if (_restBtnAtual) _restBtnAtual.classList.remove('running');
+                float.classList.remove('active');
+                // Vibra se disponível
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                // Som de fim
+                _beepFim();
+                notify('✅ Descanso concluído! Próxima série! 💪');
+            }
+        }, 1000);
+    }
+
+    function cancelarRestTimer() {
+        if (_restInterval) clearInterval(_restInterval);
+        _restAtivo = false;
+        if (_restBtnAtual) _restBtnAtual.classList.remove('running');
+        _restBtnAtual = null;
+        const float = document.getElementById('restTimerFloat');
+        if (float) float.classList.remove('active');
+    }
+
+    function _beepFim() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            [880, 1100, 1320].forEach((freq, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.18);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.25);
+                osc.start(ctx.currentTime + i * 0.18);
+                osc.stop(ctx.currentTime + i * 0.18 + 0.25);
+            });
+        } catch(e) {}
+    }
+
+    // =====================================================
+    // BATCH UPLOAD — BIO & EXAMES
+    // =====================================================
+
+    // ── Estado das filas ────────────────────────────────
+    let bioBatchFila    = []; // { file, nome, status, resultado }
+    let exameBatchFila  = [];
+
+    // ── Helpers de UI ────────────────────────────────────
+    function _fileIcon(file) {
+        if (file.type === 'application/pdf') return '📄';
+        if (file.type.startsWith('image/')) return '🖼️';
+        return '📝';
+    }
+
+    function _statusBadge(status) {
+        const mapa = {
+            pendente:   { cor: 'rgba(156,163,175,0.2)',  txt: '#9CA3AF', label: '⏳ Aguardando' },
+            analisando: { cor: 'rgba(102,126,234,0.2)',  txt: '#a78bfa', label: '🤖 Analisando...' },
+            ok:         { cor: 'rgba(74,222,128,0.2)',   txt: '#4ADE80', label: '✅ Salvo' },
+            erro:       { cor: 'rgba(239,68,68,0.2)',    txt: '#EF4444', label: '❌ Erro' },
+        };
+        const s = mapa[status] || mapa.pendente;
+        return `<span style="background:${s.cor};color:${s.txt};padding:0.2rem 0.6rem;border-radius:8px;font-size:0.72rem;font-weight:700;white-space:nowrap;">${s.label}</span>`;
+    }
+
+    function _renderFilaItem(item, idx, tipo) {
+        return `
+        <div id="${tipo}BatchItem${idx}" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;background:var(--dark-lighter);border-radius:12px;border-left:3px solid ${item.status==='ok'?'#4ADE80':item.status==='erro'?'#EF4444':item.status==='analisando'?'#667eea':'rgba(255,255,255,0.15)'};">
+            <span style="font-size:1.4rem;flex-shrink:0;">${_fileIcon(item.file)}</span>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:0.85rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.file.name}</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.1rem;">${(item.file.size/1024).toFixed(0)}KB${item.erro ? ` — ${item.erro}` : item.resumo ? ` — ${item.resumo}` : ''}</div>
+            </div>
+            ${_statusBadge(item.status)}
+            ${item.status === 'pendente' ? `<button onclick="${tipo}BatchRemover(${idx})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;flex-shrink:0;font-size:1rem;">✕</button>` : ''}
+        </div>`;
+    }
+
+    function _renderFila(tipo) {
+        const fila = tipo === 'bio' ? bioBatchFila : exameBatchFila;
+        const listaEl = document.getElementById(`${tipo}BatchListaArquivos`);
+        const contEl  = document.getElementById(`${tipo}BatchContador`);
+        const filaEl  = document.getElementById(`${tipo}BatchFila`);
+        const btnEl   = document.getElementById(`${tipo}BatchBtnAnalisar`);
+
+        if (fila.length === 0) { filaEl.style.display = 'none'; btnEl.style.display = 'none'; return; }
+        filaEl.style.display = 'block';
+        contEl.textContent = `${fila.length} arquivo(s) na fila`;
+        listaEl.innerHTML = fila.map((item, i) => _renderFilaItem(item, i, tipo)).join('');
+        const temPendente = fila.some(f => f.status === 'pendente');
+        btnEl.style.display = temPendente ? 'block' : 'none';
+    }
+
+    // ── Bio Batch ────────────────────────────────────────
+    function switchBioTab(tab) {
+        document.getElementById('bioTabUploadContent').style.display = tab === 'upload' ? 'block' : 'none';
+        document.getElementById('bioTabManualContent').style.display  = tab === 'manual' ? 'block' : 'none';
+        document.getElementById('bioTabUpload').className = tab === 'upload' ? 'btn btn-primary' : 'btn';
+        document.getElementById('bioTabManual').className = tab === 'manual' ? 'btn btn-primary' : 'btn';
+        if (tab === 'manual') {
+            document.getElementById('bioTabUpload').style = 'flex:1;font-size:0.85rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);';
+        } else {
+            document.getElementById('bioTabManual').style = 'flex:1;font-size:0.85rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);';
+        }
+    }
+
+    function bioBatchDrop(e) {
+        e.preventDefault();
+        document.getElementById('bioBatchDropzone').style.borderColor = '';
+        document.getElementById('bioBatchDropzone').style.background = '';
+        bioBatchAdicionarArquivos(e.dataTransfer.files);
+    }
+
+    function bioBatchAdicionarArquivos(files) {
+        for (const file of files) {
+            if (bioBatchFila.some(f => f.file.name === file.name && f.file.size === file.size)) continue; // evita duplicata
+            bioBatchFila.push({ file, status: 'pendente', resumo: '', erro: '' });
+        }
+        _renderFila('bio');
+        document.getElementById('bioBatchInput').value = '';
+    }
+
+    function bioBatchRemover(idx) {
+        bioBatchFila.splice(idx, 1);
+        _renderFila('bio');
+    }
+
+    function resetBatchBio() {
+        bioBatchFila = [];
+        _renderFila('bio');
+        document.getElementById('bioBatchProgressoGeral').style.display = 'none';
+        document.getElementById('bioBatchResumo').style.display = 'none';
+    }
+
+    async function analisarBioLote() {
+        if (!checkApiKey()) { alert('Configure sua chave OpenAI! ⚙️'); switchTab('perfil'); return; }
+        const pendentes = bioBatchFila.filter(f => f.status === 'pendente');
+        if (pendentes.length === 0) { notify('Nenhum arquivo pendente!'); return; }
+
+        document.getElementById('bioBatchBtnAnalisar').style.display = 'none';
+        document.getElementById('bioBatchProgressoGeral').style.display = 'block';
+
+        let ok = 0, erros = 0;
+        const total = pendentes.length;
+
+        for (let i = 0; i < bioBatchFila.length; i++) {
+            const item = bioBatchFila[i];
+            if (item.status !== 'pendente') continue;
+
+            item.status = 'analisando';
+            _renderFila('bio');
+            _atualizarProgressoBatch('bio', ok, total, `Analisando ${item.file.name}...`);
+
+            try {
+                let conteudo = await _lerArquivo(item.file);
+                const prompt = `Você é especialista em bioimpedância. Analise o resultado e extraia os dados numéricos.\n\nCONTEÚDO:\n${typeof conteudo === 'string' ? conteudo : '[imagem enviada]'}\n\nRetorne APENAS JSON válido:\n{"dados": {"peso": 0,"imc": 0,"gordura": 0,"massa": 0,"agua": 0},"analise": {"situacao_peso": "","situacao_gordura": "","situacao_massa": "","tendencia": "","recomendacoes": [],"metas_30_dias": [],"pontos_positivos": [],"pontos_atencao": []}}`;
+                const resposta = await callIA(prompt, 'bio');
+                const jsonMatch = resposta.match(/\{[\s\S]*\}/);
+                if (!jsonMatch) throw new Error('IA não conseguiu extrair dados');
+                const resultado = JSON.parse(jsonMatch[0]);
+                const d = resultado.dados;
+
+                const list = load(DB.bio);
+                list.push({
+                    id: Date.now() + Math.random(),
+                    data: new Date().toISOString().split('T')[0],
+                    peso: parseFloat(d.peso) || 0,
+                    imc: parseFloat(d.imc) || 0,
+                    gordura: parseFloat(d.gordura) || 0,
+                    massa: parseFloat(d.massa) || 0,
+                    agua: parseFloat(d.agua) || 0,
+                    arquivo: item.file.name,
+                    analiseIA: resultado.analise
+                });
+                save(DB.bio, list);
+
+                item.status = 'ok';
+                item.resumo = `Peso ${d.peso}kg • Gordura ${d.gordura}% • Massa ${d.massa}kg`;
+                ok++;
+            } catch (err) {
+                item.status = 'erro';
+                item.erro = err.message;
+                erros++;
+            }
+
+            _renderFila('bio');
+            _atualizarProgressoBatch('bio', ok + erros, total, `${ok + erros} de ${total} processados`);
+        }
+
+        // Resumo final
+        _atualizarProgressoBatch('bio', total, total, 'Concluído!');
+        const resumoEl = document.getElementById('bioBatchResumo');
+        resumoEl.style.display = 'block';
+        resumoEl.innerHTML = `
+            <div style="background:${ok > 0 ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)'};border:1px solid ${ok > 0 ? '#4ADE80' : '#EF4444'};border-radius:12px;padding:1rem;margin-top:0.75rem;text-align:center;">
+                <div style="font-weight:700;font-size:1.1rem;color:${ok > 0 ? '#4ADE80' : '#EF4444'};">
+                    ${ok > 0 ? '✅' : '❌'} ${ok} salvo(s) com sucesso${erros > 0 ? ` • ${erros} erro(s)` : ''}
+                </div>
+                <button class="btn btn-primary btn-small" style="margin-top:0.75rem;" onclick="closeModal('bioModal');resetBatchBio();loadBio();">Ver Bioimpedância</button>
+            </div>`;
+        if (ok > 0) { loadBio(); updateDashboard(); }
+    }
+
+    // ── Exame Batch ──────────────────────────────────────
+    function exameBatchDrop(e) {
+        e.preventDefault();
+        document.getElementById('exameBatchDropzone').style.borderColor = '';
+        document.getElementById('exameBatchDropzone').style.background = '';
+        exameBatchAdicionarArquivos(e.dataTransfer.files);
+    }
+
+    function exameBatchAdicionarArquivos(files) {
+        for (const file of files) {
+            if (exameBatchFila.some(f => f.file.name === file.name && f.file.size === file.size)) continue;
+            exameBatchFila.push({ file, status: 'pendente', resumo: '', erro: '' });
+        }
+        _renderFila('exame');
+        document.getElementById('exameBatchInput').value = '';
+    }
+
+    function exameBatchRemover(idx) {
+        exameBatchFila.splice(idx, 1);
+        _renderFila('exame');
+    }
+
+    function resetBatchExame() {
+        exameBatchFila = [];
+        _renderFila('exame');
+        document.getElementById('exameBatchProgressoGeral').style.display = 'none';
+        document.getElementById('exameBatchResumo').style.display = 'none';
+    }
+
+    async function analisarExamesLote() {
+        if (!checkApiKey()) { alert('Configure sua chave OpenAI! ⚙️'); switchTab('perfil'); return; }
+        const pendentes = exameBatchFila.filter(f => f.status === 'pendente');
+        if (pendentes.length === 0) { notify('Nenhum arquivo pendente!'); return; }
+
+        document.getElementById('exameBatchBtnAnalisar').style.display = 'none';
+        document.getElementById('exameBatchProgressoGeral').style.display = 'block';
+
+        let ok = 0, erros = 0;
+        const total = pendentes.length;
+
+        for (let i = 0; i < exameBatchFila.length; i++) {
+            const item = exameBatchFila[i];
+            if (item.status !== 'pendente') continue;
+
+            item.status = 'analisando';
+            _renderFila('exame');
+            _atualizarProgressoBatch('exame', ok, total, `Analisando ${item.file.name}...`);
+
+            try {
+                let conteudo = await _lerArquivo(item.file);
+                const prompt = `Você é um médico especialista. Analise o exame laboratorial.\n\nCONTEÚDO DO EXAME:\n${typeof conteudo === 'string' ? conteudo : '[imagem enviada]'}\n\nRetorne APENAS JSON válido:\n{"tipo_exame": "","data_exame": "","resultados_principais": [{"parametro": "","valor": "","referencia": "","status": "Normal/Alterado/Atenção"}],"analise_geral": "","valores_alterados": [],"interpretacao": "","recomendacoes": [],"urgencia": "Baixa/Média/Alta","observacoes": ""}`;
+                const resposta = await callIA(prompt, 'exame');
+                const jsonMatch = resposta.match(/\{[\s\S]*\}/);
+                if (!jsonMatch) throw new Error('IA não conseguiu analisar o exame');
+                const analise = JSON.parse(jsonMatch[0]);
+
+                const list = load(DB.exames);
+                list.push({
+                    id: Date.now() + Math.random(),
+                    data: new Date().toISOString().split('T')[0],
+                    tipo: analise.tipo_exame || item.file.name,
+                    arquivo: item.file.name,
+                    analiseIA: analise
+                });
+                save(DB.exames, list);
+
+                item.status = 'ok';
+                const urgTag = analise.urgencia && analise.urgencia !== 'Baixa' ? ` ⚠️ Urgência: ${analise.urgencia}` : '';
+                item.resumo = `${analise.tipo_exame || 'Exame'}${urgTag}`;
+                ok++;
+            } catch (err) {
+                item.status = 'erro';
+                item.erro = err.message;
+                erros++;
+            }
+
+            _renderFila('exame');
+            _atualizarProgressoBatch('exame', ok + erros, total, `${ok + erros} de ${total} processados`);
+        }
+
+        // Resumo final
+        _atualizarProgressoBatch('exame', total, total, 'Concluído!');
+        const resumoEl = document.getElementById('exameBatchResumo');
+        resumoEl.style.display = 'block';
+        resumoEl.innerHTML = `
+            <div style="background:${ok > 0 ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)'};border:1px solid ${ok > 0 ? '#4ADE80' : '#EF4444'};border-radius:12px;padding:1rem;margin-top:0.75rem;text-align:center;">
+                <div style="font-weight:700;font-size:1.1rem;color:${ok > 0 ? '#4ADE80' : '#EF4444'};">
+                    ${ok > 0 ? '✅' : '❌'} ${ok} salvo(s) com sucesso${erros > 0 ? ` • ${erros} erro(s)` : ''}
+                </div>
+                <button class="btn btn-primary btn-small" style="margin-top:0.75rem;" onclick="closeModal('exameModal');resetBatchExame();loadExames();">Ver Exames</button>
+            </div>`;
+        if (ok > 0) loadExames();
+    }
+
+    // ── Helpers compartilhados ───────────────────────────
+    function _atualizarProgressoBatch(tipo, atual, total, texto) {
+        const pct = total > 0 ? Math.round((atual / total) * 100) : 0;
+        document.getElementById(`${tipo}BatchProgressoTexto`).textContent = texto;
+        document.getElementById(`${tipo}BatchProgressoPct`).textContent   = pct + '%';
+        document.getElementById(`${tipo}BatchProgressoBar`).style.width   = pct + '%';
+    }
+
+    async function _lerArquivo(file) {
+        if (file.type === 'application/pdf') {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let texto = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                texto += content.items.map(item => item.str).join(' ') + '\n';
+            }
+            return texto;
+        }
+        if (file.type.startsWith('image/')) {
+            return await new Promise((resolve, reject) => {
+                const r = new FileReader();
+                r.onload = e => resolve(e.target.result);
+                r.onerror = reject;
+                r.readAsDataURL(file);
+            });
+        }
+        return await new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = e => resolve(e.target.result);
+            r.onerror = reject;
+            r.readAsText(file);
+        });
     }
 
     // =====================================================
