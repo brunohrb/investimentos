@@ -1221,8 +1221,8 @@ let todosRegistros = [];
 let charts = {};
 let dolarFallbackHoje = null;
 
-    const SUPABASE_URL = 'https://fwhsjzkmnfxnlrvspkyr.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3aHNqemttbmZ4bmxydnNwa3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0Nzg3MzUsImV4cCI6MjA4MzA1NDczNX0.lT_tHpkxiOQl2HdsFc5VQr_xfkEvoGi101MaITnSLkc';
+    const SUPABASE_URL = 'https://hisbbtddpoxufvghxqtm.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhpc2JidGRkcG94dWZ2Z2h4cXRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyMDM0OTgsImV4cCI6MjA4Nzc3OTQ5OH0.r3VkLkBxeorkCYjB-y6WOchePdfRKsm5lWE1iSSYlrw';
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let senhaMestra = localStorage.getItem('investflow_pass') || '1234';
     let privacidadeAtiva = true;
@@ -4088,6 +4088,7 @@ for (const ticker of semCotacao) {
 function calcularPosicoes() {
     const pos = {};
     [...acoesTransacoes]
+        .filter(t => !t.nome?.startsWith('CALL') && !t.nome?.startsWith('PUT'))
         .sort((a,b) => new Date(a.data) - new Date(b.data))
         .forEach(t => {
             if (!pos[t.ticker]) pos[t.ticker] = { ticker: t.ticker, nome: t.nome || t.ticker, qtd: 0, custoTotal: 0, plRealizado: 0 };
@@ -4108,7 +4109,9 @@ function calcularPosicoes() {
 
 // ── Renderizar Carteira ─────────────────────────
 function renderizarCarteira() {
-    const pos   = calcularPosicoes();
+    let pos = calcularPosicoes();
+    const filtroTicker = document.getElementById('carteira-filtro-ticker')?.value || '';
+    if (filtroTicker) pos = pos.filter(p => p.ticker === filtroTicker);
     const tbody = document.getElementById('acoes-tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
@@ -4444,13 +4447,27 @@ async function excluirAcaoTransacao(id) {
 
 // ── Popular filtro de ticker ─────────────────────
 function popularFiltroTicker() {
-    const sel = document.getElementById('acoes-filtro-ticker');
-    if (!sel) return;
-    const tickers = [...new Set(acoesTransacoes.map(t => t.ticker))].sort();
-    sel.innerHTML = '<option value="">Todos os tickers</option>';
-    tickers.forEach(t => { const o = document.createElement('option'); o.value = t; o.textContent = t; sel.appendChild(o); });
-}
+    const tickers = [...new Set(acoesTransacoes
+        .filter(t => !t.nome?.startsWith('CALL') && !t.nome?.startsWith('PUT'))
+        .map(t => t.ticker)
+    )].sort();
 
+    // Filtro da aba transações
+    const sel = document.getElementById('acoes-filtro-ticker');
+    if (sel) {
+        sel.innerHTML = '<option value="">Todos os tickers</option>';
+        tickers.forEach(t => { const o = document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
+    }
+
+    // Filtro da aba carteira
+    const selCart = document.getElementById('carteira-filtro-ticker');
+    if (selCart) {
+        const val = selCart.value;
+        selCart.innerHTML = '<option value="">Todas as ações</option>';
+        tickers.forEach(t => { const o = document.createElement('option'); o.value=t; o.textContent=t; selCart.appendChild(o); });
+        selCart.value = val;
+    }
+}
 // ── Helpers ──────────────────────────────────────
 function formatarDataBR(dataISO) {
     if (!dataISO) return '—';
@@ -4743,44 +4760,77 @@ function previewUploadOpcoes(event) {
 
     const reader = new FileReader();
     reader.onload = (e) => {
-        const wb    = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-        const ws    = wb.Sheets[wb.SheetNames[0]];
-        const rows  = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        const wb   = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+        const ws   = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
 
         uploadOpcoesPendentes = [];
         const tbody = document.getElementById('uploadPreviewBody');
         tbody.innerHTML = '';
 
-        rows.forEach((row, idx) => {
-            const tipo = (row[0] || '').toString().trim().toUpperCase();
-            const cod  = (row[1] || '').toString().trim().toUpperCase();
-            const prm  = parseFloat(row[2]) || 0;
-            const qtd  = parseFloat(row[3]) || 0;
+        rows.forEach((row) => {
+            // Novo formato: data | C/V | Código | Prêmio | Quantidade
+            const rawData = row[0];
+            const tipo    = (row[1] || '').toString().trim().toUpperCase();
+            const cod     = (row[2] || '').toString().trim().toUpperCase();
+            let   prm     = parseFloat(row[3]) || 0;
+            const qtd     = parseFloat(row[4]) || 0;
 
             // Pula cabeçalho ou linhas inválidas
-            if (!cod || !prm || !qtd || (tipo !== 'C' && tipo !== 'V')) return;
+            if (!cod || !qtd || (tipo !== 'C' && tipo !== 'V')) return;
+            if (cod.toLowerCase() === 'código' || cod.toLowerCase() === 'codigo') return;
+
+            // Prêmio: usa valor absoluto (negativos são compras)
+            prm = Math.abs(prm);
+
+            // Converte data do Excel para string YYYY-MM-DD
+            let dataStr = '';
+            if (rawData instanceof Date || (typeof rawData === 'number')) {
+                const d = rawData instanceof Date ? rawData : new Date(Math.round((rawData - 25569) * 86400 * 1000));
+                const yyyy = d.getFullYear();
+                const mm   = String(d.getMonth() + 1).padStart(2, '0');
+                const dd   = String(d.getDate()).padStart(2, '0');
+                dataStr = `${yyyy}-${mm}-${dd}`;
+            } else if (typeof rawData === 'string' && rawData.match(/\d{4}-\d{2}-\d{2}/)) {
+                dataStr = rawData.substring(0, 10);
+            } else {
+                // Fallback: usa data do campo manual se preenchido
+                dataStr = document.getElementById('uploadOpcData').value || new Date().toISOString().split('T')[0];
+            }
 
             const tipoNome   = tipo === 'C' ? 'compra' : 'venda';
-            const isCall     = /^[A-Z]{4}[B-H]/.test(cod); // simplificado: B-H = CALL no padrão B3
+            // Detecta CALL/PUT pelo padrão B3: letras B-H = CALL, I-O = PUT (simplificado)
+            const letraVenc  = cod.length >= 5 ? cod[4] : '';
+            const isCall     = 'BCDEFGH'.includes(letraVenc);
             const modalidade = isCall ? 'call' : 'put';
             const total      = prm * qtd;
 
-            uploadOpcoesPendentes.push({ tipo: tipoNome, ticker: cod, preco_unitario: prm, quantidade: qtd, modalidade, total });
+            uploadOpcoesPendentes.push({
+                tipo: tipoNome,
+                ticker: cod,
+                preco_unitario: prm,
+                quantidade: qtd,
+                modalidade,
+                total,
+                data: dataStr
+            });
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${uploadOpcoesPendentes.length}</td>
+                <td style="font-size:11px;color:#888;">${dataStr.split('-').reverse().join('/')}</td>
                 <td><span class="${tipoNome==='compra'?'badge-compra':'badge-venda'}">${tipoNome==='compra'?'▲ C':'▼ V'}</span></td>
                 <td><strong>${cod}</strong></td>
-                <td>${formatarMoeda(prm)}</td>
+                <td>${prm > 0 ? formatarMoeda(prm) : '<span style="color:#aaa">—</span>'}</td>
                 <td>${qtd}</td>
-                <td><strong>${formatarMoeda(total)}</strong></td>
+                <td><strong>${prm > 0 ? formatarMoeda(total) : '<span style="color:#aaa">—</span>'}</strong></td>
             `;
             tbody.appendChild(tr);
         });
 
         document.getElementById('uploadPreviewArea').style.display = 'block';
-        document.getElementById('uploadPreviewLabel').textContent = `${uploadOpcoesPendentes.length} operações encontradas`;
+        document.getElementById('uploadPreviewLabel').textContent =
+            `${uploadOpcoesPendentes.length} operações encontradas`;
     };
     reader.readAsArrayBuffer(file);
 }
@@ -4788,20 +4838,19 @@ function previewUploadOpcoes(event) {
 async function confirmarImportacaoOpcoes() {
     if (!uploadOpcoesPendentes.length) return;
 
-    const data     = document.getElementById('uploadOpcData').value;
     const ativoPad = document.getElementById('uploadOpcAtivo').value.trim().toUpperCase();
 
-    if (!data) { alert('Informe a data das operações!'); return; }
-
     showLoading(true);
-    let erros = 0;
+    let erros = 0, importados = 0;
 
     for (const op of uploadOpcoesPendentes) {
-        // Auto-detecta ativo pelo ticker
         const base  = op.ticker.slice(0, 4);
-        const mapAt = { PETR:'PETR4', VALE:'VALE3', BBAS:'BBAS3', ITUB:'ITUB4', BBDC:'BBDC4',
-                        WEGE:'WEGE3', MGLU:'MGLU3', ABEV:'ABEV3', BRAP:'BRAP4', GGBR:'GGBR4' };
-        const ativo = mapAt[base] || ativoPad || base;
+        const mapAt = {
+            PETR:'PETR4', VALE:'VALE3', BBAS:'BBAS3', ITUB:'ITUB4', BBDC:'BBDC4',
+            WEGE:'WEGE3', MGLU:'MGLU3', ABEV:'ABEV3', BRAP:'BRAP4', GGBR:'GGBR4',
+            B3SA:'B3SA3', RENT:'RENT3', JBSS:'JBSS3', SUZB:'SUZB3', RADL:'RADL3'
+        };
+        const ativo = mapAt[base] || ativoPad || base + (base.length === 4 ? '3' : '');
         const nome  = `${op.modalidade.toUpperCase()} ${ativo} Strike R$ 0,00`;
 
         const { error } = await sb.from('acoes_transacoes').insert([{
@@ -4810,18 +4859,19 @@ async function confirmarImportacaoOpcoes() {
             tipo:           op.tipo,
             quantidade:     op.quantidade,
             preco_unitario: op.preco_unitario,
-            data,
+            data:           op.data,   // ← agora usa a data do próprio Excel
             corretora:      null
         }]);
+
         if (error) erros++;
+        else importados++;
     }
 
     showLoading(false);
 
-    if (erros > 0) alert(`⚠️ ${erros} erro(s) na importação.`);
-    else           alert(`✅ ${uploadOpcoesPendentes.length} opções importadas com sucesso!`);
+    if (erros > 0) alert(`⚠️ ${importados} importadas, ${erros} erro(s).`);
+    else           alert(`✅ ${importados} opções importadas com sucesso!`);
 
-    // Reset
     uploadOpcoesPendentes = [];
     document.getElementById('uploadPreviewArea').style.display = 'none';
     document.getElementById('uploadOpcFile').value = '';
@@ -4829,20 +4879,6 @@ async function confirmarImportacaoOpcoes() {
     await carregarAcoes();
     carregarOpcoes();
 }
-
-// Inicializa datas
-document.addEventListener('DOMContentLoaded', () => {
-    const hoje = new Date().toISOString().split('T')[0];
-    ['opcData','uploadOpcData','acaoData'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = hoje;
-    });
-    // NÃO chama selecionarModalidade aqui — elementos ainda não existem no DOM oculto
-});// ══════════════════════════════════════════
-// 📊 EXPANDIR LINHA DA AÇÃO
-// ══════════════════════════════════════════
-
-const _expandAbertos = new Set();
 
 async function toggleExpandirAcao(ticker, qtd, pm) {
     const trExp = document.getElementById(`expand-${ticker}`);
@@ -4992,6 +5028,26 @@ async function salvarDividendo() {
         await preencherExpandido(ticker, pos.qtd, pos.custoTotal / pos.qtd);
     }
     alert(`✅ ${tipo === 'jcp' ? 'JCP' : 'Dividendo'} de ${formatarMoeda(valor)} registrado para ${ticker}!`);
+}
+
+async function limparTudoTeste() {
+    if (!confirm('⚠️ APAGAR TODAS as transações de ações e opções?\n\nIsso é irreversível!')) return;
+    showLoading(true);
+    await sb.from('acoes_transacoes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    showLoading(false);
+    acoesTransacoes = [];
+    acoesCotacoes   = {};
+    listaOpcoes     = [];
+    await carregarAcoes();
+    alert('✅ Tudo limpo!');
+}
+
+function toggleUploadLote() {
+    const body  = document.getElementById('uploadLoteBody');
+    const seta  = document.getElementById('uploadLoteSetinha');
+    const aberto = body.style.display !== 'none';
+    body.style.display = aberto ? 'none' : 'block';
+    seta.textContent   = aberto ? '▼ expandir' : '▲ recolher';
 }
 
 </script>
@@ -5184,6 +5240,7 @@ async function salvarDividendo() {
             </div>
             <div class="acoes-header-actions">
                 <button class="btn-acoes-icon" onclick="atualizarCotacoesAcoes()">🔄 Cotações</button>
+<button class="btn-acoes-icon" onclick="limparTudoTeste()" style="background:rgba(220,53,69,0.4);border-color:rgba(220,53,69,0.6);" title="⚠️ Apaga TUDO para testes">🗑️ Dev</button>
                 <button class="acoes-close" onclick="fecharAcoes()">×</button>
             </div>
         </div>
@@ -5232,10 +5289,16 @@ async function salvarDividendo() {
                     </div>
                 </div>
 
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h3 style="margin:0; font-size:15px;">Posições Abertas</h3>
-                    <span id="acoes-count-pos" style="font-size:12px; color:#888;"></span>
-                </div>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
+    <h3 style="margin:0; font-size:15px;">Posições Abertas</h3>
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <select id="carteira-filtro-ticker" onchange="renderizarCarteira()" 
+            style="padding:7px 10px;font-size:12px;border-radius:7px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);width:auto;">
+            <option value="">Todas as ações</option>
+        </select>
+        <span id="acoes-count-pos" style="font-size:12px; color:#888;"></span>
+    </div>
+</div>
 
                 <div class="acoes-table-wrap">
                     <table class="acoes-table">
@@ -5346,21 +5409,10 @@ async function salvarDividendo() {
 <!-- ─── TAB OPÇÕES ─── -->
 <div id="secao-opcoes" style="display:none;">
 
-    <!-- CARDS TOPO -->
-    <div class="opc-cards-grid" id="opc-cards-topo">
-        <div class="total-card" style="background:linear-gradient(135deg,#2d3436,#636e72);">
-            <h3>💰 Total Investido</h3>
-            <p id="opc-total-investido">R$ 0,00</p>
-        </div>
-        <div class="total-card" style="background:linear-gradient(135deg,#28a745,#20c997);">
-            <h3>🏆 Lucro Líquido Prêmios</h3>
-            <p id="opc-lucro-liquido">R$ 0,00</p>
-        </div>
-        <div class="total-card" style="background:linear-gradient(135deg,#0056b3,#00bfff);">
-            <h3>📊 Operações</h3>
-            <p id="opc-total-ops">0</p>
-        </div>
-    </div>
+ <!-- IDs fantasmas para não quebrar o JS -->
+<span id="opc-total-investido" style="display:none"></span>
+<span id="opc-lucro-liquido"   style="display:none"></span>
+<span id="opc-total-ops"       style="display:none"></span>
 
     <!-- FILTROS DOS CARDS -->
     <div class="opc-filter-row">
@@ -5377,24 +5429,7 @@ async function salvarDividendo() {
     <div class="acoes-form-card" style="margin-bottom:22px;">
         <h3 style="margin:0 0 14px;font-size:17px;">⚡ Registrar Opção</h3>
 
-        <!-- ESTRATÉGIAS -->
-        <p style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;font-weight:700;">Estratégia</p>
-        <div class="opc-estrategia-grid" id="opc-estrategias-grid">
-            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('venda_coberta_call')">📤 Venda Coberta<br>de CALL</button>
-            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('venda_coberta_put')">📤 Venda Coberta<br>de PUT</button>
-            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('compra_call')">📈 Compra<br>de CALL</button>
-            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('compra_put')">📉 Compra<br>de PUT</button>
-            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('strangle_venda')">🔀 Strangle<br>(Venda)</button>
-            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('strangle_compra')">🔀 Strangle<br>(Compra)</button>
-            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('straddle_venda')">⚖️ Straddle<br>(Venda)</button>
-            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('straddle_compra')">⚖️ Straddle<br>(Compra)</button>
-            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('bull_call_spread')">🐂 Bull Call<br>Spread</button>
-            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('bear_put_spread')">🐻 Bear Put<br>Spread</button>
-            <button class="opc-estrategia-btn" onclick="selecionarEstrategia('personalizado')">✏️ Personalizado</button>
-        </div>
-        <input type="hidden" id="opcEstrategia" value="">
-
-        <!-- TIPO + MODALIDADE -->
+               <!-- TIPO + MODALIDADE -->
         <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
             <button class="acoes-tipo-btn compra-ativo" id="btnOpcCompra" onclick="selecionarTipoOpcao('compra')" style="flex:1;">▲ COMPRA</button>
             <button class="acoes-tipo-btn" id="btnOpcVenda" onclick="selecionarTipoOpcao('venda')" style="flex:1;">▼ VENDA</button>
@@ -5450,10 +5485,14 @@ async function salvarDividendo() {
         </button>
     </div>
 
-    <!-- UPLOAD EM LOTE -->
+<!-- UPLOAD EM LOTE -->
     <div class="acoes-form-card" style="margin-bottom:22px;">
-        <h3 style="margin:0 0 6px;font-size:16px;">📤 Importar Lote (Excel)</h3>
-        <p style="font-size:12px;color:#888;margin:0 0 14px;">Colunas: <strong>C/V | Código | Prêmio | Quantidade</strong> (igual ao seu Excel)</p>
+        <div onclick="toggleUploadLote()" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+            <h3 style="margin:0;font-size:14px;color:#888;font-weight:600;">📤 Importar Lote (Excel)</h3>
+            <span id="uploadLoteSetinha" style="color:#888;font-size:12px;">▼ expandir</span>
+        </div>
+        <div id="uploadLoteBody" style="display:none;margin-top:14px;">
+        <p style="font-size:12px;color:#888;margin:0 0 14px;">Colunas: <strong>C/V | Código | Prêmio | Quantidade</strong></p>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
             <div class="acoes-form-group">
@@ -5483,12 +5522,13 @@ async function salvarDividendo() {
             </div>
             <div class="upload-preview">
                 <table>
-                    <thead><tr><th>#</th><th>Tipo</th><th>Código</th><th>Prêmio</th><th>Qtd</th><th>Total</th></tr></thead>
+                    <thead><tr><th>#</th><th>Data</th><th>Tipo</th><th>Código</th><th>Prêmio</th><th>Qtd</th><th>Total</th></tr></thead>
                     <tbody id="uploadPreviewBody"></tbody>
                 </table>
             </div>
-        </div>
-    </div>
+       </div><!-- fim uploadPreviewArea -->
+        </div><!-- fim uploadLoteBody -->
+    </div><!-- fim card -->
 
     <!-- TABELA DE OPÇÕES REGISTRADAS -->
     <div>
