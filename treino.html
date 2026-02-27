@@ -2610,13 +2610,14 @@ header {
                         <div class="recommendation" id="recNivel"></div>
                     </div>
                     <div class="form-group">
-                        <label>Foco do Treino</label>
+                        <label>Ênfase do Treino</label>
                         <select id="focoTreino" required>
                             <option value="">Selecione...</option>
-                            <option value="superior">Superior (Peito, Costas, Ombros, Braços)</option>
-                            <option value="inferior">Inferior (Pernas, Glúteos, Panturrilha)</option>
-                            <option value="tudo">Corpo Todo (Full Body)</option>
+                            <option value="superior">Ênfase em Superior (+ volume superior, perna 1x/sem)</option>
+                            <option value="inferior">Ênfase em Inferior (+ volume perna, superior 1x/sem)</option>
+                            <option value="tudo">Corpo Todo (Full Body equilibrado)</option>
                         </select>
+                        <small style="color:var(--text-muted);font-size:0.78rem;margin-top:0.25rem;display:block;">💡 "Ênfase" = mais volume no foco, mas o corpo todo é treinado!</small>
                         <div class="recommendation" id="recFoco"></div>
                     </div>
                     <div class="form-group">
@@ -3556,7 +3557,13 @@ ${exerciciosJaUsados.slice(0, 25).join(', ')}
 ━━━ PERFIL DO USUÁRIO ━━━
 Nome: ${perfil.nome || 'não informado'} | Idade: ${perfil.idade || 'não informada'}
 Objetivo: ${objetivo} | Nível: ${nivel}
-Foco: ${focoTreino === 'superior' ? 'Membros superiores' : focoTreino === 'inferior' ? 'Membros inferiores' : 'Corpo todo'}
+Foco/Ênfase: ${
+    focoTreino === 'superior'
+        ? 'ÊNFASE EM SUPERIOR — distribua mais volume/séries para peito, costas, ombros e braços. MAS inclua obrigatoriamente pelo menos 1 exercício de perna/glúteo por treino (ex: agachamento, leg press, stiff, afundo). Perna não pode ficar sem treino.'
+        : focoTreino === 'inferior'
+        ? 'ÊNFASE EM INFERIOR — distribua mais volume/séries para pernas e glúteos. MAS inclua obrigatoriamente pelo menos 1-2 exercícios de superior por treino (ex: supino, remada, desenvolvimento). Superior não pode ser ignorado.'
+        : 'CORPO TODO EQUILIBRADO — distribua volume de forma proporcional entre superior, inferior e core.'
+}
 Frequência desejada: ${frequencia}x/semana | Duração: ${duracao} minutos
 Equipamentos: ${equipamentos.join(', ')}
 ${outrasAtividades === 'sim' ? `Outras atividades: ${detalhesAtividades}` : ''}
@@ -3580,14 +3587,32 @@ Este é um NOVO treino gerado em ${new Date().toLocaleString('pt-BR')}.
 Crie uma combinação NOVA e DIFERENTE, ajustada ao contexto acima.
 Ajuste séries/reps baseado nos dados biológicos (ex: mais volume se massa muscular baixa, menos intensidade se exame alterado, etc).
 
+━━━ REGRAS INVIOLÁVEIS — LEIA ANTES DE GERAR ━━━
+${focoTreino === 'superior' ? `
+⛔ REGRA ABSOLUTA — ÊNFASE EM SUPERIOR:
+- Os primeiros exercícios de cada treino DEVEM ser de peito, costas, ombros ou braços (é onde está o foco e o maior volume).
+- Mas OBRIGATORIAMENTE cada treino precisa conter NO MÍNIMO 2 exercícios de pernas/glúteos (ex: Agachamento, Leg Press, Stiff, Afundo, Cadeira Extensora, Cadeira Flexora, Panturrilha).
+- "Ênfase" NÃO significa excluir perna — significa que o superior recebe mais séries (ex: 5-6 exercícios de superior + 2-3 de perna).
+- Se você gerar um treino SEM exercício de perna, você terá falhado na tarefa.
+` : focoTreino === 'inferior' ? `
+⛔ REGRA ABSOLUTA — ÊNFASE EM INFERIOR:
+- Os primeiros exercícios de cada treino DEVEM ser de pernas e glúteos (é onde está o foco e o maior volume).
+- Mas OBRIGATORIAMENTE cada treino precisa conter NO MÍNIMO 2 exercícios de membros superiores (ex: Supino, Remada, Desenvolvimento, Puxada, Rosca, Tríceps).
+- "Ênfase" NÃO significa excluir superior — significa que inferior recebe mais séries (ex: 5-6 exercícios de perna + 2 de superior).
+- Se você gerar um treino SEM exercício de superior, você terá falhado na tarefa.
+` : `
+⛔ REGRA ABSOLUTA — CORPO TODO:
+- Cada treino DEVE ter exercícios de superior, inferior e core. Nenhum grupo pode ser ignorado.
+`}
+
 ━━━ FORMATO DE SAÍDA ━━━
 RETORNE APENAS JSON válido — sem texto antes ou depois:
 [{
   "nome": "Treino A - [Nome descritivo]",
   "foco": "${focoTreino}",
-  "justificativa": "1-2 frases explicando POR QUE este treino foi escolhido para este usuário baseado nos dados",
+  "justificativa": "Explique quais grupos musculares receberam mais volume (foco) e quais foram incluídos como complemento obrigatório",
   "exercicios": [
-    { "nome": "Nome do Exercício", "series": "4x10-12", "observacao": "Dica técnica ou motivo da escolha baseado nos dados do usuário" }
+    { "nome": "Nome do Exercício", "series": "4x10-12", "observacao": "Dica técnica ou motivo da escolha" }
   ]
 }]
 
@@ -3602,8 +3627,33 @@ Crie exatamente ${frequencia} treino(s) diferentes. NÃO INCLUA LINKS DO YOUTUBE
                     if (!jsonMatch) throw new Error('JSON não encontrado');
                     treinos = JSON.parse(jsonMatch[0]);
                     if (!Array.isArray(treinos) || treinos.length === 0) throw new Error('Array vazio');
+
+                    // ── VALIDAÇÃO: verifica se regras de grupo muscular foram seguidas ──
+                    if (focoTreino === 'superior' || focoTreino === 'inferior') {
+                        const palavrasPerna = ['agachamento','leg press','stiff','afundo','cadeira extensora','cadeira flexora','panturrilha','glúteo','gluteo','levantamento terra','hack squat','bulgaro','passada','lunge'];
+                        const palavrasSuperior = ['supino','remada','desenvolvimento','puxada','barra fixa','pulldown','rosca','tríceps','triceps','crucifixo','elevação lateral','elevação frontal','mergulho','flexão','flexao','ombro','peito','costas'];
+                        const grupoObrigatorio = focoTreino === 'superior' ? palavrasPerna : palavrasSuperior;
+                        const nomeGrupo = focoTreino === 'superior' ? 'perna/glúteo' : 'superior';
+
+                        const treinoSemGrupo = treinos.find(t => {
+                            const nomes = (t.exercicios || []).map(ex => (ex.nome || '').toLowerCase());
+                            return !nomes.some(nome => grupoObrigatorio.some(p => nome.includes(p)));
+                        });
+
+                        if (treinoSemGrupo) {
+                            tentativas++;
+                            console.warn(`⚠️ Tentativa ${tentativas}: treino "${treinoSemGrupo.nome}" sem exercício de ${nomeGrupo}. Regenerando...`);
+                            if (tentativas >= 3) throw new Error(`IA não incluiu exercício de ${nomeGrupo} após 3 tentativas.`);
+                            continue;
+                        }
+                    }
+
                     break;
-                } catch (err) { tentativas++; if (tentativas >= 3) throw new Error('IA não conseguiu gerar treino após 3 tentativas.'); }
+                } catch (err) {
+                    if (err.message.includes('IA não incluiu')) throw err;
+                    tentativas++;
+                    if (tentativas >= 3) throw new Error('IA não conseguiu gerar treino após 3 tentativas.');
+                }
             }
 
             let videosEncontrados = 0;
