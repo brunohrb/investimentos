@@ -2,13 +2,13 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes">
 <title>JeanFit</title>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden;background:#080808}
-body{font-family:'Figtree',sans-serif;display:flex;align-items:center;justify-content:center}
+html,body{height:auto;width:100%;overflow:visible;background:#080808}
+body{font-family:'Figtree',sans-serif;display:flex;align-items:center;justify-content:center;margin:0;padding:0}
 :root{
   --g:#00E676;--g2:#00BFA5;
   --bg:#0f0f0f;--bg2:#141414;--bg3:#1a1a1a;
@@ -19,17 +19,21 @@ body{font-family:'Figtree',sans-serif;display:flex;align-items:center;justify-co
 }
 
 /* ── SHELL ── */
-.shell{width:390px;height:844px;background:var(--bg);border-radius:52px;overflow:hidden;position:relative;
-  box-shadow:0 0 0 1.5px rgba(255,255,255,0.09),0 50px 120px rgba(0,0,0,0.9),inset 0 1px 0 rgba(255,255,255,0.07)}
-.island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#000;border-radius:20px;z-index:300}
-.sbar{position:absolute;top:0;left:0;right:0;height:52px;display:flex;align-items:flex-start;justify-content:space-between;padding:14px 26px 0;z-index:200;font-size:12px;font-weight:700;color:#fff;pointer-events:none}
+.shell{width:100%;height:auto;max-width:100%;max-height:none;background:var(--bg);border-radius:0;overflow:visible;position:relative;
+  box-shadow:none;transition:all .3s ease}
+
+@media(min-width:440px){
+  .shell{border-radius:52px;box-shadow:0 0 0 1.5px rgba(255,255,255,0.09),0 50px 120px rgba(0,0,0,0.9),inset 0 1px 0 rgba(255,255,255,0.07)}
+}
+.island{display:none !important;position:absolute;top:12px;left:50%;transform:translateX(-50%);width:0;height:0;background:#000;border-radius:20px;z-index:300}
+.sbar{display:none !important;position:absolute;top:0;left:0;right:0;height:0;padding:0;z-index:200;font-size:12px;font-weight:700;color:#fff;pointer-events:none}
 .sbar-time{font-size:15px;font-weight:700}
 .sbar-icons{display:flex;gap:5px;align-items:center}
 
 /* ── VIEWS ── */
-.view{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;transform:translateY(12px);display:none}
+.view{position:relative;width:100%;height:auto;overflow-y:visible;overflow-x:hidden;scrollbar-width:auto;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;transform:translateY(12px);display:none !important;visibility:hidden;padding-top:0}
 .view::-webkit-scrollbar{display:none}
-.view.on{opacity:1;pointer-events:all;transform:translateY(0);display:block}
+.view.on{opacity:1;pointer-events:all;transform:translateY(0);display:block !important;visibility:visible}
 #vs.on{display:flex}
 
 /* ════ SPLASH ════ */
@@ -41,9 +45,10 @@ body{font-family:'Figtree',sans-serif;display:flex;align-items:center;justify-co
 @keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* ════ AUTH ════ */
-#va{background:var(--bg);padding-top:52px;position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;z-index:10}
+#va{background:var(--bg);padding-top:12px;position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;z-index:10}
 #va::-webkit-scrollbar{display:none}
-.a-wrap{padding:28px 28px 0}
+.a-wrap{padding:20px 16px 0}
+@media(min-width:440px){ .a-wrap{padding:28px 28px 0} }
 .a-logo{font-size:28px;font-weight:900;color:var(--g);letter-spacing:-.5px}
 .a-title{font-size:26px;font-weight:900;color:var(--txt);margin-top:22px;line-height:1.2}
 .a-sub{font-size:13px;color:var(--m2);margin-top:6px}
@@ -72,11 +77,12 @@ body{font-family:'Figtree',sans-serif;display:flex;align-items:center;justify-co
 .abtn:disabled{opacity:.45;cursor:not-allowed;transform:none}
 
 /* ════ PROFESSOR APP ════ */
-#vp{background:var(--bg);position:absolute;inset:0;z-index:10}
-.pscreens{position:absolute;inset:0;overflow:hidden}
-.pscreen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;opacity:0;pointer-events:none;transform:translateX(16px);transition:opacity .25s,transform .25s;padding-top:52px;padding-bottom:92px}
+#vp{background:var(--bg);position:relative;width:100%;height:auto;z-index:10;display:none;visibility:hidden;min-height:100vh}
+#vp.on{display:block;visibility:visible}
+.pscreens{position:relative;width:100%;height:auto;overflow:hidden}
+.pscreen{position:relative;width:100%;height:auto;overflow-y:visible;overflow-x:hidden;scrollbar-width:auto;opacity:0;pointer-events:none;transform:translateX(0);transition:opacity .25s,transform .25s;padding-top:0;padding-bottom:92px;display:none !important;visibility:hidden}
 .pscreen::-webkit-scrollbar{display:none}
-.pscreen.on{opacity:1;pointer-events:all;transform:translateX(0)}
+.pscreen.on{opacity:1;pointer-events:all;transform:translateX(0);display:block !important;visibility:visible;position:relative}
 
 /* Prof bottom nav */
 .pnav{position:absolute;bottom:0;left:0;right:0;height:88px;background:rgba(12,12,12,.97);backdrop-filter:blur(28px);border-top:1px solid var(--bdr);display:flex;align-items:flex-start;justify-content:space-around;padding-top:12px;z-index:100}
@@ -89,21 +95,25 @@ body{font-family:'Figtree',sans-serif;display:flex;align-items:center;justify-co
 .ni.on .ni-dot{opacity:1}
 
 /* ── shared ── */
-.pg-hdr{padding:16px 24px 0}
+.pg-hdr{padding:12px 16px 12px;margin-bottom:8px}
+@media(min-width:440px){ .pg-hdr{padding:16px 24px 16px;margin-bottom:12px} }
 .pg-title{font-size:26px;font-weight:900;color:var(--txt)}
 .pg-sub{font-size:13px;color:var(--m2);font-weight:500;margin-top:3px}
-.sec{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--m);padding:0 24px;margin:22px 0 12px}
+.sec{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--m);padding:0 16px;margin:16px 0 12px}
+@media(min-width:440px){ .sec{padding:0 24px;margin:20px 0 14px} }
 .card{background:var(--card);border:1px solid var(--bdr);border-radius:20px}
 .gcard{background:var(--card);border:1px solid var(--bdr);border-radius:20px;transition:border-color .2s,transform .2s;cursor:pointer}
 .gcard:hover{border-color:rgba(0,230,118,.22);transform:translateY(-2px)}
 
 /* ── PROF DASHBOARD ── */
-.pstat-grid{margin:14px 24px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pstat-grid{margin:12px 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(min-width:440px){ .pstat-grid{margin:16px 24px 20px;gap:12px} }
 .pstat{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:18px}
 .pstat-ico{font-size:22px;margin-bottom:8px}
 .pstat-num{font-size:28px;font-weight:900;color:var(--txt)}
 .pstat-lbl{font-size:11px;color:var(--m);font-weight:600;margin-top:2px}
-.aluno-list{padding:0 24px;display:flex;flex-direction:column;gap:10px}
+.aluno-list{padding:0 16px;margin:12px 0 16px;display:flex;flex-direction:column;gap:8px}
+@media(min-width:440px){ .aluno-list{padding:0 24px;margin:16px 0 20px;gap:10px} }
 .aluno-card{background:var(--card);border:1px solid var(--bdr);border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:all .2s}
 .aluno-card:hover{border-color:rgba(0,230,118,.22);transform:translateX(3px)}
 .aluno-av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#000;flex-shrink:0}
@@ -115,11 +125,13 @@ body{font-family:'Figtree',sans-serif;display:flex;align-items:center;justify-co
 .badge-new{background:rgba(79,195,247,.12);color:var(--blue)}
 
 /* ── PROF ALUNOS (gestão) ── */
-.add-aluno-btn{margin:16px 24px 0;background:rgba(0,230,118,.08);border:1.5px dashed rgba(0,230,118,.3);border-radius:18px;padding:16px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;font-size:13px;font-weight:800;color:var(--g);transition:all .2s}
+.add-aluno-btn{margin:12px 16px 0;background:rgba(0,230,118,.08);border:1.5px dashed rgba(0,230,118,.3);border-radius:14px;padding:12px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-size:12px;font-weight:800;color:var(--g);transition:all .2s}
+@media(min-width:440px){ .add-aluno-btn{margin:16px 24px 0;border-radius:18px;padding:16px;gap:10px;font-size:13px} }
 .add-aluno-btn:hover{background:rgba(0,230,118,.13)}
 
 /* ── PROF TREINOS ── */
-.treino-list{padding:0 24px;display:flex;flex-direction:column;gap:10px}
+.treino-list{padding:0 16px;margin:12px 0 16px;display:flex;flex-direction:column;gap:8px}
+@media(min-width:440px){ .treino-list{padding:0 24px;margin:16px 0 20px;gap:10px} }
 .treino-card{background:var(--card);border:1px solid var(--bdr);border-radius:18px;padding:16px;cursor:pointer;transition:all .2s}
 .treino-card:hover{border-color:rgba(0,230,118,.22);transform:translateX(3px)}
 .tc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
@@ -127,11 +139,13 @@ body{font-family:'Figtree',sans-serif;display:flex;align-items:center;justify-co
 .tc-tag{font-size:10px;font-weight:700;padding:3px 10px;border-radius:50px}
 .tc-meta{display:flex;gap:14px}
 .tc-meta-i{font-size:11px;color:var(--m2);font-weight:600}
-.add-treino-btn{margin:16px 24px 0;background:rgba(0,230,118,.08);border:1.5px dashed rgba(0,230,118,.3);border-radius:18px;padding:16px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;font-size:13px;font-weight:800;color:var(--g);transition:all .2s}
+.add-treino-btn{margin:12px 16px 0;background:rgba(0,230,118,.08);border:1.5px dashed rgba(0,230,118,.3);border-radius:14px;padding:12px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-size:12px;font-weight:800;color:var(--g);transition:all .2s}
+@media(min-width:440px){ .add-treino-btn{margin:16px 24px 0;border-radius:18px;padding:16px;gap:10px;font-size:13px} }
 .add-treino-btn:hover{background:rgba(0,230,118,.13)}
 
 /* ── PROF BIBLIOTECA ── */
-.lib-list{padding:0 24px;display:flex;flex-direction:column;gap:10px}
+.lib-list{padding:0 16px;margin:12px 0 16px;display:flex;flex-direction:column;gap:8px}
+@media(min-width:440px){ .lib-list{padding:0 24px;margin:16px 0 20px;gap:10px} }
 .lib-ex{background:var(--card);border:1px solid var(--bdr);border-radius:18px;padding:15px 16px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:border-color .2s}
 .lib-ex:hover{border-color:rgba(0,230,118,.2)}
 .lib-ico{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
@@ -145,21 +159,24 @@ body{font-family:'Figtree',sans-serif;display:flex;align-items:center;justify-co
 .lt-hard{background:rgba(244,67,54,.12);color:#EF5350}
 
 /* ── PROF PROGRESSO (alunos) ── */
-.prog-aluno-sel{margin:14px 24px 0;display:flex;flex-direction:column;gap:10px}
+.prog-aluno-sel{margin:12px 16px 16px;display:flex;flex-direction:column;gap:8px}
+@media(min-width:440px){ .prog-aluno-sel{margin:16px 24px 20px;gap:10px} }
 .pa-card{background:var(--card);border:1.5px solid var(--bdr);border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:all .2s}
 .pa-card.sel{border-color:var(--g);background:rgba(0,230,118,.05)}
 .pa-card:hover{border-color:rgba(0,230,118,.3)}
 .pa-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#000;flex-shrink:0}
 .pa-name{font-size:14px;font-weight:800;color:var(--txt)}
 .pa-info{font-size:11px;color:var(--m2);font-weight:600;margin-top:2px}
-.prog-detail{margin:16px 24px 0;display:flex;flex-direction:column;gap:12px}
+.prog-detail{margin:12px 16px 16px;display:flex;flex-direction:column;gap:10px}
+@media(min-width:440px){ .prog-detail{margin:16px 24px 20px;gap:12px} }
 .pd-stat-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .pd-stat{background:var(--card);border:1px solid var(--bdr);border-radius:18px;padding:16px}
 .pd-ico{font-size:18px;margin-bottom:6px}
 .pd-num{font-size:24px;font-weight:900;color:var(--txt)}
 .pd-lbl{font-size:11px;color:var(--m);font-weight:600;margin-top:2px}
 .pd-change{font-size:11px;font-weight:700;color:#66BB6A;margin-top:3px}
-.bar-card{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:18px}
+.bar-card{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:14px}
+@media(min-width:440px){ .bar-card{border-radius:20px;padding:18px} }
 .bar-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
 .bar-ttl{font-size:14px;font-weight:800;color:var(--txt)}
 .mini-bars{display:flex;gap:7px;align-items:flex-end;height:80px}
@@ -170,24 +187,28 @@ body{font-family:'Figtree',sans-serif;display:flex;align-items:center;justify-co
 .mbl{font-size:9px;font-weight:700;color:var(--m)}
 
 /* ════ ALUNO APP ════ */
-#vu{background:var(--bg);position:absolute;inset:0;z-index:10}
-.uscreens{position:absolute;inset:0;overflow:hidden}
-.uscreen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;opacity:0;pointer-events:none;transform:translateX(16px);transition:opacity .25s,transform .25s;padding-top:52px;padding-bottom:92px}
+#vu{background:var(--bg);position:relative;width:100%;height:auto;z-index:10;display:none;visibility:hidden;min-height:100vh}
+#vu.on{display:block;visibility:visible}
+.uscreens{position:relative;width:100%;height:auto;overflow:hidden}
+.uscreen{position:relative;width:100%;height:auto;overflow-y:visible;overflow-x:hidden;scrollbar-width:auto;opacity:0;pointer-events:none;transform:translateX(0);transition:opacity .25s,transform .25s;padding-top:0;padding-bottom:92px;display:none !important;visibility:hidden}
 .uscreen::-webkit-scrollbar{display:none}
-.uscreen.on{opacity:1;pointer-events:all;transform:translateX(0)}
+.uscreen.on{opacity:1;pointer-events:all;transform:translateX(0);display:block !important;visibility:visible;position:relative}
 .unav{position:absolute;bottom:0;left:0;right:0;height:88px;background:rgba(12,12,12,.97);backdrop-filter:blur(28px);border-top:1px solid var(--bdr);display:flex;align-items:flex-start;justify-content:space-around;padding-top:12px;z-index:100}
 
 /* ── ALUNO HOME ── */
-.u-header{padding:16px 24px 0;display:flex;justify-content:space-between;align-items:center}
+.u-header{padding:12px 16px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+@media(min-width:440px){ .u-header{padding:16px 24px 16px;margin-bottom:12px} }
 .u-greet{font-size:13px;color:var(--m2);font-weight:500}
 .u-name{font-size:22px;font-weight:900;color:var(--txt);margin-top:2px}
 .u-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#000;cursor:pointer;box-shadow:0 4px 16px rgba(0,230,118,.3)}
-.streak-bar{margin:18px 24px 0;background:var(--card);border:1px solid var(--bdr);border-radius:18px;padding:15px 18px;display:flex;align-items:center;justify-content:space-between}
+.streak-bar{margin:12px 16px 12px;background:var(--card);border:1px solid var(--bdr);border-radius:18px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;font-size:13px}
+@media(min-width:440px){ .streak-bar{margin:16px 24px 16px;padding:15px 18px;font-size:14px} }
 .st-days{display:flex;gap:6px}
 .sday{width:27px;height:27px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--m)}
 .sday.done{background:rgba(0,230,118,.15);color:var(--g)}
 .sday.today{background:var(--g);color:#000}
-.treino-hoje{margin:0 24px;border-radius:22px;overflow:hidden;background:linear-gradient(135deg,#0a2017,#061510);border:1px solid rgba(0,230,118,.15);position:relative;cursor:pointer}
+.treino-hoje{margin:12px 16px 16px;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#0a2017,#061510);border:1px solid rgba(0,230,118,.15);position:relative;cursor:pointer}
+@media(min-width:440px){ .treino-hoje{margin:16px 24px 20px;border-radius:22px} }
 .th-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 80% at 100% 0%,rgba(0,230,118,.12),transparent)}
 .th-content{position:relative;z-index:1;padding:22px}
 .th-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(0,230,118,.12);border:1px solid rgba(0,230,118,.25);border-radius:50px;padding:4px 12px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--g);margin-bottom:11px}
@@ -196,11 +217,13 @@ body{font-family:'Figtree',sans-serif;display:flex;align-items:center;justify-co
 .th-mi{font-size:12px;font-weight:600;color:var(--m2)}
 .th-btn{background:var(--g);color:#000;border:none;border-radius:13px;padding:13px;font-family:'Figtree',sans-serif;font-size:14px;font-weight:800;cursor:pointer;width:100%;transition:all .2s}
 .th-btn:hover{transform:scale(1.02);box-shadow:0 8px 24px rgba(0,230,118,.35)}
-.sem-treino{margin:0 24px;background:var(--card);border:1px solid var(--bdr);border-radius:22px;padding:32px 24px;text-align:center}
+.sem-treino{margin:0 16px;background:var(--card);border:1px solid var(--bdr);border-radius:18px;padding:24px 16px;text-align:center}
+@media(min-width:440px){ .sem-treino{margin:0 24px;border-radius:22px;padding:32px 24px} }
 .sem-ico{font-size:40px;margin-bottom:12px}
 .sem-title{font-size:16px;font-weight:800;color:var(--txt);margin-bottom:6px}
 .sem-sub{font-size:13px;color:var(--m2)}
-.qs-grid{margin:0 24px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qs-grid{margin:12px 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(min-width:440px){ .qs-grid{margin:16px 24px 20px;gap:12px} }
 .qs{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:17px}
 .qs-ico{font-size:20px;margin-bottom:7px}
 .qs-num{font-size:22px;font-weight:900;color:var(--txt)}
@@ -211,7 +234,8 @@ body{font-family:'Figtree',sans-serif;display:flex;align-items:center;justify-co
 .wh-back{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--m2);cursor:pointer;margin-bottom:14px}
 .wh-title{font-size:24px;font-weight:900;line-height:1.1;margin-bottom:5px}
 .wh-sub{font-size:13px;color:var(--m2)}
-.w-hero{margin:14px 24px;background:linear-gradient(135deg,#0a2017,#061510);border:1px solid rgba(0,230,118,.15);border-radius:22px;padding:18px;display:flex;align-items:center;justify-content:space-between}
+.w-hero{margin:10px 16px;background:linear-gradient(135deg,#0a2017,#061510);border:1px solid rgba(0,230,118,.15);border-radius:18px;padding:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+@media(min-width:440px){ .w-hero{margin:14px 24px;border-radius:22px;padding:18px;flex-wrap:nowrap;gap:0} }
 .wh-info{}
 .wh-lbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--g);margin-bottom:3px}
 .wh-num{font-size:34px;font-weight:900;color:var(--txt);line-height:1}
@@ -219,13 +243,15 @@ body{font-family:'Figtree',sans-serif;display:flex;align-items:center;justify-co
 .wh-ring{width:68px;height:68px;border-radius:50%;background:conic-gradient(var(--g) 0deg 0deg,rgba(255,255,255,.05) 0deg);display:flex;align-items:center;justify-content:center;position:relative}
 .wh-ring::before{content:'';position:absolute;width:54px;height:54px;border-radius:50%;background:#0a2017}
 .wh-ring-txt{position:relative;z-index:1;font-size:13px;font-weight:900;color:var(--g)}
-.wp-card{margin:0 24px 14px;background:var(--card);border:1px solid var(--bdr);border-radius:17px;padding:14px 18px}
+.wp-card{margin:0 16px 10px;background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:12px 14px}
+@media(min-width:440px){ .wp-card{margin:0 24px 14px;border-radius:17px;padding:14px 18px} }
 .wp-row{display:flex;justify-content:space-between;margin-bottom:9px}
 .wp-lbl{font-size:12px;font-weight:700;color:var(--txt)}
 .wp-pct{font-size:12px;font-weight:700;color:var(--g)}
 .pt{background:rgba(255,255,255,.07);border-radius:10px;height:6px}
 .pf{height:6px;border-radius:10px;background:linear-gradient(90deg,var(--g),var(--g2));transition:width .4s}
-.ex-list{padding:0 24px;display:flex;flex-direction:column;gap:10px}
+.ex-list{padding:0 16px;margin:12px 0 16px;display:flex;flex-direction:column;gap:8px}
+@media(min-width:440px){ .ex-list{padding:0 24px;margin:16px 0 20px;gap:10px} }
 .ex-item{background:var(--card);border:1px solid var(--bdr);border-radius:17px;padding:15px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:all .2s}
 .ex-item.done{border-color:rgba(0,230,118,.2);background:rgba(0,230,118,.04)}
 .ex-item.curr{border-color:var(--g);background:rgba(0,230,118,.06)}
@@ -832,9 +858,15 @@ setTimeout(()=>{
 },1600);
 
 function showView(id){
+  // Hide all views
   document.querySelectorAll('.view').forEach(v=>{v.classList.remove('on');});
+  document.getElementById('vp').classList.remove('on');
+  document.getElementById('vu').classList.remove('on');
+  // Show the requested view
   const el=document.getElementById(id);
   if(el) el.classList.add('on');
+  if(id==='vp') document.getElementById('vp').classList.add('on');
+  if(id==='vu') document.getElementById('vu').classList.add('on');
 }
 
 // ══════════════════════════
@@ -924,13 +956,13 @@ function showProf(){
     if(b)b.src=photoSrc;
   }
   document.getElementById('mp-name').textContent=cu.name;
+  showView('vp');
   refreshProfStats();
   renderDashAlunos();
   renderListAlunos();
   renderListTreinos();
   renderLibList();
   renderProgAlunos();
-  showView('vp');
 }
 function refreshProfStats(){
   const alunos=getMyAlunos();
@@ -1224,11 +1256,11 @@ function showAluno(){
   document.getElementById('mu-niv').textContent=cu.nivel||'—';
   document.getElementById('mu-t').textContent=cu.treinos||0;
   document.getElementById('mu-prof').textContent=cu.profName||'—';
+  showView('vu');
   refreshAlunoStats();
   renderTreinoHoje();
   buildHeatmap();
   buildMiniBar('u-bars',cu.treinos||0);
-  showView('vu');
 }
 function refreshAlunoStats(){
   document.getElementById('u-streak-num').textContent=cu.streak||0;
