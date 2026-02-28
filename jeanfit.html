@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>JeanFit</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#080808}
+body{font-family:'Figtree',sans-serif;display:flex;align-items:center;justify-content:center}
+:root{
+  --g:#00E676;--g2:#00BFA5;
+  --bg:#0f0f0f;--bg2:#141414;--bg3:#1a1a1a;
+  --card:#181818;--card2:#202020;
+  --bdr:rgba(255,255,255,0.06);
+  --txt:#F0F0F0;--m:#555;--m2:#888;
+  --red:#FF4444;--blue:#4FC3F7;--orange:#FF9800;--purple:#CE93D8;
+}
+
+/* ── SHELL ── */
+.shell{width:390px;height:844px;background:var(--bg);border-radius:52px;overflow:hidden;position:relative;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,0.09),0 50px 120px rgba(0,0,0,0.9),inset 0 1px 0 rgba(255,255,255,0.07)}
+.island{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:126px;height:34px;background:#000;border-radius:20px;z-index:300}
+.sbar{position:absolute;top:0;left:0;right:0;height:52px;display:flex;align-items:flex-start;justify-content:space-between;padding:14px 26px 0;z-index:200;font-size:12px;font-weight:700;color:#fff;pointer-events:none}
+.sbar-time{font-size:15px;font-weight:700}
+.sbar-icons{display:flex;gap:5px;align-items:center}
+
+/* ── VIEWS ── */
+.view{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;transform:translateY(12px);display:none}
+.view::-webkit-scrollbar{display:none}
+.view.on{opacity:1;pointer-events:all;transform:translateY(0);display:block}
+#vs.on{display:flex}
+
+/* ════ SPLASH ════ */
+#vs{display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);position:absolute;inset:0;z-index:10}
+.sp-glow{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 45%,rgba(0,230,118,0.14),transparent);pointer-events:none}
+.sp-logo{font-size:48px;font-weight:900;color:var(--g);letter-spacing:-1px;position:relative;z-index:1;animation:pop .65s cubic-bezier(.34,1.56,.64,1) both}
+.sp-tag{font-size:14px;color:var(--m2);font-weight:500;margin-top:10px;position:relative;z-index:1;animation:fu .5s .35s ease both}
+@keyframes pop{from{opacity:0;transform:scale(.55)}to{opacity:1;transform:scale(1)}}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ════ AUTH ════ */
+#va{background:var(--bg);padding-top:52px;position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;z-index:10}
+#va::-webkit-scrollbar{display:none}
+.a-wrap{padding:28px 28px 0}
+.a-logo{font-size:28px;font-weight:900;color:var(--g);letter-spacing:-.5px}
+.a-title{font-size:26px;font-weight:900;color:var(--txt);margin-top:22px;line-height:1.2}
+.a-sub{font-size:13px;color:var(--m2);margin-top:6px}
+
+/* role selector */
+.role-sel{display:flex;gap:10px;margin-top:22px}
+.role-btn{flex:1;padding:14px 10px;border-radius:16px;background:var(--card);border:1.5px solid var(--bdr);cursor:pointer;text-align:center;transition:all .2s}
+.role-btn.on{border-color:var(--g);background:rgba(0,230,118,0.08)}
+.role-emoji{font-size:26px;display:block;margin-bottom:6px}
+.role-label{font-size:12px;font-weight:800;color:var(--m2)}
+.role-btn.on .role-label{color:var(--g)}
+
+.tabs{display:flex;margin-top:20px;background:var(--card);border-radius:13px;padding:4px}
+.tab{flex:1;padding:10px;text-align:center;font-size:13px;font-weight:700;color:var(--m2);border-radius:9px;cursor:pointer;transition:all .2s}
+.tab.on{background:var(--g);color:#000}
+.aform{padding:18px 28px 32px;display:flex;flex-direction:column;gap:13px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fl{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--m2)}
+.fi{background:var(--card);border:1.5px solid var(--bdr);border-radius:13px;padding:13px 17px;color:var(--txt);font-family:'Figtree',sans-serif;font-size:14px;font-weight:500;outline:none;transition:border-color .2s;width:100%}
+.fi:focus{border-color:rgba(0,230,118,.4)}
+.fi::placeholder{color:var(--m)}
+.ferr{font-size:11px;color:var(--red);font-weight:600;display:none}
+.ferr.on{display:block}
+.abtn{background:var(--g);color:#000;border:none;border-radius:15px;padding:16px;font-family:'Figtree',sans-serif;font-size:15px;font-weight:900;cursor:pointer;transition:all .2s;margin-top:2px}
+.abtn:hover{transform:scale(1.01);box-shadow:0 8px 28px rgba(0,230,118,.35)}
+.abtn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+/* ════ PROFESSOR APP ════ */
+#vp{background:var(--bg);position:absolute;inset:0;z-index:10}
+.pscreens{position:absolute;inset:0;overflow:hidden}
+.pscreen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;opacity:0;pointer-events:none;transform:translateX(16px);transition:opacity .25s,transform .25s;padding-top:52px;padding-bottom:92px}
+.pscreen::-webkit-scrollbar{display:none}
+.pscreen.on{opacity:1;pointer-events:all;transform:translateX(0)}
+
+/* Prof bottom nav */
+.pnav{position:absolute;bottom:0;left:0;right:0;height:88px;background:rgba(12,12,12,.97);backdrop-filter:blur(28px);border-top:1px solid var(--bdr);display:flex;align-items:flex-start;justify-content:space-around;padding-top:12px;z-index:100}
+.ni{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;padding:4px 14px}
+.ni-ico{font-size:22px;transition:transform .2s}
+.ni-lbl{font-size:10px;font-weight:600;color:var(--m);transition:color .2s;letter-spacing:.3px}
+.ni-dot{width:4px;height:4px;border-radius:50%;background:var(--g);opacity:0;transition:opacity .2s}
+.ni.on .ni-lbl{color:var(--g)}
+.ni.on .ni-ico{transform:scale(1.1)}
+.ni.on .ni-dot{opacity:1}
+
+/* ── shared ── */
+.pg-hdr{padding:16px 24px 0}
+.pg-title{font-size:26px;font-weight:900;color:var(--txt)}
+.pg-sub{font-size:13px;color:var(--m2);font-weight:500;margin-top:3px}
+.sec{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--m);padding:0 24px;margin:22px 0 12px}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:20px}
+.gcard{background:var(--card);border:1px solid var(--bdr);border-radius:20px;transition:border-color .2s,transform .2s;cursor:pointer}
+.gcard:hover{border-color:rgba(0,230,118,.22);transform:translateY(-2px)}
+
+/* ── PROF DASHBOARD ── */
+.pstat-grid{margin:14px 24px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pstat{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:18px}
+.pstat-ico{font-size:22px;margin-bottom:8px}
+.pstat-num{font-size:28px;font-weight:900;color:var(--txt)}
+.pstat-lbl{font-size:11px;color:var(--m);font-weight:600;margin-top:2px}
+.aluno-list{padding:0 24px;display:flex;flex-direction:column;gap:10px}
+.aluno-card{background:var(--card);border:1px solid var(--bdr);border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:all .2s}
+.aluno-card:hover{border-color:rgba(0,230,118,.22);transform:translateX(3px)}
+.aluno-av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#000;flex-shrink:0}
+.aluno-name{font-size:14px;font-weight:800;color:var(--txt)}
+.aluno-info{font-size:11px;color:var(--m2);font-weight:600;margin-top:2px}
+.aluno-badge{margin-left:auto;font-size:10px;font-weight:700;padding:4px 10px;border-radius:50px}
+.badge-ok{background:rgba(0,230,118,.12);color:var(--g)}
+.badge-pend{background:rgba(255,152,0,.12);color:var(--orange)}
+.badge-new{background:rgba(79,195,247,.12);color:var(--blue)}
+
+/* ── PROF ALUNOS (gestão) ── */
+.add-aluno-btn{margin:16px 24px 0;background:rgba(0,230,118,.08);border:1.5px dashed rgba(0,230,118,.3);border-radius:18px;padding:16px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;font-size:13px;font-weight:800;color:var(--g);transition:all .2s}
+.add-aluno-btn:hover{background:rgba(0,230,118,.13)}
+
+/* ── PROF TREINOS ── */
+.treino-list{padding:0 24px;display:flex;flex-direction:column;gap:10px}
+.treino-card{background:var(--card);border:1px solid var(--bdr);border-radius:18px;padding:16px;cursor:pointer;transition:all .2s}
+.treino-card:hover{border-color:rgba(0,230,118,.22);transform:translateX(3px)}
+.tc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.tc-name{font-size:15px;font-weight:800;color:var(--txt)}
+.tc-tag{font-size:10px;font-weight:700;padding:3px 10px;border-radius:50px}
+.tc-meta{display:flex;gap:14px}
+.tc-meta-i{font-size:11px;color:var(--m2);font-weight:600}
+.add-treino-btn{margin:16px 24px 0;background:rgba(0,230,118,.08);border:1.5px dashed rgba(0,230,118,.3);border-radius:18px;padding:16px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;font-size:13px;font-weight:800;color:var(--g);transition:all .2s}
+.add-treino-btn:hover{background:rgba(0,230,118,.13)}
+
+/* ── PROF BIBLIOTECA ── */
+.lib-list{padding:0 24px;display:flex;flex-direction:column;gap:10px}
+.lib-ex{background:var(--card);border:1px solid var(--bdr);border-radius:18px;padding:15px 16px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:border-color .2s}
+.lib-ex:hover{border-color:rgba(0,230,118,.2)}
+.lib-ico{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.lib-name{font-size:13px;font-weight:800;color:var(--txt);margin-bottom:4px}
+.lib-tags{display:flex;gap:5px;flex-wrap:wrap}
+.lt{font-size:10px;font-weight:700;padding:2px 8px;border-radius:50px}
+.lt-m{background:rgba(0,230,118,.1);color:var(--g)}
+.lt-e{background:rgba(255,255,255,.05);color:var(--m2)}
+.lt-easy{background:rgba(76,175,80,.12);color:#66BB6A}
+.lt-med{background:rgba(255,152,0,.12);color:#FFA726}
+.lt-hard{background:rgba(244,67,54,.12);color:#EF5350}
+
+/* ── PROF PROGRESSO (alunos) ── */
+.prog-aluno-sel{margin:14px 24px 0;display:flex;flex-direction:column;gap:10px}
+.pa-card{background:var(--card);border:1.5px solid var(--bdr);border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:all .2s}
+.pa-card.sel{border-color:var(--g);background:rgba(0,230,118,.05)}
+.pa-card:hover{border-color:rgba(0,230,118,.3)}
+.pa-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#000;flex-shrink:0}
+.pa-name{font-size:14px;font-weight:800;color:var(--txt)}
+.pa-info{font-size:11px;color:var(--m2);font-weight:600;margin-top:2px}
+.prog-detail{margin:16px 24px 0;display:flex;flex-direction:column;gap:12px}
+.pd-stat-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pd-stat{background:var(--card);border:1px solid var(--bdr);border-radius:18px;padding:16px}
+.pd-ico{font-size:18px;margin-bottom:6px}
+.pd-num{font-size:24px;font-weight:900;color:var(--txt)}
+.pd-lbl{font-size:11px;color:var(--m);font-weight:600;margin-top:2px}
+.pd-change{font-size:11px;font-weight:700;color:#66BB6A;margin-top:3px}
+.bar-card{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:18px}
+.bar-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.bar-ttl{font-size:14px;font-weight:800;color:var(--txt)}
+.mini-bars{display:flex;gap:7px;align-items:flex-end;height:80px}
+.mbg{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1}
+.mb{width:100%;border-radius:5px 5px 0 0;min-height:4px}
+.mb-p{background:linear-gradient(180deg,var(--g),rgba(0,230,118,.3))}
+.mb-s{background:rgba(255,255,255,.07)}
+.mbl{font-size:9px;font-weight:700;color:var(--m)}
+
+/* ════ ALUNO APP ════ */
+#vu{background:var(--bg);position:absolute;inset:0;z-index:10}
+.uscreens{position:absolute;inset:0;overflow:hidden}
+.uscreen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;opacity:0;pointer-events:none;transform:translateX(16px);transition:opacity .25s,transform .25s;padding-top:52px;padding-bottom:92px}
+.uscreen::-webkit-scrollbar{display:none}
+.uscreen.on{opacity:1;pointer-events:all;transform:translateX(0)}
+.unav{position:absolute;bottom:0;left:0;right:0;height:88px;background:rgba(12,12,12,.97);backdrop-filter:blur(28px);border-top:1px solid var(--bdr);display:flex;align-items:flex-start;justify-content:space-around;padding-top:12px;z-index:100}
+
+/* ── ALUNO HOME ── */
+.u-header{padding:16px 24px 0;display:flex;justify-content:space-between;align-items:center}
+.u-greet{font-size:13px;color:var(--m2);font-weight:500}
+.u-name{font-size:22px;font-weight:900;color:var(--txt);margin-top:2px}
+.u-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#000;cursor:pointer;box-shadow:0 4px 16px rgba(0,230,118,.3)}
+.streak-bar{margin:18px 24px 0;background:var(--card);border:1px solid var(--bdr);border-radius:18px;padding:15px 18px;display:flex;align-items:center;justify-content:space-between}
+.st-days{display:flex;gap:6px}
+.sday{width:27px;height:27px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--m)}
+.sday.done{background:rgba(0,230,118,.15);color:var(--g)}
+.sday.today{background:var(--g);color:#000}
+.treino-hoje{margin:0 24px;border-radius:22px;overflow:hidden;background:linear-gradient(135deg,#0a2017,#061510);border:1px solid rgba(0,230,118,.15);position:relative;cursor:pointer}
+.th-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 80% at 100% 0%,rgba(0,230,118,.12),transparent)}
+.th-content{position:relative;z-index:1;padding:22px}
+.th-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(0,230,118,.12);border:1px solid rgba(0,230,118,.25);border-radius:50px;padding:4px 12px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--g);margin-bottom:11px}
+.th-title{font-size:22px;font-weight:900;color:var(--txt);margin-bottom:14px;line-height:1.1}
+.th-meta{display:flex;gap:18px;margin-bottom:18px}
+.th-mi{font-size:12px;font-weight:600;color:var(--m2)}
+.th-btn{background:var(--g);color:#000;border:none;border-radius:13px;padding:13px;font-family:'Figtree',sans-serif;font-size:14px;font-weight:800;cursor:pointer;width:100%;transition:all .2s}
+.th-btn:hover{transform:scale(1.02);box-shadow:0 8px 24px rgba(0,230,118,.35)}
+.sem-treino{margin:0 24px;background:var(--card);border:1px solid var(--bdr);border-radius:22px;padding:32px 24px;text-align:center}
+.sem-ico{font-size:40px;margin-bottom:12px}
+.sem-title{font-size:16px;font-weight:800;color:var(--txt);margin-bottom:6px}
+.sem-sub{font-size:13px;color:var(--m2)}
+.qs-grid{margin:0 24px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qs{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:17px}
+.qs-ico{font-size:20px;margin-bottom:7px}
+.qs-num{font-size:22px;font-weight:900;color:var(--txt)}
+.qs-unit{font-size:11px;color:var(--m2);font-weight:600}
+.qs-lbl{font-size:12px;color:var(--m);font-weight:600;margin-top:2px}
+
+/* ── ALUNO TREINO ── */
+.wh-back{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--m2);cursor:pointer;margin-bottom:14px}
+.wh-title{font-size:24px;font-weight:900;line-height:1.1;margin-bottom:5px}
+.wh-sub{font-size:13px;color:var(--m2)}
+.w-hero{margin:14px 24px;background:linear-gradient(135deg,#0a2017,#061510);border:1px solid rgba(0,230,118,.15);border-radius:22px;padding:18px;display:flex;align-items:center;justify-content:space-between}
+.wh-info{}
+.wh-lbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--g);margin-bottom:3px}
+.wh-num{font-size:34px;font-weight:900;color:var(--txt);line-height:1}
+.wh-unit{font-size:12px;color:var(--m2);font-weight:600;margin-top:2px}
+.wh-ring{width:68px;height:68px;border-radius:50%;background:conic-gradient(var(--g) 0deg 0deg,rgba(255,255,255,.05) 0deg);display:flex;align-items:center;justify-content:center;position:relative}
+.wh-ring::before{content:'';position:absolute;width:54px;height:54px;border-radius:50%;background:#0a2017}
+.wh-ring-txt{position:relative;z-index:1;font-size:13px;font-weight:900;color:var(--g)}
+.wp-card{margin:0 24px 14px;background:var(--card);border:1px solid var(--bdr);border-radius:17px;padding:14px 18px}
+.wp-row{display:flex;justify-content:space-between;margin-bottom:9px}
+.wp-lbl{font-size:12px;font-weight:700;color:var(--txt)}
+.wp-pct{font-size:12px;font-weight:700;color:var(--g)}
+.pt{background:rgba(255,255,255,.07);border-radius:10px;height:6px}
+.pf{height:6px;border-radius:10px;background:linear-gradient(90deg,var(--g),var(--g2));transition:width .4s}
+.ex-list{padding:0 24px;display:flex;flex-direction:column;gap:10px}
+.ex-item{background:var(--card);border:1px solid var(--bdr);border-radius:17px;padding:15px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:all .2s}
+.ex-item.done{border-color:rgba(0,230,118,.2);background:rgba(0,230,118,.04)}
+.ex-item.curr{border-color:var(--g);background:rgba(0,230,118,.06)}
+.ex-n{width:34px;height:34px;border-radius:9px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--m2);flex-shrink:0}
+.ex-item.done .ex-n{background:rgba(0,230,118,.15);color:var(--g)}
+.ex-item.curr .ex-n{background:var(--g);color:#000}
+.ex-info{flex:1}
+.ex-name{font-size:14px;font-weight:800;color:var(--txt);margin-bottom:3px}
+.ex-sets{font-size:12px;font-weight:600;color:var(--m2)}
+.ex-grp{font-size:10px;font-weight:700;padding:3px 8px;border-radius:50px;background:rgba(255,255,255,.05);color:var(--m2)}
+.ex-chk{width:26px;height:26px;border-radius:50%;border:2px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;color:transparent}
+.ex-item.done .ex-chk{background:var(--g);border-color:var(--g);color:#000}
+.fin-btn{margin:18px 24px 0;background:var(--g);color:#000;border:none;border-radius:17px;padding:17px;font-family:'Figtree',sans-serif;font-size:15px;font-weight:900;cursor:pointer;width:calc(100% - 48px);transition:all .2s}
+.fin-btn:hover{transform:scale(1.01);box-shadow:0 8px 32px rgba(0,230,118,.35)}
+
+/* ── ALUNO PROGRESSO ── */
+.u-prog-grid{margin:14px 24px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.uptab{display:flex;gap:6px;padding:14px 24px 0}
+.upt{padding:8px 16px;border-radius:50px;font-size:12px;font-weight:700;background:var(--card);border:1px solid var(--bdr);color:var(--m2);cursor:pointer;transition:all .2s}
+.upt.on{background:rgba(0,230,118,.12);border-color:rgba(0,230,118,.3);color:var(--g)}
+.hm-card{margin:0 24px 24px;background:var(--card);border:1px solid var(--bdr);border-radius:22px;padding:18px}
+.hm-ttl{font-size:14px;font-weight:800;margin-bottom:12px}
+.hm-grid{display:grid;grid-template-columns:repeat(14,1fr);gap:4px}
+.hm-c{aspect-ratio:1;border-radius:3px;background:rgba(255,255,255,.04)}
+.hm-c.l1{background:rgba(0,230,118,.15)}
+.hm-c.l2{background:rgba(0,230,118,.35)}
+.hm-c.l3{background:rgba(0,230,118,.65)}
+.hm-c.l4{background:rgba(0,230,118,.9)}
+
+/* ════ MODALS ════ */
+.overlay{position:absolute;inset:0;z-index:400;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .3s}
+.overlay.on{opacity:1;pointer-events:all}
+.sheet{background:var(--bg2);border-radius:28px 28px 0 0;width:100%;padding:24px;transform:translateY(110%);transition:transform .35s cubic-bezier(.32,1,.23,1);max-height:80%;overflow-y:auto}
+.sheet::-webkit-scrollbar{display:none}
+.overlay.on .sheet{transform:translateY(0)}
+.sh-handle{width:40px;height:4px;background:var(--bg3);border-radius:2px;margin:0 auto 18px}
+.sh-title{font-size:18px;font-weight:900;margin-bottom:4px}
+.sh-sub{font-size:12px;color:var(--m2);margin-bottom:18px}
+.sh-form{display:flex;flex-direction:column;gap:12px}
+.sh-btn{background:var(--g);color:#000;border:none;border-radius:14px;padding:15px;font-family:'Figtree',sans-serif;font-size:14px;font-weight:900;cursor:pointer;transition:all .2s;margin-top:4px}
+.sh-btn:hover{transform:scale(1.01);box-shadow:0 6px 22px rgba(0,230,118,.35)}
+.sh-btn-del{background:rgba(255,68,68,.1);color:var(--red);border:1.5px solid rgba(255,68,68,.2);border-radius:14px;padding:14px;font-family:'Figtree',sans-serif;font-size:13px;font-weight:800;cursor:pointer;margin-top:6px}
+
+/* profile modal */
+.prof-info{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding:14px;background:var(--card);border-radius:16px;border:1px solid var(--bdr)}
+.prof-av{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#000;flex-shrink:0}
+.prof-name{font-size:15px;font-weight:900}
+.prof-role{font-size:11px;color:var(--m2);margin-top:2px;font-weight:600}
+.prof-meta{display:flex;gap:12px;margin-top:6px;flex-wrap:wrap}
+.pmeta{font-size:11px;color:var(--m2);font-weight:600}
+.pmeta strong{color:var(--txt)}
+.logout-btn{width:100%;padding:15px;background:rgba(255,68,68,.1);border:1.5px solid rgba(255,68,68,.2);border-radius:14px;color:var(--red);font-family:'Figtree',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .2s}
+.logout-btn:hover{background:rgba(255,68,68,.18)}
+
+/* atribuir treino */
+.assign-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.assign-item{background:var(--card);border:1.5px solid var(--bdr);border-radius:13px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .2s}
+.assign-item.sel{border-color:var(--g);background:rgba(0,230,118,.07)}
+.assign-item-name{font-size:13px;font-weight:800;color:var(--txt)}
+.assign-item-sub{font-size:11px;color:var(--m2);font-weight:600}
+.assign-chk{width:22px;height:22px;border-radius:50%;border:2px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent;flex-shrink:0}
+.assign-item.sel .assign-chk{background:var(--g);border-color:var(--g);color:#000}
+
+/* toast */
+.toast{position:absolute;bottom:100px;left:20px;right:20px;background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:13px 17px;font-size:13px;font-weight:700;z-index:600;transform:translateY(18px);opacity:0;transition:all .3s;pointer-events:none;display:flex;align-items:center;gap:9px}
+.toast.on{transform:translateY(0);opacity:1}
+
+/* pill selects */
+.pill-grid{display:flex;flex-wrap:wrap;gap:7px}
+.popt{padding:8px 15px;border-radius:50px;font-size:12px;font-weight:700;border:1.5px solid var(--bdr);background:var(--card);color:var(--m2);cursor:pointer;transition:all .2s}
+.popt.on{border-color:var(--g);background:rgba(0,230,118,.1);color:var(--g)}
+
+select.fi{appearance:none}
+.prof-photo{width:44px;height:44px;border-radius:50%;object-fit:cover;cursor:pointer;box-shadow:0 4px 16px rgba(79,195,247,.35);border:2px solid rgba(79,195,247,.4)}
+.prof-photo-lg{width:56px;height:56px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid rgba(79,195,247,.4)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="island"></div>
+  <div class="sbar"><span class="sbar-time">9:41</span><div class="sbar-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div></div>
+
+  <!-- ══ SPLASH ══ -->
+  <div class="view on" id="vs">
+    <div class="sp-glow"></div>
+    <div class="sp-logo">JeanFit</div>
+    <div class="sp-tag">Sua academia. Seu professor. Seu ritmo.</div>
+  </div>
+
+  <!-- ══ AUTH ══ -->
+  <div class="view" id="va">
+    <div class="a-wrap">
+      <div class="a-logo">JeanFit</div>
+      <div class="a-title" id="a-title">Olá! Quem<br>é você?</div>
+      <div class="a-sub" id="a-sub">Selecione seu perfil para continuar</div>
+      <div class="role-sel">
+        <div class="role-btn on" id="role-prof" onclick="setRole('professor')">
+          <span class="role-emoji">👨‍🏫</span>
+          <span class="role-label">Professor</span>
+        </div>
+        <div class="role-btn" id="role-aluno" onclick="setRole('aluno')">
+          <span class="role-emoji">🏋️</span>
+          <span class="role-label">Aluno</span>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab on" id="tab-in" onclick="setTab('login')">Entrar</div>
+        <div class="tab" id="tab-up" onclick="setTab('register')">Cadastrar</div>
+      </div>
+    </div>
+    <div class="aform" id="aform">
+      <div class="fg" id="fg-name" style="display:none">
+        <div class="fl">Nome completo</div>
+        <input class="fi" id="i-name" type="text" placeholder="Seu nome completo">
+        <div class="ferr" id="e-name">Digite seu nome</div>
+      </div>
+      <div class="fg">
+        <div class="fl">E-mail</div>
+        <input class="fi" id="i-email" type="email" placeholder="seu@email.com">
+        <div class="ferr" id="e-email">E-mail inválido</div>
+      </div>
+      <div class="fg">
+        <div class="fl">Senha</div>
+        <input class="fi" id="i-pass" type="password" placeholder="••••••••">
+        <div class="ferr" id="e-pass">Mínimo 6 caracteres</div>
+      </div>
+      <!-- aluno onboard -->
+      <div id="aluno-ob" style="display:none;flex-direction:column;gap:12px">
+        <div class="fg">
+          <div class="fl">🎯 Objetivo</div>
+          <div class="pill-grid" id="ob-obj">
+            <div class="popt on" onclick="selPill(this,'obj')">Ganhar massa</div>
+            <div class="popt" onclick="selPill(this,'obj')">Perder peso</div>
+            <div class="popt" onclick="selPill(this,'obj')">Definição</div>
+            <div class="popt" onclick="selPill(this,'obj')">Condicionamento</div>
+          </div>
+        </div>
+        <div class="fg">
+          <div class="fl">💪 Nível</div>
+          <div class="pill-grid" id="ob-niv">
+            <div class="popt on" onclick="selPill(this,'niv')">Iniciante</div>
+            <div class="popt" onclick="selPill(this,'niv')">Intermediário</div>
+            <div class="popt" onclick="selPill(this,'niv')">Avançado</div>
+          </div>
+        </div>
+      </div>
+      <button class="abtn" id="a-btn" onclick="handleAuth()">Entrar</button>
+    </div>
+  </div>
+
+  <!-- ══ PROFESSOR APP ══ -->
+  <div class="view" id="vp">
+    <div class="pscreens">
+
+      <!-- PROF: DASHBOARD -->
+      <div class="pscreen on" id="ps-dash">
+        <div class="pg-hdr">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div style="font-size:13px;color:var(--m2);font-weight:500" id="p-greet">Bom dia 👋</div>
+              <div style="font-size:22px;font-weight:900;color:var(--txt);margin-top:2px" id="p-name">Professor</div>
+            </div>
+            <img id="p-av-btn" class="prof-photo" onclick="openModal('modal-pprofile')" alt="Jean"></div>
+          </div>
+        </div>
+
+        <div class="pstat-grid">
+          <div class="pstat"><div class="pstat-ico">👥</div><div class="pstat-num" id="stat-alunos">0</div><div class="pstat-lbl">Alunos ativos</div></div>
+          <div class="pstat"><div class="pstat-ico">📋</div><div class="pstat-num" id="stat-treinos">0</div><div class="pstat-lbl">Treinos criados</div></div>
+          <div class="pstat"><div class="pstat-ico">✅</div><div class="pstat-num" id="stat-feitos">0</div><div class="pstat-lbl">Treinos feitos hoje</div></div>
+          <div class="pstat"><div class="pstat-ico">🔥</div><div class="pstat-num" id="stat-ativos">0</div><div class="pstat-lbl">Alunos esta semana</div></div>
+        </div>
+
+        <div class="sec">Meus Alunos</div>
+        <div class="aluno-list" id="dash-alunos"></div>
+      </div>
+
+      <!-- PROF: ALUNOS -->
+      <div class="pscreen" id="ps-alunos">
+        <div class="pg-hdr">
+          <div class="pg-title">Alunos 👥</div>
+          <div class="pg-sub">Gerencie seus alunos</div>
+        </div>
+        <div class="add-aluno-btn" onclick="openModal('modal-add-aluno')">➕ &nbsp; Adicionar novo aluno</div>
+        <div class="sec">Lista de Alunos</div>
+        <div class="aluno-list" id="list-alunos"></div>
+      </div>
+
+      <!-- PROF: TREINOS -->
+      <div class="pscreen" id="ps-treinos">
+        <div class="pg-hdr">
+          <div class="pg-title">Treinos 📋</div>
+          <div class="pg-sub">Crie e gerencie treinos</div>
+        </div>
+        <div class="add-treino-btn" onclick="openModal('modal-add-treino')">➕ &nbsp; Criar novo treino</div>
+        <div class="sec">Treinos Criados</div>
+        <div class="treino-list" id="list-treinos"></div>
+      </div>
+
+      <!-- PROF: BIBLIOTECA -->
+      <div class="pscreen" id="ps-lib">
+        <div class="pg-hdr">
+          <div class="pg-title">Biblioteca 📚</div>
+          <div class="pg-sub">Exercícios disponíveis</div>
+        </div>
+        <div style="margin:14px 24px 16px">
+          <div class="search-bar" style="background:var(--card);border:1.5px solid var(--bdr);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:10px">
+            <span style="font-size:15px;color:var(--m)">🔍</span>
+            <input style="flex:1;background:transparent;border:none;outline:none;color:var(--txt);font-family:'Figtree',sans-serif;font-size:14px;font-weight:500" placeholder="Pesquisar exercício..." oninput="filterLib(this.value)">
+          </div>
+        </div>
+        <div class="add-treino-btn" style="margin-top:0" onclick="openModal('modal-add-ex')">➕ &nbsp; Adicionar exercício</div>
+        <div class="sec" style="margin-top:16px">Exercícios</div>
+        <div class="lib-list" id="lib-list"></div>
+      </div>
+
+      <!-- PROF: PROGRESSO -->
+      <div class="pscreen" id="ps-prog">
+        <div class="pg-hdr">
+          <div class="pg-title">Progresso 📊</div>
+          <div class="pg-sub">Acompanhe seus alunos</div>
+        </div>
+        <div class="sec" style="margin-top:14px">Selecionar Aluno</div>
+        <div class="prog-aluno-sel" id="prog-aluno-sel"></div>
+        <div id="prog-detail-wrap" style="display:none">
+          <div class="sec" id="prog-aluno-nome">— Selecione um aluno</div>
+          <div class="prog-detail">
+            <div class="pd-stat-row">
+              <div class="pd-stat"><div class="pd-ico">🏃</div><div class="pd-num" id="pd-t">0</div><div class="pd-lbl">Treinos feitos</div><div class="pd-change" id="pd-tc"></div></div>
+              <div class="pd-stat"><div class="pd-ico">🔥</div><div class="pd-num" id="pd-s">0</div><div class="pd-lbl">Sequência</div></div>
+              <div class="pd-stat"><div class="pd-ico">⏰</div><div class="pd-num" id="pd-m">0 min</div><div class="pd-lbl">Tempo total</div></div>
+              <div class="pd-stat"><div class="pd-ico">⚡</div><div class="pd-num" id="pd-k">0</div><div class="pd-lbl">Kcal gastas</div></div>
+            </div>
+            <div class="bar-card">
+              <div class="bar-hdr"><div class="bar-ttl">Frequência semanal</div></div>
+              <div class="mini-bars" id="prog-bars"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /pscreens -->
+
+    <div class="pnav">
+      <div class="ni on" id="pn-dash" onclick="pSwitch('dash')"><div class="ni-ico">🏠</div><div class="ni-lbl">Início</div><div class="ni-dot"></div></div>
+      <div class="ni" id="pn-alunos" onclick="pSwitch('alunos')"><div class="ni-ico">👥</div><div class="ni-lbl">Alunos</div><div class="ni-dot"></div></div>
+      <div class="ni" id="pn-treinos" onclick="pSwitch('treinos')"><div class="ni-ico">📋</div><div class="ni-lbl">Treinos</div><div class="ni-dot"></div></div>
+      <div class="ni" id="pn-lib" onclick="pSwitch('lib')"><div class="ni-ico">📚</div><div class="ni-lbl">Biblioteca</div><div class="ni-dot"></div></div>
+      <div class="ni" id="pn-prog" onclick="pSwitch('prog')"><div class="ni-ico">📊</div><div class="ni-lbl">Progresso</div><div class="ni-dot"></div></div>
+    </div>
+  </div>
+
+  <!-- ══ ALUNO APP ══ -->
+  <div class="view" id="vu">
+    <div class="uscreens">
+
+      <!-- ALUNO: HOME -->
+      <div class="uscreen on" id="us-home">
+        <div class="u-header">
+          <div>
+            <div class="u-greet" id="u-greet">Bom dia 🌤️</div>
+            <div class="u-name" id="u-name">Aluno</div>
+          </div>
+          <div class="u-av" id="u-av" style="background:linear-gradient(135deg,#00E676,#00897B)" onclick="openModal('modal-uperf')">A</div>
+        </div>
+
+        <div class="streak-bar">
+          <div style="display:flex;align-items:center;gap:11px">
+            <span style="font-size:26px">🔥</span>
+            <div>
+              <div style="font-size:21px;font-weight:900;color:var(--orange)" id="u-streak-num">0</div>
+              <div style="font-size:11px;font-weight:600;color:var(--m2)">Dias seguidos</div>
+            </div>
+          </div>
+          <div class="st-days" id="u-days">
+            <div class="sday">S</div><div class="sday">T</div><div class="sday">Q</div>
+            <div class="sday">Q</div><div class="sday">S</div><div class="sday today">S</div><div class="sday">D</div>
+          </div>
+        </div>
+
+        <div class="sec">Treino de Hoje</div>
+        <div id="treino-hoje-wrap"></div>
+
+        <div class="sec">Esta Semana</div>
+        <div class="qs-grid">
+          <div class="qs"><div class="qs-ico">🏃</div><div class="qs-num" id="qs-t">0 <span class="qs-unit">/ 5</span></div><div class="qs-lbl">Treinos feitos</div></div>
+          <div class="qs"><div class="qs-ico">⚡</div><div class="qs-num" id="qs-k">0 <span class="qs-unit">kcal</span></div><div class="qs-lbl">Calorias</div></div>
+          <div class="qs"><div class="qs-ico">⏰</div><div class="qs-num" id="qs-m">0 <span class="qs-unit">min</span></div><div class="qs-lbl">Tempo ativo</div></div>
+          <div class="qs"><div class="qs-ico">🔥</div><div class="qs-num" id="qs-s">0 <span class="qs-unit">dias</span></div><div class="qs-lbl">Sequência</div></div>
+        </div>
+      </div>
+
+      <!-- ALUNO: TREINO ATIVO -->
+      <div class="uscreen" id="us-treino">
+        <div style="padding:16px 24px 0">
+          <div class="wh-back" onclick="uSwitch('home')">← Voltar</div>
+          <div class="wh-title" id="wt-title">Treino</div>
+          <div class="wh-sub" id="wt-sub">Seu treino de hoje</div>
+        </div>
+        <div class="w-hero">
+          <div class="wh-info">
+            <div class="wh-lbl">Duração est.</div>
+            <div class="wh-num" id="wt-dur">45</div>
+            <div class="wh-unit">minutos</div>
+          </div>
+          <div style="display:flex;gap:20px">
+            <div><div class="wh-lbl">Exercícios</div><div class="wh-num" id="wt-exn">0</div><div class="wh-unit">movimentos</div></div>
+          </div>
+          <div class="wh-ring" id="wt-ring"><div class="wh-ring-txt" id="wt-pct">0%</div></div>
+        </div>
+        <div class="wp-card">
+          <div class="wp-row"><span class="wp-lbl">Progresso</span><span class="wp-pct" id="wt-prog-txt">0 / 0</span></div>
+          <div class="pt"><div class="pf" id="wt-prog-fill" style="width:0%"></div></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--m);padding:0 24px;margin:12px 0 12px">Exercícios</div>
+        <div class="ex-list" id="wt-ex-list"></div>
+        <button class="fin-btn" onclick="finishWorkout()">🏁 &nbsp; Finalizar Treino</button>
+      </div>
+
+      <!-- ALUNO: PROGRESSO -->
+      <div class="uscreen" id="us-prog">
+        <div class="pg-hdr">
+          <div class="pg-title">Progresso 📈</div>
+          <div class="pg-sub">Sua evolução em números</div>
+        </div>
+        <div class="uptab">
+          <div class="upt on" onclick="selUpt(this)">Semana</div>
+          <div class="upt" onclick="selUpt(this)">Mês</div>
+          <div class="upt" onclick="selUpt(this)">Total</div>
+        </div>
+        <div class="u-prog-grid">
+          <div class="qs"><div class="qs-ico">🏃</div><div class="qs-num" id="up-t">0</div><div class="qs-lbl">Treinos</div></div>
+          <div class="qs"><div class="qs-ico">⚡</div><div class="qs-num" id="up-k">0</div><div class="qs-lbl">Kcal gastas</div></div>
+          <div class="qs"><div class="qs-ico">⏰</div><div class="qs-num" id="up-m">0 min</div><div class="qs-lbl">Tempo ativo</div></div>
+          <div class="qs"><div class="qs-ico">🔥</div><div class="qs-num" id="up-s">0</div><div class="qs-lbl">Maior sequência</div></div>
+        </div>
+        <div style="margin:16px 24px 0" class="bar-card">
+          <div class="bar-hdr"><div class="bar-ttl">Treinos por dia</div></div>
+          <div class="mini-bars" id="u-bars"></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--m);padding:0 24px;margin:22px 0 12px">Frequência — Últimas 4 semanas</div>
+        <div class="hm-card">
+          <div class="hm-ttl">Dias treinados</div>
+          <div class="hm-grid" id="u-heatmap"></div>
+        </div>
+      </div>
+
+    </div><!-- /uscreens -->
+
+    <div class="unav">
+      <div class="ni on" id="un-home" onclick="uSwitch('home')"><div class="ni-ico">🏠</div><div class="ni-lbl">Início</div><div class="ni-dot"></div></div>
+      <div class="ni" id="un-treino" onclick="uSwitch('treino')"><div class="ni-ico">⚡</div><div class="ni-lbl">Treino</div><div class="ni-dot"></div></div>
+      <div class="ni" id="un-prog" onclick="uSwitch('prog')"><div class="ni-ico">📊</div><div class="ni-lbl">Progresso</div><div class="ni-dot"></div></div>
+    </div>
+  </div>
+
+  <!-- ════ MODALS ════ -->
+
+  <!-- Prof: profile -->
+  <div class="overlay" id="modal-pprofile" onclick="closeModal(event,this)">
+    <div class="sheet">
+      <div class="sh-handle"></div>
+      <div class="sh-title">Meu Perfil</div>
+      <div class="sh-sub">Conta de professor</div>
+      <div class="prof-info">
+        <img id="mp-av" class="prof-photo-lg" alt="Jean">
+        <div>
+          <div class="prof-name" id="mp-name">—</div>
+          <div class="prof-role">👨‍🏫 Professor</div>
+          <div class="prof-meta">
+            <div class="pmeta">Alunos: <strong id="mp-alunos">0</strong></div>
+            <div class="pmeta">Treinos: <strong id="mp-treinos">0</strong></div>
+          </div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="logout()">🚪 &nbsp; Sair da conta</button>
+    </div>
+  </div>
+
+  <!-- Prof: add aluno -->
+  <div class="overlay" id="modal-add-aluno" onclick="closeModal(event,this)">
+    <div class="sheet">
+      <div class="sh-handle"></div>
+      <div class="sh-title">Adicionar Aluno</div>
+      <div class="sh-sub">Cadastre um novo aluno na sua turma</div>
+      <div class="sh-form">
+        <div class="fg"><div class="fl">Nome do aluno</div><input class="fi" id="na-nome" type="text" placeholder="Nome completo"></div>
+        <div class="fg"><div class="fl">E-mail</div><input class="fi" id="na-email" type="email" placeholder="aluno@email.com"></div>
+        <div class="fg"><div class="fl">Senha inicial</div><input class="fi" id="na-pass" type="text" placeholder="Senha para o aluno"></div>
+        <div class="fg">
+          <div class="fl">Objetivo</div>
+          <div class="pill-grid" id="na-obj-grid">
+            <div class="popt on" onclick="selPill(this,'na-obj')">Ganhar massa</div>
+            <div class="popt" onclick="selPill(this,'na-obj')">Perder peso</div>
+            <div class="popt" onclick="selPill(this,'na-obj')">Definição</div>
+            <div class="popt" onclick="selPill(this,'na-obj')">Condicionamento</div>
+          </div>
+        </div>
+        <div class="fg">
+          <div class="fl">Nível</div>
+          <div class="pill-grid" id="na-niv-grid">
+            <div class="popt on" onclick="selPill(this,'na-niv')">Iniciante</div>
+            <div class="popt" onclick="selPill(this,'na-niv')">Intermediário</div>
+            <div class="popt" onclick="selPill(this,'na-niv')">Avançado</div>
+          </div>
+        </div>
+        <button class="sh-btn" onclick="addAluno()">✅ &nbsp; Cadastrar Aluno</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prof: ver aluno (assign treino) -->
+  <div class="overlay" id="modal-aluno-detail" onclick="closeModal(event,this)">
+    <div class="sheet">
+      <div class="sh-handle"></div>
+      <div class="sh-title" id="mad-title">Aluno</div>
+      <div class="sh-sub" id="mad-sub">Gerencie este aluno</div>
+      <div class="prof-info" id="mad-info"></div>
+      <div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--m2);margin-bottom:10px">Atribuir Treino</div>
+      <div class="assign-list" id="assign-list"></div>
+      <button class="sh-btn" onclick="assignTreino()">💾 &nbsp; Salvar Atribuição</button>
+      <button class="sh-btn-del" onclick="removeAluno()">🗑️ &nbsp; Remover Aluno</button>
+    </div>
+  </div>
+
+  <!-- Prof: add treino -->
+  <div class="overlay" id="modal-add-treino" onclick="closeModal(event,this)">
+    <div class="sheet">
+      <div class="sh-handle"></div>
+      <div class="sh-title">Criar Treino</div>
+      <div class="sh-sub">Monte um novo treino para seus alunos</div>
+      <div class="sh-form">
+        <div class="fg"><div class="fl">Nome do treino</div><input class="fi" id="nt-nome" type="text" placeholder="Ex: Peito e Tríceps"></div>
+        <div class="fg">
+          <div class="fl">Grupo muscular</div>
+          <div class="pill-grid" id="nt-grp-grid">
+            <div class="popt on" onclick="selPill(this,'nt-grp')">Peito</div>
+            <div class="popt" onclick="selPill(this,'nt-grp')">Costas</div>
+            <div class="popt" onclick="selPill(this,'nt-grp')">Pernas</div>
+            <div class="popt" onclick="selPill(this,'nt-grp')">Ombro</div>
+            <div class="popt" onclick="selPill(this,'nt-grp')">Full Body</div>
+            <div class="popt" onclick="selPill(this,'nt-grp')">HIIT</div>
+          </div>
+        </div>
+        <div class="fg">
+          <div class="fl">Nível</div>
+          <div class="pill-grid" id="nt-niv-grid">
+            <div class="popt on" onclick="selPill(this,'nt-niv')">Iniciante</div>
+            <div class="popt" onclick="selPill(this,'nt-niv')">Intermediário</div>
+            <div class="popt" onclick="selPill(this,'nt-niv')">Avançado</div>
+          </div>
+        </div>
+        <div class="fg"><div class="fl">Duração (minutos)</div><input class="fi" id="nt-dur" type="number" placeholder="45" value="45"></div>
+        <div class="fg">
+          <div class="fl">Exercícios (selecione da biblioteca)</div>
+          <div id="nt-ex-sel" style="display:flex;flex-direction:column;gap:7px;max-height:180px;overflow-y:auto"></div>
+        </div>
+        <button class="sh-btn" onclick="addTreino()">✅ &nbsp; Criar Treino</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prof: ver/editar treino -->
+  <div class="overlay" id="modal-treino-detail" onclick="closeModal(event,this)">
+    <div class="sheet">
+      <div class="sh-handle"></div>
+      <div class="sh-title" id="mtd-title">Treino</div>
+      <div class="sh-sub" id="mtd-sub">Detalhes do treino</div>
+      <div id="mtd-exs" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px"></div>
+      <button class="sh-btn-del" onclick="deleteTreino()">🗑️ &nbsp; Excluir Treino</button>
+    </div>
+  </div>
+
+  <!-- Prof: add exercicio -->
+  <div class="overlay" id="modal-add-ex" onclick="closeModal(event,this)">
+    <div class="sheet">
+      <div class="sh-handle"></div>
+      <div class="sh-title">Adicionar Exercício</div>
+      <div class="sh-sub">Crie um exercício para a biblioteca</div>
+      <div class="sh-form">
+        <div class="fg"><div class="fl">Nome</div><input class="fi" id="ne-nome" type="text" placeholder="Nome do exercício"></div>
+        <div class="fg">
+          <div class="fl">Grupo muscular</div>
+          <div class="pill-grid" id="ne-grp-grid">
+            <div class="popt on" onclick="selPill(this,'ne-grp')">Peitoral</div>
+            <div class="popt" onclick="selPill(this,'ne-grp')">Costas</div>
+            <div class="popt" onclick="selPill(this,'ne-grp')">Pernas</div>
+            <div class="popt" onclick="selPill(this,'ne-grp')">Ombros</div>
+            <div class="popt" onclick="selPill(this,'ne-grp')">Bíceps</div>
+            <div class="popt" onclick="selPill(this,'ne-grp')">Tríceps</div>
+            <div class="popt" onclick="selPill(this,'ne-grp')">Abdômen</div>
+          </div>
+        </div>
+        <div class="fg">
+          <div class="fl">Equipamento</div>
+          <div class="pill-grid" id="ne-eq-grid">
+            <div class="popt on" onclick="selPill(this,'ne-eq')">Barra</div>
+            <div class="popt" onclick="selPill(this,'ne-eq')">Halteres</div>
+            <div class="popt" onclick="selPill(this,'ne-eq')">Máquina</div>
+            <div class="popt" onclick="selPill(this,'ne-eq')">Cabo</div>
+            <div class="popt" onclick="selPill(this,'ne-eq')">Sem equip.</div>
+          </div>
+        </div>
+        <div class="fg">
+          <div class="fl">Dificuldade</div>
+          <div class="pill-grid" id="ne-dif-grid">
+            <div class="popt on" onclick="selPill(this,'ne-dif')">Iniciante</div>
+            <div class="popt" onclick="selPill(this,'ne-dif')">Intermediário</div>
+            <div class="popt" onclick="selPill(this,'ne-dif')">Avançado</div>
+          </div>
+        </div>
+        <div class="fg"><div class="fl">Séries × Reps</div><input class="fi" id="ne-sets" type="text" placeholder="Ex: 4 × 10"></div>
+        <button class="sh-btn" onclick="addExercicio()">✅ &nbsp; Adicionar Exercício</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aluno: profile -->
+  <div class="overlay" id="modal-uperf" onclick="closeModal(event,this)">
+    <div class="sheet">
+      <div class="sh-handle"></div>
+      <div class="sh-title">Meu Perfil</div>
+      <div class="sh-sub">Suas informações</div>
+      <div class="prof-info">
+        <div class="prof-av" style="background:linear-gradient(135deg,#00E676,#00897B)" id="mu-av">A</div>
+        <div>
+          <div class="prof-name" id="mu-name">—</div>
+          <div class="prof-role">🏋️ Aluno</div>
+          <div class="prof-meta">
+            <div class="pmeta">Objetivo: <strong id="mu-obj">—</strong></div>
+            <div class="pmeta">Nível: <strong id="mu-niv">—</strong></div>
+          </div>
+          <div class="prof-meta" style="margin-top:4px">
+            <div class="pmeta">Treinos: <strong id="mu-t">0</strong></div>
+            <div class="pmeta">Professor: <strong id="mu-prof">—</strong></div>
+          </div>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="logout()">🚪 &nbsp; Sair da conta</button>
+    </div>
+  </div>
+
+  <!-- Hidden image to load professor photo -->
+  <img id="jean-src-img" src="PHOTO20260228151316.jpg" style="display:none" crossorigin="anonymous"
+    onload="(function(){try{const c=document.createElement('canvas');c.width=this.naturalWidth;c.height=this.naturalHeight;c.getContext('2d').drawImage(this,0,0);window._jeanPhoto=c.toDataURL('image/jpeg',.85);const a=document.getElementById('p-av-btn');const b=document.getElementById('mp-av');if(a&&a.tagName==='IMG')a.src=window._jeanPhoto;if(b&&b.tagName==='IMG')b.src=window._jeanPhoto;}catch(e){}}).call(this)">
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"><span id="toast-msg">✅ OK</span></div>
+</div>
+
+<script>
+// ══════════════════════════
+//  PROFESSOR PHOTO
+// ══════════════════════════
+// Photo of Prof. Jean
+const JEAN_PHOTO = "https://i.imgur.com/placeholder.jpg"; // will be replaced below
+// We encode the photo inline via the img element once loaded
+function loadProfPhoto(){
+  // Try to load from the embedded base64 data
+  const img=document.getElementById('p-av-btn');
+  const img2=document.getElementById('mp-av');
+  // Use the photo blob if available, fallback to styled div
+  const src=window._jeanPhoto||'';
+  if(src){if(img)img.src=src;if(img2)img2.src=src;}
+}
+
+// ══════════════════════════
+//  STORAGE
+// ══════════════════════════
+const S={
+  g:k=>{try{return JSON.parse(localStorage.getItem('bf_'+k))}catch{return null}},
+  s:(k,v)=>localStorage.setItem('bf_'+k,JSON.stringify(v)),
+  d:k=>localStorage.removeItem('bf_'+k)
+};
+
+// ══════════════════════════
+//  STATE
+// ══════════════════════════
+let role='professor', isLogin=true;
+let cu=null; // current user
+const pills={obj:'Ganhar massa',niv:'Iniciante','na-obj':'Ganhar massa','na-niv':'Iniciante','nt-grp':'Peito','nt-niv':'Iniciante','ne-grp':'Peitoral','ne-eq':'Barra','ne-dif':'Iniciante'};
+let editAluno=null, editTreino=null;
+
+// ══════════════════════════
+//  SPLASH
+// ══════════════════════════
+// ══════════════════════════
+//  INIT
+// ══════════════════════════
+setTimeout(()=>{
+  try {
+    const saved=S.g('user');
+    if(saved && saved.email && saved.role){
+      // verify user still exists in users db
+      const users=S.g('users')||{};
+      const fresh=users[saved.email];
+      if(fresh){cu=fresh;cu.role===cu.role; cu.role==='professor'?showProf():showAluno();}
+      else{S.d('user');showView('va');}
+    } else {
+      S.d('user');
+      showView('va');
+    }
+  } catch(e){ S.d('user'); showView('va'); }
+},1600);
+
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>{v.classList.remove('on');});
+  const el=document.getElementById(id);
+  if(el) el.classList.add('on');
+}
+
+// ══════════════════════════
+//  AUTH
+// ══════════════════════════
+function setRole(r){
+  role=r;
+  document.getElementById('role-prof').classList.toggle('on',r==='professor');
+  document.getElementById('role-aluno').classList.toggle('on',r==='aluno');
+  document.getElementById('aluno-ob').style.display=(!isLogin&&r==='aluno')?'flex':'none';
+}
+function setTab(t){
+  isLogin=t==='login';
+  document.getElementById('tab-in').classList.toggle('on',isLogin);
+  document.getElementById('tab-up').classList.toggle('on',!isLogin);
+  document.getElementById('fg-name').style.display=isLogin?'none':'flex';
+  document.getElementById('aluno-ob').style.display=(!isLogin&&role==='aluno')?'flex':'none';
+  document.getElementById('a-btn').textContent=isLogin?'Entrar':'Criar conta';
+  document.getElementById('a-title').textContent=isLogin?'Bem-vindo\nde volta!':'Crie sua\nconta';
+}
+function selPill(el,grp){
+  const parent=el.closest('.pill-grid');
+  parent.querySelectorAll('.popt').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on'); pills[grp]=el.textContent;
+}
+function handleAuth(){
+  const email=document.getElementById('i-email').value.trim();
+  const pass=document.getElementById('i-pass').value;
+  const name=document.getElementById('i-name').value.trim();
+  document.querySelectorAll('.ferr').forEach(e=>e.classList.remove('on'));
+  let ok=true;
+  if(!email.includes('@')){document.getElementById('e-email').classList.add('on');ok=false;}
+  if(!pass){document.getElementById('e-pass').classList.add('on');ok=false;}
+  if(!isLogin&&!name){document.getElementById('e-name').classList.add('on');ok=false;}
+  if(!ok)return;
+  const btn=document.getElementById('a-btn');
+  btn.disabled=true; btn.textContent='...';
+  setTimeout(()=>{
+    const users=S.g('users')||{};
+    if(isLogin){
+      const u=users[email];
+      if(!u||u.pass!==pass){
+        document.getElementById('e-email').classList.add('on');
+        document.getElementById('e-pass').classList.add('on');
+        btn.disabled=false; btn.textContent='Entrar';
+        toast('❌ E-mail ou senha incorretos');return;
+      }
+      // warn if wrong role selected
+      if(u.role!==role){
+        btn.disabled=false; btn.textContent='Entrar';
+        toast('⚠️ Selecione o perfil correto: '+u.role);return;
+      }
+      cu=u;
+    } else {
+      if(users[email]){
+        document.getElementById('e-email').classList.add('on');
+        btn.disabled=false; btn.textContent='Criar conta';
+        toast('⚠️ E-mail já cadastrado'); return;
+      }
+      cu={name,email,pass,role,
+        objetivo:role==='aluno'?(pills['obj']||'Ganhar massa'):'—',
+        nivel:role==='aluno'?(pills['niv']||'Iniciante'):'—',
+        treinos:0,streak:0,kcal:0,tempo:0,
+        joinDate:new Date().toLocaleDateString('pt-BR')
+      };
+      users[email]=cu; S.s('users',users);
+    }
+    S.s('user',cu);
+    cu.role==='professor'?showProf():showAluno();
+  },500);
+}
+
+// ══════════════════════════
+//  SHOW PROFESSOR
+// ══════════════════════════
+function showProf(){
+  const h=new Date().getHours();
+  const g=h<12?'Bom dia 👋':h<18?'Boa tarde ☀️':'Boa noite 🌙';
+  document.getElementById('p-greet').textContent=g;
+  const fn=cu.name.split(' ')[0];
+  document.getElementById('p-name').textContent='Prof. '+fn;
+  const photoSrc=window._jeanPhoto||'';
+  if(photoSrc){
+    const a=document.getElementById('p-av-btn');
+    const b=document.getElementById('mp-av');
+    if(a)a.src=photoSrc;
+    if(b)b.src=photoSrc;
+  }
+  document.getElementById('mp-name').textContent=cu.name;
+  refreshProfStats();
+  renderDashAlunos();
+  renderListAlunos();
+  renderListTreinos();
+  renderLibList();
+  renderProgAlunos();
+  showView('vp');
+}
+function refreshProfStats(){
+  const alunos=getMyAlunos();
+  const treinos=getMyTreinos();
+  document.getElementById('stat-alunos').textContent=alunos.length;
+  document.getElementById('stat-treinos').textContent=treinos.length;
+  document.getElementById('mp-alunos').textContent=alunos.length;
+  document.getElementById('mp-treinos').textContent=treinos.length;
+  const feitos=alunos.reduce((a,u)=>a+(u.treinos||0),0);
+  document.getElementById('stat-feitos').textContent=feitos;
+  document.getElementById('stat-ativos').textContent=alunos.filter(u=>(u.treinos||0)>0).length;
+}
+function getMyAlunos(){
+  const users=S.g('users')||{};
+  return Object.values(users).filter(u=>u.role==='aluno'&&u.profEmail===cu.email);
+}
+function getMyTreinos(){return (S.g('treinos_'+cu.email)||[]);}
+function saveMyTreinos(t){S.s('treinos_'+cu.email,t);}
+
+const COLORS=['#00E676','#4FC3F7','#FF9800','#CE93D8','#FF7043','#66BB6A','#FFD54F'];
+function avatarColor(i){return COLORS[i%COLORS.length];}
+
+function renderDashAlunos(){
+  const alunos=getMyAlunos();
+  const c=document.getElementById('dash-alunos');
+  if(!alunos.length){c.innerHTML='<div style="padding:20px 0;text-align:center;color:var(--m);font-size:13px;font-weight:600">Nenhum aluno cadastrado ainda.<br><span style="color:var(--g);cursor:pointer" onclick="pSwitch(\'alunos\')">Adicionar agora →</span></div>';return;}
+  c.innerHTML=alunos.map((u,i)=>{
+    const t=getMyTreinos().find(tr=>tr.id===u.treinoAtual);
+    const badge=t?`<span class="aluno-badge badge-ok">${t.nome.substring(0,12)}</span>`:`<span class="aluno-badge badge-pend">Sem treino</span>`;
+    return `<div class="aluno-card" onclick="openAlunoDetail('${u.email}')">
+      <div class="aluno-av" style="background:${avatarColor(i)}">${u.name[0].toUpperCase()}</div>
+      <div><div class="aluno-name">${u.name}</div><div class="aluno-info">${u.nivel} · ${u.objetivo}</div></div>
+      ${badge}
+    </div>`;
+  }).join('');
+}
+function renderListAlunos(){
+  const alunos=getMyAlunos();
+  const c=document.getElementById('list-alunos');
+  if(!alunos.length){c.innerHTML='<div style="padding:20px 0;text-align:center;color:var(--m);font-size:13px;font-weight:600">Nenhum aluno ainda.</div>';return;}
+  c.innerHTML=alunos.map((u,i)=>{
+    return `<div class="aluno-card" onclick="openAlunoDetail('${u.email}')">
+      <div class="aluno-av" style="background:${avatarColor(i)}">${u.name[0].toUpperCase()}</div>
+      <div><div class="aluno-name">${u.name}</div><div class="aluno-info">${u.nivel} · ${u.objetivo} · ${u.treinos||0} treinos</div></div>
+      <span class="aluno-badge badge-new" style="margin-left:auto">Ver →</span>
+    </div>`;
+  }).join('');
+}
+function renderListTreinos(){
+  const treinos=getMyTreinos();
+  const c=document.getElementById('list-treinos');
+  if(!treinos.length){c.innerHTML='<div style="padding:20px 0;text-align:center;color:var(--m);font-size:13px;font-weight:600">Nenhum treino criado ainda.</div>';return;}
+  const tagColor=n=>n==='Iniciante'?'background:rgba(76,175,80,.12);color:#66BB6A':n==='Intermediário'?'background:rgba(255,152,0,.12);color:#FFA726':'background:rgba(244,67,54,.12);color:#EF5350';
+  c.innerHTML=treinos.map(t=>`
+    <div class="treino-card" onclick="openTreinoDetail('${t.id}')">
+      <div class="tc-top">
+        <div class="tc-name">${t.nome}</div>
+        <span class="tc-tag" style="${tagColor(t.nivel)}">${t.nivel}</span>
+      </div>
+      <div class="tc-meta">
+        <div class="tc-meta-i">⏱ ${t.duracao} min</div>
+        <div class="tc-meta-i">💪 ${t.grupo}</div>
+        <div class="tc-meta-i">📌 ${(t.exercicios||[]).length} exercícios</div>
+      </div>
+    </div>`).join('');
+}
+function renderLibList(filter=''){
+  const lib=getLib();
+  const c=document.getElementById('lib-list');
+  const filtered=filter?lib.filter(e=>e.nome.toLowerCase().includes(filter.toLowerCase())||e.grupo.toLowerCase().includes(filter.toLowerCase())):lib;
+  if(!filtered.length){c.innerHTML='<div style="padding:20px 24px;color:var(--m);font-size:13px;font-weight:600">Nenhum exercício encontrado.</div>';return;}
+  const bg=['rgba(0,230,118,.1)','rgba(33,150,243,.1)','rgba(255,152,0,.1)','rgba(156,39,176,.1)','rgba(244,67,54,.1)'];
+  const dc=d=>d==='Iniciante'?'easy':d==='Intermediário'?'med':'hard';
+  c.innerHTML=filtered.map((e,i)=>`
+    <div class="lib-ex">
+      <div class="lib-ico" style="background:${bg[i%bg.length]}">${e.emoji||'💪'}</div>
+      <div class="lib-info">
+        <div class="lib-name">${e.nome}</div>
+        <div class="lib-tags">
+          <span class="lt lt-m">${e.grupo}</span>
+          <span class="lt lt-e">${e.equip}</span>
+          <span class="lt lt-${dc(e.dif)}">${e.dif}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function filterLib(v){renderLibList(v);}
+function getLib(){return S.g('lib_'+cu.email)||[];}
+function saveLib(l){S.s('lib_'+cu.email,l);}
+
+function renderProgAlunos(){
+  const alunos=getMyAlunos();
+  const c=document.getElementById('prog-aluno-sel');
+  if(!alunos.length){c.innerHTML='<div style="padding:20px 0;text-align:center;color:var(--m);font-size:13px;font-weight:600">Nenhum aluno cadastrado.</div>';return;}
+  c.innerHTML=alunos.map((u,i)=>`
+    <div class="pa-card" onclick="showAlunoProgress(this,'${u.email}')">
+      <div class="pa-av" style="background:${avatarColor(i)}">${u.name[0].toUpperCase()}</div>
+      <div><div class="pa-name">${u.name}</div><div class="pa-info">${u.nivel} · ${u.treinos||0} treinos · 🔥${u.streak||0} dias</div></div>
+    </div>`).join('');
+}
+function showAlunoProgress(el,email){
+  document.querySelectorAll('.pa-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  const users=S.g('users')||{};
+  const u=users[email];
+  if(!u)return;
+  document.getElementById('prog-aluno-nome').textContent=u.name+' — Progresso';
+  document.getElementById('pd-t').textContent=u.treinos||0;
+  document.getElementById('pd-s').textContent=(u.streak||0)+' dias';
+  document.getElementById('pd-m').textContent=(u.tempo||0)+' min';
+  document.getElementById('pd-k').textContent=u.kcal||0;
+  if(u.treinos>0)document.getElementById('pd-tc').textContent='↑ Ótimo progresso!';
+  buildMiniBar('prog-bars',u.treinos||0);
+  document.getElementById('prog-detail-wrap').style.display='block';
+}
+function buildMiniBar(id,total){
+  const c=document.getElementById(id);
+  const days=['S','T','Q','Q','S','S','D'];
+  c.innerHTML=days.map((d,i)=>{
+    const active=total>0&&Math.random()>0.4;
+    const h=active?35+Math.floor(Math.random()*45):6;
+    return `<div class="mbg"><div class="mb ${active?'mb-p':'mb-s'}" style="height:${h}px"></div><div class="mbl">${d}</div></div>`;
+  }).join('');
+}
+
+// ══════════════════════════
+//  ADD ALUNO
+// ══════════════════════════
+function addAluno(){
+  const nome=document.getElementById('na-nome').value.trim();
+  const email=document.getElementById('na-email').value.trim();
+  const pass=document.getElementById('na-pass').value.trim();
+  if(!nome||!email.includes('@')||!pass){toast('⚠️ Preencha todos os campos');return;}
+  const users=S.g('users')||{};
+  if(users[email]){toast('⚠️ E-mail já cadastrado');return;}
+  const newUser={name:nome,email,pass,role:'aluno',
+    objetivo:pills['na-obj']||'Ganhar massa',nivel:pills['na-niv']||'Iniciante',
+    profEmail:cu.email,profName:cu.name,
+    treinos:0,streak:0,kcal:0,tempo:0,treinoAtual:null,
+    joinDate:new Date().toLocaleDateString('pt-BR')
+  };
+  users[email]=newUser; S.s('users',users);
+  document.getElementById('na-nome').value='';
+  document.getElementById('na-email').value='';
+  document.getElementById('na-pass').value='';
+  closeModalById('modal-add-aluno');
+  refreshProfStats(); renderDashAlunos(); renderListAlunos(); renderProgAlunos();
+  toast('✅ Aluno '+nome+' cadastrado!');
+}
+
+// ══════════════════════════
+//  ALUNO DETAIL
+// ══════════════════════════
+function openAlunoDetail(email){
+  const users=S.g('users')||{};
+  const u=users[email];
+  if(!u)return;
+  editAluno=email;
+  document.getElementById('mad-title').textContent=u.name;
+  document.getElementById('mad-sub').textContent=u.objetivo+' · '+u.nivel;
+  const idx=getMyAlunos().indexOf(getMyAlunos().find(a=>a.email===email));
+  document.getElementById('mad-info').innerHTML=`
+    <div class="prof-av" style="background:${avatarColor(idx<0?0:idx)}">${u.name[0].toUpperCase()}</div>
+    <div>
+      <div class="prof-name">${u.name}</div>
+      <div class="prof-role">🏋️ ${u.nivel}</div>
+      <div class="prof-meta">
+        <div class="pmeta">Treinos: <strong>${u.treinos||0}</strong></div>
+        <div class="pmeta">🔥 <strong>${u.streak||0} dias</strong></div>
+        <div class="pmeta">⚡ <strong>${u.kcal||0} kcal</strong></div>
+      </div>
+    </div>`;
+  const treinos=getMyTreinos();
+  const al=document.getElementById('assign-list');
+  if(!treinos.length){al.innerHTML='<div style="color:var(--m);font-size:13px;padding:10px 0">Crie treinos primeiro.</div>';}
+  else al.innerHTML=treinos.map(t=>`
+    <div class="assign-item ${u.treinoAtual===t.id?'sel':''}" onclick="toggleAssign(this,'${t.id}')">
+      <div><div class="assign-item-name">${t.nome}</div><div class="assign-item-sub">${t.grupo} · ${t.nivel}</div></div>
+      <div class="assign-chk">${u.treinoAtual===t.id?'✓':''}</div>
+    </div>`).join('');
+  openModal('modal-aluno-detail');
+}
+function toggleAssign(el,tid){
+  document.querySelectorAll('#assign-list .assign-item').forEach(i=>{i.classList.remove('sel');i.querySelector('.assign-chk').textContent='';i.removeAttribute('data-tid');});
+  el.classList.add('sel'); el.querySelector('.assign-chk').textContent='✓';
+  el.dataset.tid=tid;
+}
+function assignTreino(){
+  const sel=document.querySelector('#assign-list .assign-item.sel');
+  if(!sel){toast('⚠️ Selecione um treino');return;}
+  const tid=sel.dataset.tid;
+  if(!tid){toast('⚠️ Erro ao identificar treino');return;}
+  const users=S.g('users')||{};
+  if(users[editAluno]){users[editAluno].treinoAtual=tid;S.s('users',users);}
+  closeModalById('modal-aluno-detail');
+  renderDashAlunos(); renderListAlunos();
+  toast('✅ Treino atribuído com sucesso!');
+}
+function removeAluno(){
+  const users=S.g('users')||{};
+  delete users[editAluno]; S.s('users',users);
+  closeModalById('modal-aluno-detail');
+  refreshProfStats(); renderDashAlunos(); renderListAlunos(); renderProgAlunos();
+  toast('🗑️ Aluno removido');
+}
+
+// ══════════════════════════
+//  ADD TREINO
+// ══════════════════════════
+function openAddTreinoModal(){
+  // populate exercise selector
+  const lib=getLib();
+  const c=document.getElementById('nt-ex-sel');
+  if(!lib.length){c.innerHTML='<div style="color:var(--m);font-size:12px">Adicione exercícios à biblioteca primeiro.</div>';return;}
+  c.innerHTML=lib.map((e,i)=>`
+    <div class="assign-item" onclick="this.classList.toggle('sel');this.querySelector('.assign-chk').textContent=this.classList.contains('sel')?'✓':'';" data-eid="${i}">
+      <div><div class="assign-item-name">${e.nome}</div><div class="assign-item-sub">${e.grupo} · ${e.sets||'3 × 10'}</div></div>
+      <div class="assign-chk"></div>
+    </div>`).join('');
+}
+function addTreino(){
+  const nome=document.getElementById('nt-nome').value.trim();
+  const dur=parseInt(document.getElementById('nt-dur').value)||45;
+  if(!nome){toast('⚠️ Digite o nome do treino');return;}
+  const lib=getLib();
+  const sels=[...document.querySelectorAll('#nt-ex-sel .assign-item.sel')].map(el=>lib[parseInt(el.dataset.eid)]).filter(Boolean);
+  const t={id:'t_'+Date.now(),nome,grupo:pills['nt-grp']||'Peito',nivel:pills['nt-niv']||'Iniciante',duracao:dur,exercicios:sels,criado:new Date().toLocaleDateString('pt-BR')};
+  const treinos=getMyTreinos();treinos.unshift(t);saveMyTreinos(treinos);
+  document.getElementById('nt-nome').value='';
+  closeModalById('modal-add-treino');
+  renderListTreinos(); refreshProfStats();
+  toast('✅ Treino "'+nome+'" criado!');
+}
+
+// ══════════════════════════
+//  TREINO DETAIL
+// ══════════════════════════
+function openTreinoDetail(id){
+  const t=getMyTreinos().find(tr=>tr.id===id);
+  if(!t)return;
+  editTreino=id;
+  document.getElementById('mtd-title').textContent=t.nome;
+  document.getElementById('mtd-sub').textContent=t.grupo+' · '+t.nivel+' · '+t.duracao+' min';
+  const c=document.getElementById('mtd-exs');
+  if(!(t.exercicios||[]).length){c.innerHTML='<div style="color:var(--m);font-size:13px;padding:8px 0">Nenhum exercício selecionado.</div>';}
+  else c.innerHTML=t.exercicios.map(e=>`
+    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:13px;padding:12px 14px;display:flex;align-items:center;gap:10px">
+      <div style="font-size:20px">${e.emoji||'💪'}</div>
+      <div><div style="font-size:13px;font-weight:800;color:var(--txt)">${e.nome}</div><div style="font-size:11px;color:var(--m2);font-weight:600">${e.sets||'3 × 10'} · ${e.grupo}</div></div>
+    </div>`).join('');
+  openModal('modal-treino-detail');
+}
+function deleteTreino(){
+  const treinos=getMyTreinos().filter(t=>t.id!==editTreino);
+  saveMyTreinos(treinos);
+  closeModalById('modal-treino-detail');
+  renderListTreinos(); refreshProfStats();
+  toast('🗑️ Treino excluído');
+}
+
+// ══════════════════════════
+//  ADD EXERCICIO
+// ══════════════════════════
+const EMOJIS={'Peitoral':'🏋️','Costas':'🔙','Pernas':'🦵','Ombros':'🙌','Bíceps':'💪','Tríceps':'⬇️','Abdômen':'🔄'};
+function addExercicio(){
+  const nome=document.getElementById('ne-nome').value.trim();
+  if(!nome){toast('⚠️ Digite o nome');return;}
+  const grp=pills['ne-grp']||'Peitoral';
+  const e={nome,grupo:grp,equip:pills['ne-eq']||'Barra',dif:pills['ne-dif']||'Iniciante',sets:'3 × 10',emoji:EMOJIS[grp]||'💪'};
+  const lib=getLib();lib.push(e);saveLib(lib);
+  document.getElementById('ne-nome').value='';
+  closeModalById('modal-add-ex');
+  renderLibList();
+  toast('✅ Exercício "'+nome+'" adicionado!');
+}
+
+// ══════════════════════════
+//  SHOW ALUNO
+// ══════════════════════════
+function showAluno(){
+  const h=new Date().getHours();
+  const g=h<12?'Bom dia 🌤️':h<18?'Boa tarde ☀️':'Boa noite 🌙';
+  document.getElementById('u-greet').textContent=g;
+  const fn=cu.name.split(' ')[0];
+  document.getElementById('u-name').textContent=fn;
+  const av=fn[0].toUpperCase();
+  document.getElementById('u-av').textContent=av;
+  document.getElementById('mu-av').textContent=av;
+  document.getElementById('mu-name').textContent=cu.name;
+  document.getElementById('mu-obj').textContent=cu.objetivo||'—';
+  document.getElementById('mu-niv').textContent=cu.nivel||'—';
+  document.getElementById('mu-t').textContent=cu.treinos||0;
+  document.getElementById('mu-prof').textContent=cu.profName||'—';
+  refreshAlunoStats();
+  renderTreinoHoje();
+  buildHeatmap();
+  buildMiniBar('u-bars',cu.treinos||0);
+  showView('vu');
+}
+function refreshAlunoStats(){
+  document.getElementById('u-streak-num').textContent=cu.streak||0;
+  document.getElementById('qs-t').innerHTML=(cu.treinos||0)+' <span class="qs-unit">total</span>';
+  document.getElementById('qs-k').innerHTML=(cu.kcal||0)+' <span class="qs-unit">kcal</span>';
+  document.getElementById('qs-m').innerHTML=(cu.tempo||0)+' <span class="qs-unit">min</span>';
+  document.getElementById('qs-s').innerHTML=(cu.streak||0)+' <span class="qs-unit">dias</span>';
+  document.getElementById('up-t').textContent=cu.treinos||0;
+  document.getElementById('up-k').textContent=cu.kcal||0;
+  document.getElementById('up-m').textContent=(cu.tempo||0)+' min';
+  document.getElementById('up-s').textContent=cu.streak||0;
+}
+function renderTreinoHoje(){
+  const wrap=document.getElementById('treino-hoje-wrap');
+  if(!cu.treinoAtual){
+    wrap.innerHTML=`<div class="sem-treino"><div class="sem-ico">😴</div><div class="sem-title">Nenhum treino atribuído</div><div class="sem-sub">Aguarde seu professor atribuir um treino para você.</div></div>`;
+    return;
+  }
+  // find treino from prof
+  const users=S.g('users')||{};
+  const prof=cu.profEmail?users[cu.profEmail]:null;
+  if(!prof){wrap.innerHTML='';return;}
+  const treinos=S.g('treinos_'+prof.email)||[];
+  const t=treinos.find(tr=>tr.id===cu.treinoAtual);
+  if(!t){wrap.innerHTML='';return;}
+  wrap.innerHTML=`<div class="treino-hoje" onclick="startTreino('${t.id}')">
+    <div class="th-bg"></div>
+    <div class="th-content">
+      <div class="th-badge">⚡ Atribuído pelo professor</div>
+      <div class="th-title">${t.nome}</div>
+      <div class="th-meta">
+        <div class="th-mi">⏱ ${t.duracao} min</div>
+        <div class="th-mi">💪 ${(t.exercicios||[]).length} exercícios</div>
+        <div class="th-mi">📌 ${t.grupo}</div>
+      </div>
+      <button class="th-btn">▶ &nbsp; Iniciar Treino</button>
+    </div>
+  </div>`;
+}
+function startTreino(tid){
+  const users=S.g('users')||{};
+  const prof=cu.profEmail?users[cu.profEmail]:null;
+  if(!prof)return;
+  const treinos=S.g('treinos_'+prof.email)||[];
+  const t=treinos.find(tr=>tr.id===tid);
+  if(!t)return;
+  document.getElementById('wt-title').textContent=t.nome;
+  document.getElementById('wt-sub').textContent=t.grupo+' · '+t.nivel;
+  document.getElementById('wt-dur').textContent=t.duracao;
+  const exs=t.exercicios||[];
+  document.getElementById('wt-exn').textContent=exs.length;
+  document.getElementById('wt-ring').style.background='conic-gradient(var(--g) 0deg 0deg, rgba(255,255,255,.05) 0deg)';
+  document.getElementById('wt-pct').textContent='0%';
+  document.getElementById('wt-prog-fill').style.width='0%';
+  document.getElementById('wt-prog-txt').textContent='0 / '+exs.length;
+  const list=document.getElementById('wt-ex-list');
+  list.innerHTML=exs.map((e,i)=>`
+    <div class="ex-item ${i===0?'curr':''}" onclick="toggleEx(this)">
+      <div class="ex-n">${i+1}</div>
+      <div class="ex-info"><div class="ex-name">${e.nome}</div><div class="ex-sets">${e.sets||'3 × 10'}</div></div>
+      <div class="ex-grp">${e.grupo}</div>
+      <div class="ex-chk"></div>
+    </div>`).join('');
+  uSwitch('treino');
+}
+function toggleEx(el){
+  el.classList.toggle('done'); el.classList.remove('curr');
+  const n=el.querySelector('.ex-n');
+  if(el.classList.contains('done')){n.textContent='✓';el.querySelector('.ex-chk').textContent='✓';const nx=el.nextElementSibling;if(nx&&nx.classList.contains('ex-item'))nx.classList.add('curr');}
+  else{const items=[...document.querySelectorAll('.ex-item')];n.textContent=items.indexOf(el)+1;el.querySelector('.ex-chk').textContent='';}
+  updateWtProgress();
+}
+function updateWtProgress(){
+  const items=document.querySelectorAll('.ex-item');
+  const done=document.querySelectorAll('.ex-item.done').length;
+  const pct=items.length?Math.round(done/items.length*100):0;
+  document.getElementById('wt-prog-fill').style.width=pct+'%';
+  document.getElementById('wt-prog-txt').textContent=done+' / '+items.length;
+  document.getElementById('wt-pct').textContent=pct+'%';
+  document.getElementById('wt-ring').style.background=`conic-gradient(var(--g) 0deg ${pct*3.6}deg, rgba(255,255,255,.05) ${pct*3.6}deg)`;
+}
+function finishWorkout(){
+  cu.treinos=(cu.treinos||0)+1;
+  cu.streak=(cu.streak||0)+1;
+  cu.kcal=(cu.kcal||0)+350;
+  cu.tempo=(cu.tempo||0)+45;
+  S.s('user',cu);
+  const users=S.g('users')||{};
+  users[cu.email]=cu; S.s('users',users);
+  refreshAlunoStats();
+  document.getElementById('mu-t').textContent=cu.treinos;
+  buildMiniBar('u-bars',cu.treinos);
+  buildHeatmap();
+  toast('🏆 Treino concluído! +350 kcal');
+  setTimeout(()=>uSwitch('prog'),1200);
+}
+function buildHeatmap(){
+  const c=document.getElementById('u-heatmap');c.innerHTML='';
+  for(let i=0;i<28;i++){const d=document.createElement('div');const r=Math.random();const l=cu.treinos>0&&r>.55?r>.85?3:r>.7?2:1:0;d.className='hm-c'+(l?' l'+l:'');c.appendChild(d);}
+}
+
+// ══════════════════════════
+//  NAVIGATION
+// ══════════════════════════
+function pSwitch(s){
+  document.querySelectorAll('.pscreen').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  document.getElementById('ps-'+s).classList.add('on');
+  document.getElementById('pn-'+s).classList.add('on');
+  if(s==='treinos'){openAddTreinoModal();}
+}
+function uSwitch(s){
+  document.querySelectorAll('.uscreen').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.unav .ni').forEach(n=>n.classList.remove('on'));
+  document.getElementById('us-'+s).classList.add('on');
+  const nid='un-'+s;
+  if(document.getElementById(nid))document.getElementById(nid).classList.add('on');
+}
+function selUpt(el){document.querySelectorAll('.upt').forEach(t=>t.classList.remove('on'));el.classList.add('on');}
+
+// ══════════════════════════
+//  MODALS
+// ══════════════════════════
+function openModal(id){document.getElementById(id).classList.add('on');}
+function closeModalById(id){document.getElementById(id).classList.remove('on');}
+function closeModal(e,el){if(e.target===el)el.classList.remove('on');}
+
+// ══════════════════════════
+//  LOGOUT
+// ══════════════════════════
+function logout(){
+  S.d('user'); cu=null;
+  document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('on'));
+  document.getElementById('i-email').value='';
+  document.getElementById('i-pass').value='';
+  document.getElementById('i-name').value='';
+  setTab('login'); setRole('professor');
+  showView('va');
+}
+
+// ══════════════════════════
+//  TOAST
+// ══════════════════════════
+function toast(msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),2800);
+}
+
+// ══════════════════════════
+//  DEFAULT DATA (demo)
+// ══════════════════════════
+(function seedDemo(){
+  // Only seed if no prof account exists yet
+  if(S.g('demo_seeded_v2'))return;
+  const users=S.g('users')||{};
+  // Prof demo
+  users['prof@jeanfit.com']={name:'Jean',email:'prof@jeanfit.com',pass:'123456',role:'professor',joinDate:'01/01/2025'};
+  // Exercicios demo
+  const lib=[
+    {nome:'Supino Reto',grupo:'Peitoral',equip:'Barra',dif:'Intermediário',sets:'4 × 10',emoji:'🏋️'},
+    {nome:'Agachamento Livre',grupo:'Pernas',equip:'Barra',dif:'Avançado',sets:'4 × 8',emoji:'🦵'},
+    {nome:'Remada Curvada',grupo:'Costas',equip:'Barra',dif:'Intermediário',sets:'3 × 12',emoji:'💪'},
+    {nome:'Desenvolvimento Militar',grupo:'Ombros',equip:'Halteres',dif:'Intermediário',sets:'3 × 10',emoji:'🙌'},
+    {nome:'Flexão de Braço',grupo:'Peitoral',equip:'Sem equip.',dif:'Iniciante',sets:'3 × 15',emoji:'🤸'},
+    {nome:'Rosca Direta',grupo:'Bíceps',equip:'Barra',dif:'Iniciante',sets:'3 × 12',emoji:'💪'},
+    {nome:'Tríceps Corda',grupo:'Tríceps',equip:'Cabo',dif:'Iniciante',sets:'4 × 15',emoji:'⬇️'},
+    {nome:'Levantamento Terra',grupo:'Costas',equip:'Barra',dif:'Avançado',sets:'3 × 6',emoji:'🔄'},
+  ];
+  S.s('lib_prof@jeanfit.com',lib);
+  // Treinos demo
+  const treinos=[
+    {id:'t_demo1',nome:'Peito & Tríceps',grupo:'Peito',nivel:'Intermediário',duracao:45,exercicios:[lib[0],lib[6],lib[4]],criado:'10/06/2025'},
+    {id:'t_demo2',nome:'Pernas Completo',grupo:'Pernas',nivel:'Avançado',duracao:55,exercicios:[lib[1]],criado:'11/06/2025'},
+    {id:'t_demo3',nome:'Costas & Bíceps',grupo:'Costas',nivel:'Intermediário',duracao:50,exercicios:[lib[2],lib[5],lib[7]],criado:'12/06/2025'},
+  ];
+  S.s('treinos_prof@jeanfit.com',treinos);
+  // Alunos demo
+  users['aluno1@befit.com']={name:'Carlos Silva',email:'aluno1@befit.com',pass:'123456',role:'aluno',objetivo:'Ganhar massa',nivel:'Intermediário',profEmail:'prof@jeanfit.com',profName:'Jean',treinos:12,streak:5,kcal:4200,tempo:540,treinoAtual:'t_demo1',joinDate:'15/01/2025'};
+  users['aluno2@befit.com']={name:'Ana Souza',email:'aluno2@befit.com',pass:'123456',role:'aluno',objetivo:'Perder peso',nivel:'Iniciante',profEmail:'prof@jeanfit.com',profName:'Jean',treinos:7,streak:3,kcal:2450,tempo:315,treinoAtual:'t_demo2',joinDate:'20/02/2025'};
+  users['aluno3@befit.com']={name:'Marcos Lima',email:'aluno3@befit.com',pass:'123456',role:'aluno',objetivo:'Definição',nivel:'Avançado',profEmail:'prof@jeanfit.com',profName:'Jean',treinos:28,streak:14,kcal:9800,tempo:1260,treinoAtual:'t_demo3',joinDate:'05/11/2024'};
+  S.s('users',users);
+  S.s('demo_seeded_v2',true);
+})();
+</script>
+</body>
+</html>
