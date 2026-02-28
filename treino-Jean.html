@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Befit – App de Treino</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: #0d0d0d; }
+body { font-family: 'Figtree', sans-serif; display: flex; align-items: center; justify-content: center; }
+
+/* ── PHONE SHELL ── */
+.phone-shell {
+  width: 390px;
+  height: 844px;
+  background: #0f0f0f;
+  border-radius: 52px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 60px 120px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+/* Dynamic island */
+.dynamic-island {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  width: 126px; height: 34px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 200;
+}
+
+/* Status bar */
+.status-bar {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 52px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 14px 28px 0;
+  z-index: 150;
+  font-size: 12px; font-weight: 700; letter-spacing: .3px;
+  color: #fff;
+}
+.status-time { font-size: 15px; font-weight: 700; }
+.status-icons { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+
+/* ── SCREENS ── */
+.screens-wrap {
+  position: absolute; inset: 0;
+  overflow: hidden;
+}
+
+.screen {
+  position: absolute; inset: 0;
+  overflow-y: auto; overflow-x: hidden;
+  scrollbar-width: none;
+  opacity: 0; pointer-events: none;
+  transform: translateX(30px);
+  transition: opacity .3s ease, transform .3s ease;
+  padding-top: 52px;
+  padding-bottom: 90px;
+}
+.screen::-webkit-scrollbar { display: none; }
+.screen.active {
+  opacity: 1; pointer-events: all;
+  transform: translateX(0);
+}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 88px;
+  background: rgba(15,15,15,0.95);
+  backdrop-filter: blur(30px);
+  border-top: 1px solid rgba(255,255,255,0.07);
+  display: flex; align-items: flex-start; justify-content: space-around;
+  padding-top: 12px;
+  z-index: 100;
+}
+
+.nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  cursor: pointer; padding: 4px 16px;
+  transition: all .2s;
+}
+.nav-icon {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; transition: transform .2s;
+}
+.nav-label {
+  font-size: 10px; font-weight: 600; letter-spacing: .5px;
+  color: #555; transition: color .2s;
+}
+.nav-item.active .nav-label { color: #00E676; }
+.nav-item.active .nav-icon { transform: scale(1.1); }
+.nav-dot {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: #00E676;
+  opacity: 0; transition: opacity .2s;
+}
+.nav-item.active .nav-dot { opacity: 1; }
+
+/* ── COLORS ── */
+:root {
+  --green: #00E676;
+  --green2: #00BFA5;
+  --bg: #0f0f0f;
+  --bg2: #161616;
+  --bg3: #1c1c1c;
+  --card: #191919;
+  --card2: #212121;
+  --border: rgba(255,255,255,0.06);
+  --text: #F2F2F2;
+  --muted: #666;
+  --muted2: #999;
+}
+
+/* ════════════════════════════════════
+   SCREEN 1 — DASHBOARD / HOME
+════════════════════════════════════ */
+#screen-home { background: var(--bg); }
+
+.home-header {
+  padding: 16px 24px 0;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.home-greeting { font-size: 13px; color: var(--muted2); font-weight: 500; }
+.home-name { font-size: 22px; font-weight: 800; color: var(--text); margin-top: 2px; }
+.avatar-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #00E676, #00897B);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,230,118,0.3);
+}
+
+.streak-bar {
+  margin: 20px 24px 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.streak-left { display: flex; align-items: center; gap: 12px; }
+.streak-fire { font-size: 28px; }
+.streak-num { font-size: 22px; font-weight: 900; color: #FF9800; }
+.streak-label { font-size: 12px; font-weight: 600; color: var(--muted2); }
+.streak-days {
+  display: flex; gap: 6px;
+}
+.sday {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--bg3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: var(--muted);
+}
+.sday.done { background: rgba(0,230,118,0.15); color: var(--green); }
+.sday.today { background: var(--green); color: #000; }
+
+.section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); padding: 0 24px;
+  margin-top: 24px; margin-bottom: 14px;
+}
+
+/* Today's workout card */
+.today-card {
+  margin: 0 24px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0a2017, #061510);
+  border: 1px solid rgba(0,230,118,0.15);
+  position: relative;
+  cursor: pointer;
+}
+.today-card-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 80% at 100% 0%, rgba(0,230,118,0.12), transparent);
+}
+.today-card-content { position: relative; z-index: 1; padding: 24px; }
+.today-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(0,230,118,0.12);
+  border: 1px solid rgba(0,230,118,0.25);
+  border-radius: 50px; padding: 4px 12px;
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--green);
+  margin-bottom: 12px;
+}
+.today-title { font-size: 22px; font-weight: 900; color: var(--text); margin-bottom: 16px; line-height: 1.1; }
+.today-meta { display: flex; gap: 20px; margin-bottom: 20px; }
+.today-meta-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--muted2); }
+.today-meta-icon { font-size: 14px; }
+.start-btn {
+  background: var(--green);
+  color: #000;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 28px;
+  font-family: 'Figtree', sans-serif;
+  font-size: 14px; font-weight: 800;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  transition: all .2s;
+  width: 100%;
+  justify-content: center;
+}
+.start-btn:hover { transform: scale(1.02); box-shadow: 0 8px 24px rgba(0,230,118,0.35); }
+
+/* Quick stats */
+.quick-stats {
+  margin: 0 24px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.qstat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 18px;
+}
+.qstat-icon { font-size: 22px; margin-bottom: 8px; }
+.qstat-num { font-size: 24px; font-weight: 900; color: var(--text); }
+.qstat-unit { font-size: 11px; color: var(--muted2); font-weight: 600; }
+.qstat-label { font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+
+/* Suggested workouts */
+.workout-scroll {
+  display: flex; gap: 14px;
+  padding: 0 24px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.workout-scroll::-webkit-scrollbar { display: none; }
+
+.wcard {
+  min-width: 160px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color .2s, transform .2s;
+}
+.wcard:hover { border-color: rgba(0,230,118,0.25); transform: scale(1.02); }
+.wcard-emoji { font-size: 28px; margin-bottom: 12px; }
+.wcard-name { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.wcard-detail { font-size: 11px; color: var(--muted); font-weight: 600; }
+.wcard-tag {
+  display: inline-block;
+  margin-top: 10px;
+  background: rgba(0,230,118,0.1);
+  color: var(--green);
+  font-size: 10px; font-weight: 700;
+  padding: 3px 10px; border-radius: 50px;
+  letter-spacing: .5px;
+}
+.wcard-tag.orange { background: rgba(255,152,0,0.12); color: #FF9800; }
+.wcard-tag.blue { background: rgba(33,150,243,0.12); color: #42A5F5; }
+
+/* ════════════════════════════════════
+   SCREEN 2 — TREINO DO DIA
+════════════════════════════════════ */
+#screen-workout { background: var(--bg); }
+
+.workout-header {
+  padding: 16px 24px 0;
+}
+.wh-back {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 700; color: var(--muted2);
+  cursor: pointer; margin-bottom: 16px;
+}
+.wh-title { font-size: 26px; font-weight: 900; line-height: 1.1; margin-bottom: 6px; }
+.wh-sub { font-size: 13px; color: var(--muted2); font-weight: 500; }
+
+.workout-hero-card {
+  margin: 16px 24px;
+  background: linear-gradient(135deg, #0a2017, #061510);
+  border: 1px solid rgba(0,230,118,0.15);
+  border-radius: 24px;
+  padding: 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.whc-info { }
+.whc-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 4px; }
+.whc-num { font-size: 36px; font-weight: 900; color: var(--text); line-height: 1; }
+.whc-unit { font-size: 12px; color: var(--muted2); font-weight: 600; margin-top: 2px; }
+.whc-ring {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: conic-gradient(var(--green) 0deg 230deg, rgba(255,255,255,0.05) 230deg);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.whc-ring::before {
+  content: '';
+  position: absolute;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: #0a2017;
+}
+.whc-ring-text { position: relative; z-index: 1; font-size: 14px; font-weight: 900; color: var(--green); }
+
+.workout-progress {
+  margin: 0 24px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px 20px;
+}
+.wp-top { display: flex; justify-content: space-between; margin-bottom: 10px; }
+.wp-label { font-size: 12px; font-weight: 700; color: var(--text); }
+.wp-pct { font-size: 12px; font-weight: 700; color: var(--green); }
+.progress-track { background: rgba(255,255,255,0.07); border-radius: 10px; height: 6px; }
+.progress-fill { height: 6px; border-radius: 10px; background: linear-gradient(90deg, var(--green), var(--green2)); transition: width .5s; }
+
+/* exercise list */
+.exercise-section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); padding: 0 24px; margin-bottom: 12px;
+}
+.ex-list { padding: 0 24px; display: flex; flex-direction: column; gap: 10px; }
+
+.ex-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.ex-item.done {
+  border-color: rgba(0,230,118,0.2);
+  background: rgba(0,230,118,0.04);
+}
+.ex-item.active {
+  border-color: var(--green);
+  background: rgba(0,230,118,0.06);
+}
+.ex-num {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--bg3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800; color: var(--muted2);
+  flex-shrink: 0;
+}
+.ex-item.done .ex-num { background: rgba(0,230,118,0.15); color: var(--green); }
+.ex-item.active .ex-num { background: var(--green); color: #000; }
+.ex-info { flex: 1; }
+.ex-name { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 3px; }
+.ex-sets { font-size: 12px; font-weight: 600; color: var(--muted2); }
+.ex-muscle {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  padding: 3px 8px; border-radius: 50px;
+  background: rgba(255,255,255,0.05);
+  color: var(--muted2);
+}
+.ex-check {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: transparent;
+  flex-shrink: 0; cursor: pointer;
+  transition: all .2s;
+}
+.ex-item.done .ex-check { background: var(--green); border-color: var(--green); color: #000; }
+
+.finish-btn {
+  margin: 20px 24px 0;
+  background: var(--green);
+  color: #000;
+  border: none;
+  border-radius: 18px;
+  padding: 18px;
+  font-family: 'Figtree', sans-serif;
+  font-size: 15px; font-weight: 900;
+  cursor: pointer;
+  width: calc(100% - 48px);
+  transition: all .2s;
+}
+.finish-btn:hover { transform: scale(1.01); box-shadow: 0 8px 32px rgba(0,230,118,0.35); }
+
+/* ════════════════════════════════════
+   SCREEN 3 — BIBLIOTECA
+════════════════════════════════════ */
+#screen-library { background: var(--bg); }
+
+.lib-header {
+  padding: 16px 24px 0;
+}
+.lib-title { font-size: 26px; font-weight: 900; margin-bottom: 4px; }
+.lib-sub { font-size: 13px; color: var(--muted2); font-weight: 500; margin-bottom: 16px; }
+
+.search-bar {
+  margin: 0 24px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 13px 18px;
+  display: flex; align-items: center; gap: 10px;
+  transition: border-color .2s;
+}
+.search-bar:focus-within { border-color: rgba(0,230,118,0.35); }
+.search-icon { font-size: 16px; color: var(--muted); }
+.search-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--text); font-family: 'Figtree', sans-serif;
+  font-size: 14px; font-weight: 500;
+}
+.search-input::placeholder { color: var(--muted); }
+
+.filter-scroll {
+  display: flex; gap: 8px; padding: 0 24px;
+  overflow-x: auto; scrollbar-width: none;
+  margin-bottom: 20px;
+}
+.filter-scroll::-webkit-scrollbar { display: none; }
+.filter-pill {
+  padding: 8px 18px;
+  border-radius: 50px;
+  font-size: 12px; font-weight: 700;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted2);
+  cursor: pointer; white-space: nowrap;
+  transition: all .2s; flex-shrink: 0;
+}
+.filter-pill.active {
+  background: rgba(0,230,118,0.12);
+  border-color: rgba(0,230,118,0.3);
+  color: var(--green);
+}
+
+.muscle-section { margin-bottom: 20px; }
+.lib-exercises { padding: 0 24px; display: flex; flex-direction: column; gap: 10px; }
+
+.lib-ex {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.lib-ex:hover { border-color: rgba(0,230,118,0.2); }
+.lib-ex-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0;
+}
+.lib-ex-info { flex: 1; }
+.lib-ex-name { font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+.lib-ex-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.lib-tag {
+  font-size: 10px; font-weight: 700;
+  padding: 3px 8px; border-radius: 50px;
+}
+.lib-tag.muscle { background: rgba(0,230,118,0.1); color: var(--green); }
+.lib-tag.equip { background: rgba(255,255,255,0.05); color: var(--muted2); }
+.lib-tag.diff-easy { background: rgba(76,175,80,0.12); color: #66BB6A; }
+.lib-tag.diff-med { background: rgba(255,152,0,0.12); color: #FFA726; }
+.lib-tag.diff-hard { background: rgba(244,67,54,0.12); color: #EF5350; }
+.lib-arrow { font-size: 16px; color: var(--muted); }
+
+/* ════════════════════════════════════
+   SCREEN 4 — PROGRESSO
+════════════════════════════════════ */
+#screen-progress { background: var(--bg); }
+
+.prog-header { padding: 16px 24px 0; }
+.prog-title { font-size: 26px; font-weight: 900; margin-bottom: 4px; }
+.prog-sub { font-size: 13px; color: var(--muted2); font-weight: 500; }
+
+.period-tabs {
+  display: flex; gap: 6px;
+  padding: 16px 24px 0;
+}
+.ptab {
+  padding: 8px 18px; border-radius: 50px;
+  font-size: 12px; font-weight: 700;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--muted2); cursor: pointer;
+  transition: all .2s;
+}
+.ptab.active {
+  background: rgba(0,230,118,0.12);
+  border-color: rgba(0,230,118,0.3);
+  color: var(--green);
+}
+
+.prog-stats-grid {
+  margin: 16px 24px 0;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.prog-stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 18px;
+}
+.ps-icon { font-size: 20px; margin-bottom: 8px; }
+.ps-num { font-size: 28px; font-weight: 900; color: var(--text); }
+.ps-label { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+.ps-change { font-size: 11px; font-weight: 700; color: #66BB6A; margin-top: 4px; }
+
+/* Chart */
+.chart-card {
+  margin: 16px 24px 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 20px;
+}
+.chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.chart-title { font-size: 14px; font-weight: 800; color: var(--text); }
+.chart-legend { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted2); font-weight: 600; }
+.chart-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+
+.bar-chart {
+  display: flex; gap: 8px; align-items: flex-end; height: 100px;
+}
+.bar-group { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+.bar {
+  width: 100%;
+  border-radius: 6px 6px 0 0;
+  min-height: 4px;
+  transition: height .5s ease;
+}
+.bar.primary { background: linear-gradient(180deg, var(--green), rgba(0,230,118,0.3)); }
+.bar.secondary { background: rgba(255,255,255,0.07); }
+.bar-label { font-size: 9px; font-weight: 700; color: var(--muted); letter-spacing: .5px; }
+
+/* Volume progression */
+.prog-section-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); padding: 0 24px;
+  margin: 24px 0 12px;
+}
+
+.record-list { padding: 0 24px; display: flex; flex-direction: column; gap: 10px; }
+.record-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex; align-items: center; gap: 14px;
+}
+.rec-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.rec-info { flex: 1; }
+.rec-name { font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 3px; }
+.rec-sub { font-size: 11px; color: var(--muted); font-weight: 600; }
+.rec-value { text-align: right; }
+.rec-num { font-size: 18px; font-weight: 900; color: var(--green); }
+.rec-unit { font-size: 10px; color: var(--muted); font-weight: 600; }
+
+/* Heatmap */
+.heatmap-card {
+  margin: 0 24px 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 20px;
+}
+.hm-title { font-size: 14px; font-weight: 800; margin-bottom: 14px; }
+.hm-grid { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; }
+.hm-cell {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.04);
+}
+.hm-cell.l1 { background: rgba(0,230,118,0.15); }
+.hm-cell.l2 { background: rgba(0,230,118,0.35); }
+.hm-cell.l3 { background: rgba(0,230,118,0.65); }
+.hm-cell.l4 { background: rgba(0,230,118,0.9); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.screen.active > * { animation: fadeUp .35s ease both; }
+.screen.active > *:nth-child(1) { animation-delay: .05s; }
+.screen.active > *:nth-child(2) { animation-delay: .1s; }
+.screen.active > *:nth-child(3) { animation-delay: .15s; }
+.screen.active > *:nth-child(4) { animation-delay: .2s; }
+.screen.active > *:nth-child(5) { animation-delay: .25s; }
+.screen.active > *:nth-child(6) { animation-delay: .3s; }
+</style>
+</head>
+<body>
+
+<div class="phone-shell">
+  <div class="dynamic-island"></div>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+      <span>●●●</span>
+      <span>WiFi</span>
+      <span>🔋</span>
+    </div>
+  </div>
+
+  <!-- SCREENS -->
+  <div class="screens-wrap">
+
+    <!-- ── HOME ── -->
+    <div class="screen active" id="screen-home">
+
+      <div class="home-header">
+        <div>
+          <div class="home-greeting">Bom dia 🌤️</div>
+          <div class="home-name">Carlos Silva</div>
+        </div>
+        <div class="avatar-btn">💪</div>
+      </div>
+
+      <!-- Streak -->
+      <div class="streak-bar">
+        <div class="streak-left">
+          <span class="streak-fire">🔥</span>
+          <div>
+            <div class="streak-num">12</div>
+            <div class="streak-label">Dias seguidos</div>
+          </div>
+        </div>
+        <div class="streak-days">
+          <div class="sday done">S</div>
+          <div class="sday done">T</div>
+          <div class="sday done">Q</div>
+          <div class="sday done">Q</div>
+          <div class="sday done">S</div>
+          <div class="sday today">S</div>
+          <div class="sday">D</div>
+        </div>
+      </div>
+
+      <!-- Today -->
+      <div class="section-title">Treino de Hoje</div>
+      <div class="today-card" onclick="switchScreen('workout')">
+        <div class="today-card-bg"></div>
+        <div class="today-card-content">
+          <div class="today-badge">⚡ IA Personalizado</div>
+          <div class="today-title">Peito &<br>Tríceps</div>
+          <div class="today-meta">
+            <div class="today-meta-item"><span class="today-meta-icon">⏱</span>45 min</div>
+            <div class="today-meta-item"><span class="today-meta-icon">🔥</span>Alta intensidade</div>
+            <div class="today-meta-item"><span class="today-meta-icon">💪</span>6 exercícios</div>
+          </div>
+          <button class="start-btn">▶ &nbsp; Iniciar Treino</button>
+        </div>
+      </div>
+
+      <!-- Quick stats -->
+      <div class="section-title">Esta Semana</div>
+      <div class="quick-stats">
+        <div class="qstat">
+          <div class="qstat-icon">🏃</div>
+          <div class="qstat-num">5 <span class="qstat-unit">/ 5</span></div>
+          <div class="qstat-label">Treinos feitos</div>
+        </div>
+        <div class="qstat">
+          <div class="qstat-icon">⚡</div>
+          <div class="qstat-num">2.340 <span class="qstat-unit">kcal</span></div>
+          <div class="qstat-label">Calorias gastas</div>
+        </div>
+        <div class="qstat">
+          <div class="qstat-icon">⏰</div>
+          <div class="qstat-num">3h <span class="qstat-unit">45m</span></div>
+          <div class="qstat-label">Tempo total</div>
+        </div>
+        <div class="qstat">
+          <div class="qstat-icon">🏆</div>
+          <div class="qstat-num">3 <span class="qstat-unit">novos</span></div>
+          <div class="qstat-label">Recordes pessoais</div>
+        </div>
+      </div>
+
+      <!-- Suggested -->
+      <div class="section-title">Treinos Sugeridos</div>
+      <div class="workout-scroll">
+        <div class="wcard">
+          <div class="wcard-emoji">🦵</div>
+          <div class="wcard-name">Pernas Completo</div>
+          <div class="wcard-detail">55 min · 8 exercícios</div>
+          <div class="wcard-tag">Alta</div>
+        </div>
+        <div class="wcard">
+          <div class="wcard-emoji">🔄</div>
+          <div class="wcard-name">Full Body</div>
+          <div class="wcard-detail">40 min · 7 exercícios</div>
+          <div class="wcard-tag orange">Média</div>
+        </div>
+        <div class="wcard">
+          <div class="wcard-emoji">🧘</div>
+          <div class="wcard-name">Mobilidade</div>
+          <div class="wcard-detail">20 min · alongamentos</div>
+          <div class="wcard-tag blue">Leve</div>
+        </div>
+        <div class="wcard">
+          <div class="wcard-emoji">💨</div>
+          <div class="wcard-name">HIIT Cardio</div>
+          <div class="wcard-detail">25 min · circuito</div>
+          <div class="wcard-tag">Alta</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── WORKOUT ── -->
+    <div class="screen" id="screen-workout">
+
+      <div class="workout-header">
+        <div class="wh-back" onclick="switchScreen('home')">← Voltar</div>
+        <div class="wh-title">Peito & Tríceps 🔥</div>
+        <div class="wh-sub">Segunda-feira · Plano IA · Semana 4</div>
+      </div>
+
+      <div class="workout-hero-card">
+        <div>
+          <div class="whc-label">Duração estimada</div>
+          <div class="whc-num">45</div>
+          <div class="whc-unit">minutos</div>
+        </div>
+        <div style="display:flex;gap:24px">
+          <div>
+            <div class="whc-label">Exercícios</div>
+            <div class="whc-num">6</div>
+            <div class="whc-unit">movimentos</div>
+          </div>
+          <div>
+            <div class="whc-label">Séries</div>
+            <div class="whc-num">22</div>
+            <div class="whc-unit">total</div>
+          </div>
+        </div>
+        <div class="whc-ring">
+          <div class="whc-ring-text">64%</div>
+        </div>
+      </div>
+
+      <div class="workout-progress">
+        <div class="wp-top">
+          <span class="wp-label">Progresso do treino</span>
+          <span class="wp-pct">4 / 6</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width:66%"></div>
+        </div>
+      </div>
+
+      <div class="exercise-section-title">Exercícios</div>
+
+      <div class="ex-list" id="ex-list">
+        <div class="ex-item done" onclick="toggleExercise(this)">
+          <div class="ex-num">✓</div>
+          <div class="ex-info">
+            <div class="ex-name">Supino Reto</div>
+            <div class="ex-sets">4 séries × 10 reps · 60kg</div>
+          </div>
+          <div class="ex-muscle">Peitoral</div>
+          <div class="ex-check">✓</div>
+        </div>
+        <div class="ex-item done" onclick="toggleExercise(this)">
+          <div class="ex-num">✓</div>
+          <div class="ex-info">
+            <div class="ex-name">Supino Inclinado</div>
+            <div class="ex-sets">3 séries × 12 reps · 50kg</div>
+          </div>
+          <div class="ex-muscle">Peitoral</div>
+          <div class="ex-check">✓</div>
+        </div>
+        <div class="ex-item done" onclick="toggleExercise(this)">
+          <div class="ex-num">✓</div>
+          <div class="ex-info">
+            <div class="ex-name">Crucifixo com Halteres</div>
+            <div class="ex-sets">3 séries × 15 reps · 20kg</div>
+          </div>
+          <div class="ex-muscle">Peitoral</div>
+          <div class="ex-check">✓</div>
+        </div>
+        <div class="ex-item done" onclick="toggleExercise(this)">
+          <div class="ex-num">✓</div>
+          <div class="ex-info">
+            <div class="ex-name">Peck Deck</div>
+            <div class="ex-sets">3 séries × 12 reps</div>
+          </div>
+          <div class="ex-muscle">Peitoral</div>
+          <div class="ex-check">✓</div>
+        </div>
+        <div class="ex-item active" onclick="toggleExercise(this)">
+          <div class="ex-num">5</div>
+          <div class="ex-info">
+            <div class="ex-name">Tríceps Corda</div>
+            <div class="ex-sets">4 séries × 15 reps</div>
+          </div>
+          <div class="ex-muscle">Tríceps</div>
+          <div class="ex-check"></div>
+        </div>
+        <div class="ex-item" onclick="toggleExercise(this)">
+          <div class="ex-num">6</div>
+          <div class="ex-info">
+            <div class="ex-name">Tríceps Testa</div>
+            <div class="ex-sets">3 séries × 12 reps</div>
+          </div>
+          <div class="ex-muscle">Tríceps</div>
+          <div class="ex-check"></div>
+        </div>
+      </div>
+
+      <button class="finish-btn" onclick="alert('🏆 Treino Concluído! Parabéns!')">🏁 &nbsp; Finalizar Treino</button>
+
+    </div>
+
+    <!-- ── LIBRARY ── -->
+    <div class="screen" id="screen-library">
+
+      <div class="lib-header">
+        <div class="lib-title">Biblioteca 📚</div>
+        <div class="lib-sub">+500 exercícios com vídeo</div>
+      </div>
+
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" type="text" placeholder="Pesquisar exercício...">
+      </div>
+
+      <div class="filter-scroll">
+        <div class="filter-pill active">Todos</div>
+        <div class="filter-pill" onclick="filterPill(this)">Peito</div>
+        <div class="filter-pill" onclick="filterPill(this)">Costas</div>
+        <div class="filter-pill" onclick="filterPill(this)">Pernas</div>
+        <div class="filter-pill" onclick="filterPill(this)">Ombro</div>
+        <div class="filter-pill" onclick="filterPill(this)">Bíceps</div>
+        <div class="filter-pill" onclick="filterPill(this)">Tríceps</div>
+        <div class="filter-pill" onclick="filterPill(this)">Abdômen</div>
+      </div>
+
+      <div class="section-title">Populares</div>
+      <div class="lib-exercises">
+
+        <div class="lib-ex">
+          <div class="lib-ex-icon" style="background:rgba(0,230,118,0.1)">🏋️</div>
+          <div class="lib-ex-info">
+            <div class="lib-ex-name">Supino Reto com Barra</div>
+            <div class="lib-ex-tags">
+              <span class="lib-tag muscle">Peitoral</span>
+              <span class="lib-tag equip">Barra</span>
+              <span class="lib-tag diff-med">Intermediário</span>
+            </div>
+          </div>
+          <div class="lib-arrow">›</div>
+        </div>
+
+        <div class="lib-ex">
+          <div class="lib-ex-icon" style="background:rgba(33,150,243,0.1)">🦵</div>
+          <div class="lib-ex-info">
+            <div class="lib-ex-name">Agachamento Livre</div>
+            <div class="lib-ex-tags">
+              <span class="lib-tag muscle">Quadríceps</span>
+              <span class="lib-tag equip">Barra</span>
+              <span class="lib-tag diff-hard">Avançado</span>
+            </div>
+          </div>
+          <div class="lib-arrow">›</div>
+        </div>
+
+        <div class="lib-ex">
+          <div class="lib-ex-icon" style="background:rgba(255,152,0,0.1)">💪</div>
+          <div class="lib-ex-info">
+            <div class="lib-ex-name">Remada Curvada</div>
+            <div class="lib-ex-tags">
+              <span class="lib-tag muscle">Costas</span>
+              <span class="lib-tag equip">Barra</span>
+              <span class="lib-tag diff-med">Intermediário</span>
+            </div>
+          </div>
+          <div class="lib-arrow">›</div>
+        </div>
+
+        <div class="lib-ex">
+          <div class="lib-ex-icon" style="background:rgba(156,39,176,0.1)">🙌</div>
+          <div class="lib-ex-info">
+            <div class="lib-ex-name">Desenvolvimento Militar</div>
+            <div class="lib-ex-tags">
+              <span class="lib-tag muscle">Ombros</span>
+              <span class="lib-tag equip">Halteres</span>
+              <span class="lib-tag diff-med">Intermediário</span>
+            </div>
+          </div>
+          <div class="lib-arrow">›</div>
+        </div>
+
+        <div class="lib-ex">
+          <div class="lib-ex-icon" style="background:rgba(0,230,118,0.08)">🤸</div>
+          <div class="lib-ex-info">
+            <div class="lib-ex-name">Flexão de Braço</div>
+            <div class="lib-ex-tags">
+              <span class="lib-tag muscle">Peitoral</span>
+              <span class="lib-tag equip">Sem equip.</span>
+              <span class="lib-tag diff-easy">Iniciante</span>
+            </div>
+          </div>
+          <div class="lib-arrow">›</div>
+        </div>
+
+        <div class="lib-ex">
+          <div class="lib-ex-icon" style="background:rgba(244,67,54,0.1)">🔄</div>
+          <div class="lib-ex-info">
+            <div class="lib-ex-name">Levantamento Terra</div>
+            <div class="lib-ex-tags">
+              <span class="lib-tag muscle">Posterior</span>
+              <span class="lib-tag equip">Barra</span>
+              <span class="lib-tag diff-hard">Avançado</span>
+            </div>
+          </div>
+          <div class="lib-arrow">›</div>
+        </div>
+
+        <div class="lib-ex">
+          <div class="lib-ex-icon" style="background:rgba(33,150,243,0.1)">🦾</div>
+          <div class="lib-ex-info">
+            <div class="lib-ex-name">Rosca Direta com Barra</div>
+            <div class="lib-ex-tags">
+              <span class="lib-tag muscle">Bíceps</span>
+              <span class="lib-tag equip">Barra</span>
+              <span class="lib-tag diff-easy">Iniciante</span>
+            </div>
+          </div>
+          <div class="lib-arrow">›</div>
+        </div>
+
+        <div class="lib-ex">
+          <div class="lib-ex-icon" style="background:rgba(255,152,0,0.1)">⬇️</div>
+          <div class="lib-ex-info">
+            <div class="lib-ex-name">Tríceps Corda no Cabo</div>
+            <div class="lib-ex-tags">
+              <span class="lib-tag muscle">Tríceps</span>
+              <span class="lib-tag equip">Cabo</span>
+              <span class="lib-tag diff-easy">Iniciante</span>
+            </div>
+          </div>
+          <div class="lib-arrow">›</div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ── PROGRESS ── -->
+    <div class="screen" id="screen-progress">
+
+      <div class="prog-header">
+        <div class="prog-title">Progresso 📈</div>
+        <div class="prog-sub">Sua evolução em números</div>
+      </div>
+
+      <div class="period-tabs">
+        <div class="ptab active" onclick="switchPeriod(this)">Semana</div>
+        <div class="ptab" onclick="switchPeriod(this)">Mês</div>
+        <div class="ptab" onclick="switchPeriod(this)">3 Meses</div>
+        <div class="ptab" onclick="switchPeriod(this)">Ano</div>
+      </div>
+
+      <div class="prog-stats-grid">
+        <div class="prog-stat">
+          <div class="ps-icon">🏃</div>
+          <div class="ps-num">5</div>
+          <div class="ps-label">Treinos</div>
+          <div class="ps-change">↑ +2 vs semana passada</div>
+        </div>
+        <div class="prog-stat">
+          <div class="ps-icon">⚡</div>
+          <div class="ps-num">2.340</div>
+          <div class="ps-label">Calorias gastas</div>
+          <div class="ps-change">↑ +340 kcal</div>
+        </div>
+        <div class="prog-stat">
+          <div class="ps-icon">⏰</div>
+          <div class="ps-num">3h45</div>
+          <div class="ps-label">Tempo ativo</div>
+          <div class="ps-change">↑ +45 min</div>
+        </div>
+        <div class="prog-stat">
+          <div class="ps-icon">🏆</div>
+          <div class="ps-num">3</div>
+          <div class="ps-label">Recordes</div>
+          <div class="ps-change">↑ Novos PRs!</div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Treinos por dia</div>
+          <div class="chart-legend"><div class="chart-dot"></div>Esta semana</div>
+        </div>
+        <div class="bar-chart">
+          <div class="bar-group">
+            <div class="bar primary" style="height:60px"></div>
+            <div class="bar-label">SEG</div>
+          </div>
+          <div class="bar-group">
+            <div class="bar primary" style="height:75px"></div>
+            <div class="bar-label">TER</div>
+          </div>
+          <div class="bar-group">
+            <div class="bar secondary" style="height:15px"></div>
+            <div class="bar-label">QUA</div>
+          </div>
+          <div class="bar-group">
+            <div class="bar primary" style="height:90px"></div>
+            <div class="bar-label">QUI</div>
+          </div>
+          <div class="bar-group">
+            <div class="bar primary" style="height:50px"></div>
+            <div class="bar-label">SEX</div>
+          </div>
+          <div class="bar-group">
+            <div class="bar primary" style="height:100px"></div>
+            <div class="bar-label">SÁB</div>
+          </div>
+          <div class="bar-group">
+            <div class="bar secondary" style="height:15px"></div>
+            <div class="bar-label">DOM</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prog-section-title">Recordes Pessoais</div>
+      <div class="record-list">
+        <div class="record-item">
+          <div class="rec-icon" style="background:rgba(0,230,118,0.1)">🏋️</div>
+          <div class="rec-info">
+            <div class="rec-name">Supino Reto</div>
+            <div class="rec-sub">Recorde em 12 Jun 2025 🔥</div>
+          </div>
+          <div class="rec-value">
+            <div class="rec-num">80</div>
+            <div class="rec-unit">kg</div>
+          </div>
+        </div>
+        <div class="record-item">
+          <div class="rec-icon" style="background:rgba(33,150,243,0.1)">🦵</div>
+          <div class="rec-info">
+            <div class="rec-name">Agachamento</div>
+            <div class="rec-sub">Recorde em 8 Jun 2025</div>
+          </div>
+          <div class="rec-value">
+            <div class="rec-num">120</div>
+            <div class="rec-unit">kg</div>
+          </div>
+        </div>
+        <div class="record-item">
+          <div class="rec-icon" style="background:rgba(255,152,0,0.1)">💀</div>
+          <div class="rec-info">
+            <div class="rec-name">Levantamento Terra</div>
+            <div class="rec-sub">Recorde em 10 Jun 2025</div>
+          </div>
+          <div class="rec-value">
+            <div class="rec-num">150</div>
+            <div class="rec-unit">kg</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="prog-section-title">Frequência — Junho</div>
+      <div class="heatmap-card">
+        <div class="hm-title">Dias treinados</div>
+        <div class="hm-grid" id="heatmap"></div>
+      </div>
+
+    </div>
+
+  </div><!-- /screens-wrap -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="switchScreen('home')">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label">Início</div>
+      <div class="nav-dot"></div>
+    </div>
+    <div class="nav-item" id="nav-workout" onclick="switchScreen('workout')">
+      <div class="nav-icon">⚡</div>
+      <div class="nav-label">Treino</div>
+      <div class="nav-dot"></div>
+    </div>
+    <div class="nav-item" id="nav-library" onclick="switchScreen('library')">
+      <div class="nav-icon">📚</div>
+      <div class="nav-label">Biblioteca</div>
+      <div class="nav-dot"></div>
+    </div>
+    <div class="nav-item" id="nav-progress" onclick="switchScreen('progress')">
+      <div class="nav-icon">📊</div>
+      <div class="nav-label">Progresso</div>
+      <div class="nav-dot"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── NAVIGATION ──
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+}
+
+// ── EXERCISE TOGGLE ──
+function toggleExercise(el) {
+  el.classList.toggle('done');
+  if (el.classList.contains('done')) {
+    el.querySelector('.ex-num').textContent = '✓';
+    el.querySelector('.ex-check').textContent = '✓';
+    el.classList.remove('active');
+  } else {
+    const items = document.querySelectorAll('.ex-item');
+    let idx = Array.from(items).indexOf(el) + 1;
+    el.querySelector('.ex-num').textContent = idx;
+    el.querySelector('.ex-check').textContent = '';
+  }
+  updateProgress();
+}
+
+function updateProgress() {
+  const items = document.querySelectorAll('.ex-item');
+  const done = document.querySelectorAll('.ex-item.done').length;
+  const pct = Math.round((done / items.length) * 100);
+  document.querySelector('.progress-fill').style.width = pct + '%';
+  document.querySelector('.wp-pct').textContent = done + ' / ' + items.length;
+  document.querySelector('.whc-ring-text').textContent = pct + '%';
+  document.querySelector('.whc-ring').style.background =
+    `conic-gradient(var(--green) 0deg ${pct * 3.6}deg, rgba(255,255,255,0.05) ${pct * 3.6}deg)`;
+}
+
+// ── FILTER PILLS ──
+function filterPill(el) {
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── PERIOD TABS ──
+function switchPeriod(el) {
+  document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── HEATMAP ──
+(function buildHeatmap() {
+  const grid = document.getElementById('heatmap');
+  const levels = [0,0,1,2,0,3,4,2,0,0,1,3,4,2,
+                  0,1,2,0,4,3,0,1,2,4,0,3,1,2];
+  levels.forEach(l => {
+    const cell = document.createElement('div');
+    cell.className = 'hm-cell' + (l ? ' l' + l : '');
+    grid.appendChild(cell);
+  });
+})();
+</script>
+
+</body>
+</html>
