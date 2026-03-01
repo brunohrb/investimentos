@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>JeanFit</title>
+<title>JeanFit Prime</title>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -240,38 +240,17 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--dark);b
 <!-- AUTH SCREEN -->
 <div id="authScreen">
     <div style="background:var(--dark-card);border:2px solid var(--primary);border-radius:24px;padding:3rem 2rem;max-width:450px;width:100%;box-shadow:0 8px 32px rgba(0,217,177,0.3);">
-        <div style="margin-bottom:1.75rem;">
-            <!-- JEANFIT LOGO -->
-            <div style="display:flex;align-items:center;gap:1.25rem;justify-content:center;margin-bottom:0.75rem;">
-                <!-- Photo -->
-                <div style="position:relative;flex-shrink:0;">
-                    <div style="position:absolute;inset:-5px;border-radius:50%;background:conic-gradient(#00D9B1,#7B68EE,#FF6B9D,#00D9B1);animation:spinRing 4s linear infinite;border-radius:50%;"></div>
-                    <div style="position:absolute;inset:-2px;border-radius:50%;background:var(--dark-card);"></div>
-                    <div style="position:relative;width:80px;height:80px;border-radius:50%;overflow:hidden;">
-                        <img src="jean.jpg" style="width:100%;height:100%;object-fit:cover;object-position:center top;" alt="Jean" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(0,217,177,0.2);font-size:2rem;\'>💪</div>'">
-                    </div>
-                </div>
-                <!-- Name -->
-                <div>
-                    <div style="line-height:1;margin-bottom:4px;">
-                        <span style="font-family:'Archivo Black',Arial Black,sans-serif;font-size:3.2rem;font-weight:900;letter-spacing:-2px;
-                            background:linear-gradient(180deg,#fff 0%,#7FFFD4 30%,#00D9B1 70%,#007a63 100%);
-                            -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-                            filter:drop-shadow(0 0 12px rgba(0,217,177,0.8));">JEAN</span>
-                    </div>
-                    <div style="line-height:1;">
-                        <span style="font-family:'Archivo Black',Arial Black,sans-serif;font-size:2.1rem;font-weight:900;letter-spacing:10px;
-                            background:linear-gradient(180deg,#fff 0%,#FFB3CF 30%,#FF6B9D 70%,#a0204f 100%);
-                            -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-                            filter:drop-shadow(0 0 10px rgba(255,107,157,0.8));">FIT</span>
-                    </div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:1.25rem;margin-bottom:1.5rem;">
+            <div style="position:relative;flex-shrink:0;">
+                <div style="position:absolute;inset:-5px;border-radius:50%;background:conic-gradient(#00D9B1,#7B68EE,#FF6B9D,#00D9B1);animation:spinRing 4s linear infinite;"></div>
+                <div style="position:absolute;inset:-2px;border-radius:50%;background:var(--dark-card);"></div>
+                <div style="position:relative;width:80px;height:80px;border-radius:50%;overflow:hidden;">
+                    <img src="jean.jpg" style="width:100%;height:100%;object-fit:cover;object-position:center top;" alt="Jean" onerror="this.style.display='none';this.parentElement.innerHTML='&lt;div style=&quot;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(0,217,177,0.2);font-size:2rem;&quot;&gt;&#x1F4AA;&lt;/div&gt;'">
                 </div>
             </div>
-            <!-- Divider -->
-            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.4rem;">
-                <div style="flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(0,217,177,0.5));"></div>
-                <span style="font-size:0.65rem;letter-spacing:0.25em;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Personal Trainer</span>
-                <div style="flex:1;height:1px;background:linear-gradient(to left,transparent,rgba(0,217,177,0.5));"></div>
+            <div>
+                <img src="logo.png" alt="JeanFit Prime" style="max-width:180px;width:100%;height:auto;mix-blend-mode:screen;filter:brightness(1.1);" onerror="this.style.display='none';document.getElementById('logoFallback').style.display='block'">
+                <div id="logoFallback" style="display:none;font-family:'Archivo Black',sans-serif;font-size:1.8rem;color:var(--primary);">JeanFit Prime</div>
             </div>
         </div>
         <style>@keyframes spinRing{to{transform:rotate(360deg);}}</style>
@@ -642,7 +621,6 @@ header{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--dark);b
             <button class="btn" style="flex:1;background:rgba(102,126,234,0.15);border:1px solid rgba(102,126,234,0.3);color:#667eea;" onclick="exportarDados()">📤 Exportar Dados</button>
             <button class="btn btn-danger" style="flex:1;" onclick="clearAll()">🗑️ Limpar Dados</button>
         </div>
-        <button class="btn btn-block" style="margin-top:0.75rem;background:rgba(0,217,177,0.1);border:1px solid rgba(0,217,177,0.3);color:var(--primary);" onclick="abrirSetupSupabase()">🗄️ Configurar Supabase (criar tabelas)</button>
         <div style="margin-top:1rem;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:14px;padding:1rem;">
             <div style="font-weight:700;color:var(--prof);margin-bottom:0.5rem;">🎓 Área do Professor</div>
             <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.75rem;">Acesse o painel de gestão de alunos e treinos com a senha de professor.</p>
@@ -2673,7 +2651,23 @@ function updateDashboard(){
 
     const perfil=loadSingle(DB.perfil);
     const titleEl=document.getElementById('welcomeTitle');
-    if(titleEl&&perfil&&perfil.nome){const h=new Date().getHours();const s=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';titleEl.textContent=`${s}, ${perfil.nome}! 💪`;}
+    if(titleEl){
+        const h=new Date().getHours();
+        const s=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
+        // Priority: perfil name > aluno linked name > email first part
+        let nome = (perfil&&perfil.nome) ? perfil.nome : null;
+        if(!nome){
+            // Try to get from linked aluno record
+            const alunoLinked = window._alunoNome || null;
+            nome = alunoLinked;
+        }
+        if(!nome && currentUser?.email){
+            nome = currentUser.email.split('@')[0];
+        }
+        titleEl.innerHTML = nome
+            ? `${s}, <span style="color:var(--primary);">${nome}</span>! 💪`
+            : `${s}! 💪`;
+    }
 
     if(sessoes.length>0){
         const ultimo=sessoes[sessoes.length-1];
