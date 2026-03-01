@@ -7,7 +7,342 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
     <style>
+
+
+/* ═══ DASHBOARD COMPLETO ═══ */
+#dashboardCompletoModal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #070b14;
+    z-index: 5000;
+    overflow-y: auto;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.db-header {
+    background: linear-gradient(135deg, #070b14 0%, #0d1526 60%, #0a1a2e 100%);
+    border-bottom: 1px solid rgba(0,212,255,0.15);
+    padding: 18px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+
+.db-header h1 {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.db-header h1 span {
+    background: linear-gradient(90deg, #00d4ff, #00ff88);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.db-close-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: white;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+}
+.db-close-btn:hover { background: rgba(255,255,255,0.2); }
+
+.db-refresh-btn {
+    background: rgba(0,212,255,0.12);
+    border: 1px solid rgba(0,212,255,0.3);
+    color: #00d4ff;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    width: auto;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+}
+.db-refresh-btn:hover { background: rgba(0,212,255,0.22); }
+
+.db-body {
+    padding: 24px 28px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* === SEÇÃO TÍTULO === */
+.db-section-title {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(0,212,255,0.6);
+    margin: 32px 0 14px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(0,212,255,0.1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* === HERO CARDS === */
+.db-hero-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 4px;
+}
+
+.db-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+}
+.db-card:hover {
+    border-color: rgba(0,212,255,0.25);
+    transform: translateY(-1px);
+}
+
+.db-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 14px 14px 0 0;
+}
+.db-card.cyan::before  { background: linear-gradient(90deg, #00d4ff, transparent); }
+.db-card.green::before { background: linear-gradient(90deg, #00ff88, transparent); }
+.db-card.gold::before  { background: linear-gradient(90deg, #ffd700, transparent); }
+.db-card.orange::before { background: linear-gradient(90deg, #fd7e14, transparent); }
+.db-card.purple::before { background: linear-gradient(90deg, #a855f7, transparent); }
+.db-card.red::before   { background: linear-gradient(90deg, #ff4d6d, transparent); }
+
+.db-card-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 8px;
+}
+
+.db-card-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.1;
+}
+
+.db-card-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 6px;
+}
+
+.db-card.hero .db-card-value {
+    font-size: 36px;
+    background: linear-gradient(135deg, #00d4ff, #00ff88);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.db-badge-pos { color: #00ff88; font-weight: 700; font-size: 12px; }
+.db-badge-neg { color: #ff4d6d; font-weight: 700; font-size: 12px; }
+
+/* === 2-COL E 3-COL GRID === */
+.db-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.db-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.db-4col { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.db-5col { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+
+/* === GRÁFICOS === */
+.db-chart-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.db-chart-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+}
+
+/* === TABELA === */
+.db-table-wrap {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.db-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.db-table th {
+    background: rgba(0,212,255,0.06);
+    color: rgba(255,255,255,0.4);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.db-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.85);
+}
+
+.db-table tr:last-child td { border-bottom: none; }
+
+.db-table tr:hover td {
+    background: rgba(0,212,255,0.04);
+}
+
+/* === MINI BARRA PROGRESSO === */
+.db-bar-wrap {
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px;
+    height: 5px;
+    width: 100%;
+    margin-top: 5px;
+    overflow: hidden;
+}
+.db-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #00d4ff, #00ff88);
+    transition: width 0.8s ease;
+}
+
+/* === MÊS ABERTO ALERT === */
+.db-alert {
+    background: rgba(255,193,7,0.08);
+    border: 1px solid rgba(255,193,7,0.25);
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+}
+.db-alert-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #ffc107;
+    animation: db-pulse 1.5s infinite;
+    flex-shrink: 0;
+}
+@keyframes db-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+/* === TICKER BADGE === */
+.db-ticker {
+    display: inline-block;
+    background: linear-gradient(135deg, #e8700c, #ff9f43);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* === BANK FLAG === */
+.db-bank-flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.85);
+}
+
+/* === DIVIDER === */
+.db-divider {
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin: 8px 0;
+}
+
+/* === MINI CARD HORIZONTAL === */
+.db-hcard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.db-hcard:last-child { border-bottom: none; }
+.db-hcard-label { font-size: 12px; color: rgba(255,255,255,0.5); }
+.db-hcard-value { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.9); }
+
+/* === GAUGE / DONUT MINI === */
+.db-stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.db-stat-mini {
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+}
+.db-stat-mini .val { font-size: 20px; font-weight: 800; color: #fff; }
+.db-stat-mini .lbl { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 0.5px; text-transform: uppercase; margin-top: 4px; }
+
+/* === LOADING === */
+.db-loading {
+    text-align: center;
+    padding: 60px;
+    color: rgba(255,255,255,0.3);
+    font-size: 14px;
+}
+
+/* MOBILE */
+@media (max-width: 900px) {
+    .db-hero-grid { grid-template-columns: 1fr 1fr; }
+    .db-2col, .db-3col, .db-4col, .db-5col { grid-template-columns: 1fr; }
+    .db-body { padding: 14px; }
+    .db-card.hero .db-card-value { font-size: 26px; }
+}
+
+
 
 /* =========================
    📰 SIDEBAR NOTÍCIAS
@@ -1143,6 +1478,7 @@
 </div>
 
 <button class="btn-icon" onclick="abrirPatrimonio()">🏠</button>
+<button class="btn-icon" onclick="abrirDashboardCompleto()" title="Dashboard Completo">📊</button>
 <button class="btn-icon" onclick="abrirConfig()">⚙️</button>
 </div>
 
@@ -1296,6 +1632,7 @@ let dolarFallbackHoje = null;
     let senhaMestra = localStorage.getItem('investflow_pass') || '1234';
     let privacidadeAtiva = true;
 let modoExcluirBanco = false;
+let _expandAbertos = new Set();
 // 🔐 AUTO-LOGIN: verifica se já tem sessão salva
 document.addEventListener('DOMContentLoaded', async () => {
     const sessaoSalva = localStorage.getItem('invest_sessao');
@@ -1687,6 +2024,19 @@ registrosAtuais.forEach(r => {
         patrimonioFinalUSDconvertido: 0,
         dataUltimoFechado: null
     };
+
+// Garante que o mês atual sempre aparece na tabela
+const _hoje = new Date();
+const _mesAtualKey = `${_hoje.getFullYear()}/${String(_hoje.getMonth() + 1).padStart(2, '0')}`;
+if (!mesesAgrupados[_mesAtualKey]) {
+    mesesAgrupados[_mesAtualKey] = {
+        regs: [],
+        patrimonioFinal: 0,
+        patrimonioFinalUSD: 0,
+        patrimonioFinalUSDconvertido: 0,
+        dataUltimoFechado: null
+    };
+}
 
     mesesAgrupados[r.periodo].regs.push(r);
     
@@ -4097,10 +4447,15 @@ function fecharFuncionalidades() {
 }
 
 // Intercepta o botão de voltar do navegador
-window.addEventListener('popstate', function(event) {
-    const modal = document.getElementById('funcionalidadesModal');
-    if (modal && modal.style.display === 'block') {
-        fecharFuncionalidades();
+window.addEventListener('popstate', function(e) {
+    if (document.getElementById('dashboardCompletoModal')?.style.display === 'block') {
+        fecharDashboardCompleto(); return;
+    }
+    if (document.getElementById('acoesModal')?.style.display === 'flex') {
+        fecharAcoes(); return;
+    }
+    if (document.getElementById('funcionalidadesModal')?.style.display === 'block') {
+        fecharFuncionalidades(); return;
     }
 });
 
@@ -4127,8 +4482,14 @@ function fecharAcoes() {
 
 // Adiciona ao popstate existente — se já tiver o listener, inclua esta linha dentro dele:
 window.addEventListener('popstate', function(e) {
+    if (document.getElementById('dashboardCompletoModal')?.style.display === 'block') {
+        fecharDashboardCompleto(); return;
+    }
     if (document.getElementById('acoesModal')?.style.display === 'flex') {
         fecharAcoes(); return;
+    }
+    if (document.getElementById('funcionalidadesModal')?.style.display === 'block') {
+        fecharFuncionalidades(); return;
     }
 });
 
@@ -4636,8 +4997,11 @@ function formatarDataBR(dataISO) {
 
 // Seta data padrão ao abrir aba Registrar
 document.addEventListener('DOMContentLoaded', () => {
-    const el = document.getElementById('acaoData');
-    if (el) el.value = new Date().toISOString().split('T')[0];
+    const modal = document.getElementById('fecharMesModal');
+    if (modal) document.body.appendChild(modal);
+
+    const dbModal = document.getElementById('dashboardCompletoModal');
+    if (dbModal) document.body.appendChild(dbModal);
 });
 
 function abrirEditarPosicao(ticker) {
@@ -5300,6 +5664,11 @@ function isMesAberto(mesAno) {
 
 function abrirFecharMes(mesAno) {
     _mesParaFechar = mesAno;
+    // Move modal para o body (fora do acoesModal)
+    const _fmModal = document.getElementById('fecharMesModal');
+    if (_fmModal && _fmModal.parentElement !== document.body) {
+        document.body.appendChild(_fmModal);
+    }
     const [ano, mes] = mesAno.split('/');
     const nomesMeses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
     const nomeMes = nomesMeses[parseInt(mes) - 1];
@@ -5364,13 +5733,18 @@ function criarRowBanco(s, mesAno) {
             : 'R$ ' + patrimonioAtual.toFixed(2).replace('.', ',');
     }
 
-    div.innerHTML = `
-        <div class="banco-fechamento-nome">
-            ${banco.is_usd ? '🇺🇸' : '🇧🇷'} ${banco.nome}
-        </div>
-        <span class="banco-fechamento-status ${temPatrimonio ? 'status-fechado' : 'status-aberto'}">
-            ${temPatrimonio ? '✅ Fechado' : '🔴 Aberto'}
-        </span>
+  const valorBRLFormatado = ultimoReg && ultimoReg.patrimonio > 0
+    ? 'R$ ' + ultimoReg.patrimonio.toFixed(2).replace('.', ',')
+    : '';
+
+div.innerHTML = `
+    <div class="banco-fechamento-nome">
+        ${banco.is_usd ? '🇺🇸' : '🇧🇷'} ${banco.nome}
+    </div>
+    <span class="banco-fechamento-status ${temPatrimonio ? 'status-fechado' : 'status-aberto'}">
+        ${temPatrimonio ? '✅ Fechado' : '🔴 Aberto'}
+    </span>
+    <div style="display:flex; flex-direction:column; gap:5px; align-items:flex-end;">
         <input type="text"
             id="fechamento_${banco.id}"
             placeholder="${banco.is_usd ? 'US$ 0,00' : 'R$ 0,00'}"
@@ -5381,7 +5755,18 @@ function criarRowBanco(s, mesAno) {
             data-reg-id="${ultimoReg?.id || ''}"
             style="width:160px; text-align:right; padding:10px;"
         >
-    `;
+        ${banco.is_usd ? `
+        <input type="text"
+            id="fechamento_brl_${banco.id}"
+            placeholder="R$ equivalente"
+            oninput="mascaraMoeda(this, 'BRL')"
+            value="${valorBRLFormatado}"
+            data-banco-id="${banco.id}"
+            data-is-brl-equiv="true"
+            style="width:160px; text-align:right; padding:8px; font-size:12px; opacity:0.8;"
+        >` : ''}
+    </div>
+`;
     return div;
 }
 
@@ -5391,37 +5776,50 @@ async function salvarFechamentoMes() {
     const inputs = document.querySelectorAll('#fecharMesCorpo input[data-banco-id]');
     const [ano, mes] = _mesParaFechar.split('/');
     const ultimoDia = new Date(parseInt(ano), parseInt(mes), 0).getDate();
-    const dataFechamento = `${ano}-${mes.padStart(2, '0')}-${String(ultimoDia).padStart(2, '0')}`;
+    const dataFechamento = `${ano}-${mes.padStart(2,'0')}-${String(ultimoDia).padStart(2,'0')}`;
 
     showLoading(true);
     let salvos = 0;
 
     for (const input of inputs) {
-        const valor = desformatarMoeda(input.value);
-        if (!input.value || input.value.trim() === '') continue; // pula em branco
+        if (!input.value || input.value.trim() === '') continue;
 
-        const bancoId = input.dataset.bancoId;
-        const isUSD   = input.dataset.isUsd === 'true';
-        const regId   = input.dataset.regId;
+        const valor    = desformatarMoeda(input.value);
+        const bancoId  = input.dataset.bancoId;
+        const isUSD    = input.dataset.isUsd === 'true';
 
-        if (regId) {
-            // Atualiza registro existente
-            const payload = isUSD ? { patrimonio_usd: valor } : { patrimonio: valor };
-            const { error } = await sb.from('registros').update(payload).eq('id', regId);
+        // Busca o último registro REAL do banco neste mês
+        const regsDoMes = todosRegistros
+            .filter(r => r.banco_id === bancoId && r.periodo === _mesParaFechar)
+            .sort((a, b) => new Date(b.data_fechamento) - new Date(a.data_fechamento));
+
+        if (regsDoMes.length > 0) {
+            // Atualiza o último registro existente do mês
+let payload = isUSD ? { patrimonio_usd: valor } : { patrimonio: valor };
+if (isUSD) {
+    const inputBRL = document.querySelector(`#fechamento_brl_${bancoId}`);
+    if (inputBRL && inputBRL.value) {
+        payload.patrimonio = desformatarMoeda(inputBRL.value);
+    }
+}
+const { error } = await sb.from('registros').update(payload).eq('id', regsDoMes[0].id);
             if (!error) salvos++;
         } else {
-            // Cria novo registro de fechamento
-            const payload = {
-                banco_id:       bancoId,
-                periodo:        _mesParaFechar,
+            // Nenhum registro no mês: cria um novo de fechamento
+            const { error } = await sb.from('registros').insert([{
+                banco_id:        bancoId,
+                periodo:         _mesParaFechar,
                 data_fechamento: dataFechamento,
-                aportes:        0,
-                patrimonio:     isUSD ? 0 : valor,
-                aportes_usd:    0,
-                patrimonio_usd: isUSD ? valor : 0,
-                is_usd:         isUSD
-            };
-            const { error } = await sb.from('registros').insert([payload]);
+aportes:         0,
+patrimonio:      (() => {
+    if (!isUSD) return valor;
+    const inputBRL = document.querySelector(`#fechamento_brl_${bancoId}`);
+    return inputBRL && inputBRL.value ? desformatarMoeda(inputBRL.value) : 0;
+})(),
+                aportes_usd:     0,
+                patrimonio_usd:  isUSD ? valor : 0,
+                is_usd:          isUSD
+            }]);
             if (!error) salvos++;
         }
     }
@@ -5430,10 +5828,857 @@ async function salvarFechamentoMes() {
     fecharModalFecharMes();
     await carregarTodosRegistros();
     await carregarDadosBanco();
-    alert(`✅ ${salvos} banco(s) fechado(s) com sucesso!`);
+    alert(`✅ ${salvos} banco(s) fechado(s)!`);
+}
+
+// Fix: garante que fecharMesModal está no nível correto
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('fecharMesModal');
+    if (modal) document.body.appendChild(modal);
+});
+
+
+
+function abrirDashboardCompleto() {
+    document.getElementById('dashboardCompletoModal').style.display = 'block';
+    history.pushState({ modal: 'dashboardCompleto' }, '');
+    carregarDashboardCompleto();
+}
+
+function fecharDashboardCompleto() {
+    document.getElementById('dashboardCompletoModal').style.display = 'none';
+}
+
+// popstate
+window.addEventListener('popstate', function(e) {
+    if (document.getElementById('dashboardCompletoModal')?.style.display === 'block') {
+        fecharDashboardCompleto(); return;
+    }
+    if (document.getElementById('acoesModal')?.style.display === 'flex') {
+        fecharAcoes(); return;
+    }
+    if (document.getElementById('funcionalidadesModal')?.style.display === 'block') {
+        fecharFuncionalidades(); return;
+    }
+});
+
+// ── Render principal ────────────────────────────────────────
+async function carregarDashboardCompleto() {
+    const corpo = document.getElementById('db-corpo');
+    corpo.innerHTML = '<div class="db-loading">⏳ Calculando tudo...</div>';
+
+    // Aguarda cotações se ainda não carregaram
+    if (!dolarFallbackHoje) await new Promise(r => setTimeout(r, 500));
+
+    const now = new Date();
+    document.getElementById('db-ultima-atualizacao').textContent =
+        'Atualizado às ' + now.toLocaleTimeString('pt-BR');
+
+    // ── Coleta todos os dados ──────────────────────────────
+    const dadosBancos   = await _db_calcularBancos();
+    const dadosAcoes    = _db_calcularAcoes();
+    const dadosImoveis  = await _db_calcularImoveis();
+    const dadosMeses    = _db_calcularMeses();
+    const dadosAportes  = _db_calcularAportes();
+    const dadosDolar    = _db_calcularDolar();
+    const dadosOpcoes   = _db_calcularOpcoes();
+    const dadosEvolucao = await _db_calcularEvolucao();
+
+    // ── Totais gerais ──────────────────────────────────────
+    const totalBancosBRL = dadosBancos.totalBRL + dadosBancos.totalUSDbrl;
+    const totalGeral = totalBancosBRL + dadosAcoes.valorMercado + dadosImoveis.total;
+
+    // ── Monta HTML ────────────────────────────────────────
+    corpo.innerHTML = `
+
+        <!-- ═══ ALERTAS ═══ -->
+        ${_db_renderAlertas(dadosMeses)}
+
+        <!-- ═══ HERO ═══ -->
+        <div class="db-section-title">💎 VISÃO GERAL DO PATRIMÔNIO</div>
+        <div class="db-hero-grid">
+            <div class="db-card cyan hero">
+                <div class="db-card-label">🌍 Patrimônio Total (Banco + Ações + Imóveis)</div>
+                <div class="db-card-value" id="db-total-geral">${_dbFmt(totalGeral)}</div>
+                <div class="db-card-sub">
+                    Banco: ${_dbFmt(totalBancosBRL)} · Ações: ${_dbFmt(dadosAcoes.valorMercado)} · Imóveis: ${_dbFmt(dadosImoveis.total)}
+                </div>
+            </div>
+            <div class="db-card green">
+                <div class="db-card-label">🇧🇷 Brasil (Banco)</div>
+                <div class="db-card-value">${_dbFmt(dadosBancos.totalBRL)}</div>
+                <div class="db-card-sub">${dadosBancos.bancosBRL.length} banco${dadosBancos.bancosBRL.length !== 1 ? 's' : ''}</div>
+            </div>
+            <div class="db-card cyan">
+                <div class="db-card-label">🇺🇸 Internacional (USD)</div>
+                <div class="db-card-value">${_dbFmtUSD(dadosBancos.totalUSD)}</div>
+                <div class="db-card-sub">≈ ${_dbFmt(dadosBancos.totalUSDbrl)} · ${dadosBancos.bancosUSD.length} banco${dadosBancos.bancosUSD.length !== 1 ? 's' : ''}</div>
+            </div>
+            <div class="db-card orange">
+                <div class="db-card-label">📈 Carteira de Ações</div>
+                <div class="db-card-value">${_dbFmt(dadosAcoes.valorMercado)}</div>
+                <div class="db-card-sub">
+                    P&L: <span class="${dadosAcoes.pl >= 0 ? 'db-badge-pos' : 'db-badge-neg'}">${_dbFmt(dadosAcoes.pl)}</span>
+                    (${dadosAcoes.rentPct.toFixed(2)}%)
+                </div>
+            </div>
+            <div class="db-card purple">
+                <div class="db-card-label">🏠 Imóveis</div>
+                <div class="db-card-value">${_dbFmt(dadosImoveis.total)}</div>
+                <div class="db-card-sub">${dadosImoveis.lista.length} imóvel${dadosImoveis.lista.length !== 1 ? 's' : ''}</div>
+            </div>
+        </div>
+
+        <!-- ═══ INDICADORES RÁPIDOS ═══ -->
+        <div class="db-section-title">⚡ INDICADORES</div>
+        <div class="db-5col">
+            <div class="db-card gold">
+                <div class="db-card-label">💰 Total Aportado</div>
+                <div class="db-card-value" style="font-size:18px;">${_dbFmt(dadosAportes.totalBRL)}</div>
+                <div class="db-card-sub">USD: ${_dbFmtUSD(dadosAportes.totalUSD)}</div>
+            </div>
+            <div class="db-card ${dadosAportes.rentTotal >= 0 ? 'green' : 'red'}">
+                <div class="db-card-label">🚀 Ganho Banco s/ Aportado</div>
+                <div class="db-card-value" style="font-size:22px; color:${dadosAportes.rentTotal >= 0 ? '#00ff88' : '#ff4d6d'}">${dadosAportes.rentTotal.toFixed(2)}%</div>
+                <div class="db-card-sub" style="color:#00ff88; font-size:16px; font-weight:700; margin-top:4px;">${_dbFmt(totalBancosBRL - dadosAportes.totalBRL)}</div>
+            </div>
+            <div class="db-card gold">
+                <div class="db-card-label">💵 Dólar Comprado (PM)</div>
+                <div class="db-card-value" style="font-size:18px;">${_dbFmt(dadosDolar.dolarComprado)}</div>
+                <div class="db-card-sub">Hoje: ${_dbFmt(dolarFallbackHoje || 0)}</div>
+            </div>
+            <div class="db-card ${dadosDolar.dolarComLucro < (dolarFallbackHoje || 99) ? 'green' : 'red'}">
+                <div class="db-card-label">📉 Dólar c/ Lucro (ajustado)</div>
+                <div class="db-card-value" style="font-size:18px;">${_dbFmt(dadosDolar.dolarComLucro)}</div>
+                <div class="db-card-sub">${dadosDolar.dolarComLucro < (dolarFallbackHoje || 99) ? '✅ Lucrando' : '⚠️ No prejuízo'}</div>
+            </div>
+            <div class="db-card cyan">
+                <div class="db-card-label">📅 Meses com Registro</div>
+                <div class="db-card-value" style="font-size:22px;">${dadosMeses.totalMeses}</div>
+                <div class="db-card-sub">${dadosMeses.abertos > 0 ? `<span style="color:#ffc107;">⚠️ ${dadosMeses.abertos} em aberto</span>` : '✅ Todos fechados'}</div>
+            </div>
+        </div>
+
+        <!-- ═══ EVOLUÇÃO ═══ -->
+        <div class="db-section-title">📈 EVOLUÇÃO DO PATRIMÔNIO</div>
+        <div class="db-chart-card">
+            <div class="db-chart-title">Patrimônio Total (Banco) — últimos 24 meses</div>
+            <canvas id="db-chart-evolucao" style="max-height:280px;"></canvas>
+        </div>
+
+        <!-- ═══ BANCOS ═══ -->
+        <div class="db-section-title">🏦 PATRIMÔNIO POR BANCO</div>
+        <div class="db-2col">
+            <!-- Tabela bancos -->
+            <div class="db-table-wrap">
+                <table class="db-table">
+                    <thead>
+                        <tr>
+                            <th>Banco</th>
+                            <th>Patrimônio</th>
+                            <th>% do Total</th>
+                            <th>Último Fechamento</th>
+                        </tr>
+                    </thead>
+                    <tbody id="db-tbody-bancos"></tbody>
+                </table>
+            </div>
+            <!-- Pizza bancos -->
+            <div class="db-chart-card">
+                <div class="db-chart-title">Concentração por Banco</div>
+                <div style="height:260px; position:relative;"><canvas id="db-chart-pizza-bancos"></canvas></div>
+            </div>
+        </div>
+
+        <!-- ═══ CRESCIMENTO MENSAL ═══ -->
+        <div class="db-section-title">📊 CRESCIMENTO MÊS A MÊS</div>
+        <div class="db-chart-card">
+            <div class="db-chart-title">Variação % do Patrimônio Consolidado por Mês</div>
+            <canvas id="db-chart-crescimento" style="max-height:200px;"></canvas>
+        </div>
+
+        <!-- ═══ AÇÕES ═══ -->
+        <div class="db-section-title">📈 CARTEIRA DE AÇÕES</div>
+        <div class="db-2col">
+            <!-- Tabela ações -->
+            <div class="db-table-wrap">
+                <table class="db-table">
+                    <thead>
+                        <tr>
+                            <th>Ativo</th>
+                            <th>Qtd</th>
+                            <th>PM</th>
+                            <th>Cotação</th>
+                            <th>Valor</th>
+                            <th>P&L</th>
+                            <th>%</th>
+                        </tr>
+                    </thead>
+                    <tbody id="db-tbody-acoes"></tbody>
+                </table>
+            </div>
+            <!-- Pizza ações + stats -->
+            <div style="display:flex; flex-direction:column; gap:14px;">
+                <div class="db-chart-card" style="flex:1;">
+                    <div class="db-chart-title">Distribuição da Carteira</div>
+                    <div style="height:200px; position:relative;"><canvas id="db-chart-pizza-acoes"></canvas></div>
+                </div>
+                <div class="db-chart-card">
+                    <div class="db-hcard">
+                        <span class="db-hcard-label">Total Investido em Ações</span>
+                        <span class="db-hcard-value">${_dbFmt(dadosAcoes.totalInvestido)}</span>
+                    </div>
+                    <div class="db-hcard">
+                        <span class="db-hcard-label">Valor de Mercado</span>
+                        <span class="db-hcard-value">${_dbFmt(dadosAcoes.valorMercado)}</span>
+                    </div>
+                    <div class="db-hcard">
+                        <span class="db-hcard-label">P&L Total</span>
+                        <span class="db-hcard-value" style="color:${dadosAcoes.pl >= 0 ? '#00ff88' : '#ff4d6d'}">${_dbFmt(dadosAcoes.pl)}</span>
+                    </div>
+                    <div class="db-hcard">
+                        <span class="db-hcard-label">Rentabilidade</span>
+                        <span class="db-hcard-value" style="color:${dadosAcoes.rentPct >= 0 ? '#00ff88' : '#ff4d6d'}">${dadosAcoes.rentPct.toFixed(2)}%</span>
+                    </div>
+                    <div class="db-hcard">
+                        <span class="db-hcard-label">P&L Realizado</span>
+                        <span class="db-hcard-value" style="color:${dadosAcoes.plRealizado >= 0 ? '#00ff88' : '#ff4d6d'}">${_dbFmt(dadosAcoes.plRealizado)}</span>
+                    </div>
+                    <div class="db-hcard">
+                        <span class="db-hcard-label">Posições abertas</span>
+                        <span class="db-hcard-value">${dadosAcoes.posicoes.length}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ OPÇÕES ═══ -->
+        ${dadosOpcoes.total > 0 ? `
+        <div class="db-section-title">⚡ OPÇÕES</div>
+        <div class="db-4col">
+            <div class="db-card cyan">
+                <div class="db-card-label">Total de Operações</div>
+                <div class="db-card-value" style="font-size:28px;">${dadosOpcoes.total}</div>
+            </div>
+            <div class="db-card green">
+                <div class="db-card-label">Prêmios Recebidos (Venda)</div>
+                <div class="db-card-value" style="font-size:18px; color:#00ff88;">${_dbFmt(dadosOpcoes.recebido)}</div>
+            </div>
+            <div class="db-card red">
+                <div class="db-card-label">Prêmios Pagos (Compra)</div>
+                <div class="db-card-value" style="font-size:18px; color:#ff4d6d;">${_dbFmt(dadosOpcoes.pago)}</div>
+            </div>
+            <div class="db-card ${dadosOpcoes.liquido >= 0 ? 'green' : 'red'}">
+                <div class="db-card-label">Resultado Líquido</div>
+                <div class="db-card-value" style="font-size:18px; color:${dadosOpcoes.liquido >= 0 ? '#00ff88' : '#ff4d6d'};">${_dbFmt(dadosOpcoes.liquido)}</div>
+            </div>
+        </div>` : ''}
+
+        <!-- ═══ IMÓVEIS ═══ -->
+        ${dadosImoveis.lista.length > 0 ? `
+        <div class="db-section-title">🏠 IMÓVEIS</div>
+        <div class="db-table-wrap">
+            <table class="db-table">
+                <thead><tr><th>Descrição</th><th>Valor</th><th>% do Total de Imóveis</th></tr></thead>
+                <tbody>
+                    ${dadosImoveis.lista.map(i => `
+                    <tr>
+                        <td>${i.descricao}</td>
+                        <td style="color:#a855f7; font-weight:700;">${_dbFmt(Number(i.valor))}</td>
+                        <td>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <div class="db-bar-wrap" style="width:80px;">
+                                    <div class="db-bar-fill" style="width:${dadosImoveis.total > 0 ? (Number(i.valor)/dadosImoveis.total*100).toFixed(0) : 0}%;background:linear-gradient(90deg,#a855f7,#e83e8c);"></div>
+                                </div>
+                                ${dadosImoveis.total > 0 ? (Number(i.valor)/dadosImoveis.total*100).toFixed(1) : 0}%
+                            </div>
+                        </td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+        </div>` : ''}
+
+        <!-- ═══ MESES EM ABERTO ═══ -->
+        ${dadosMeses.listaMesesAbertos.length > 0 ? `
+        <div class="db-section-title">📅 MESES EM ABERTO</div>
+        <div class="db-chart-card">
+            ${dadosMeses.listaMesesAbertos.map(m => `
+                <div class="db-alert" style="margin-bottom:8px;">
+                    <div class="db-alert-dot"></div>
+                    <strong>${_dbFmtPeriodo(m.mesAno)}</strong> — ${m.bancosAbertos.join(', ')}
+                    <button onclick="fecharDashboardCompleto(); setTimeout(()=>abrirFecharMes('${m.mesAno}'),300);"
+                        style="margin-left:auto; background:rgba(255,193,7,0.15); border:1px solid rgba(255,193,7,0.4); color:#ffc107; padding:5px 12px; border-radius:6px; font-size:11px; cursor:pointer; width:auto; font-weight:700;">
+                        Fechar agora →
+                    </button>
+                </div>
+            `).join('')}
+        </div>` : ''}
+
+        <!-- ═══ HISTÓRICO DE APORTES ═══ -->
+        <div class="db-section-title">💸 APORTES AO LONGO DO TEMPO</div>
+        <div class="db-chart-card">
+            <div class="db-chart-title">Aportes Acumulados (BRL)</div>
+            <canvas id="db-chart-aportes" style="max-height:200px;"></canvas>
+        </div>
+
+        <!-- ═══ RANKING MESES ═══ -->
+        <div class="db-section-title">🏆 TOP MESES (MELHORES RENDIMENTOS)</div>
+        <div class="db-2col">
+            <div class="db-table-wrap">
+                <div class="db-chart-title" style="padding:14px 16px 0; font-size:11px;">🥇 5 Melhores Meses</div>
+                <table class="db-table">
+                    <thead><tr><th>Mês</th><th>Crescimento %</th><th>Patrimônio Final</th></tr></thead>
+                    <tbody>
+                        ${dadosEvolucao.melhores.map(m => `
+                        <tr>
+                            <td>${m.periodo}</td>
+                            <td><span class="db-badge-pos">+${m.crescPct.toFixed(2)}%</span></td>
+                            <td style="color:rgba(255,255,255,0.6);">${_dbFmt(m.patrimonio)}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
+            <div class="db-table-wrap">
+                <div class="db-chart-title" style="padding:14px 16px 0; font-size:11px;">⚠️ 5 Piores Meses</div>
+                <table class="db-table">
+                    <thead><tr><th>Mês</th><th>Crescimento %</th><th>Patrimônio Final</th></tr></thead>
+                    <tbody>
+                        ${dadosEvolucao.piores.map(m => `
+                        <tr>
+                            <td>${m.periodo}</td>
+                            <td><span class="db-badge-neg">${m.crescPct.toFixed(2)}%</span></td>
+                            <td style="color:rgba(255,255,255,0.6);">${_dbFmt(m.patrimonio)}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="height:40px;"></div>
+    `;
+
+    // ── Preenche tabelas e gráficos ──────────────────────
+    _db_renderTabelaBancos(dadosBancos);
+    _db_renderTabelaAcoes(dadosAcoes);
+    _db_renderGraficos(dadosBancos, dadosAcoes, dadosEvolucao, dadosAportes);
+}
+
+// ── Helpers de formatação ───────────────────────────────────
+function _dbFmt(v) {
+    return (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+function _dbFmtUSD(v) {
+    return (v || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+}
+
+// ── Alertas ─────────────────────────────────────────────────
+function _db_renderAlertas(dadosMeses) {
+    if (dadosMeses.abertos === 0) return '';
+    return `
+        <div class="db-alert" style="margin-bottom:20px;">
+            <div class="db-alert-dot"></div>
+            <strong>${dadosMeses.abertos} mês${dadosMeses.abertos > 1 ? 'es' : ''} em aberto</strong>
+            — Preencha o patrimônio final para manter os dados atualizados
+        </div>
+    `;
+}
+
+// ── Calcular bancos ──────────────────────────────────────────
+async function _db_calcularBancos() {
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth();
+    const anoAtual = hoje.getFullYear();
+
+    let totalBRL = 0, totalUSD = 0;
+    const linhas = [];
+
+    for (const banco of todosBancos) {
+        const regs = todosRegistros
+            .filter(r => r.banco_id === banco.id)
+            .sort((a, b) => new Date(a.data_fechamento) - new Date(b.data_fechamento));
+
+        if (!regs.length) continue;
+
+        const ultimoFech = [...regs].reverse().find(r =>
+            banco.is_usd ? r.patrimonio_usd > 0 : r.patrimonio > 0
+        );
+        if (!ultimoFech) continue;
+
+        let valorBRL = 0, valorUSD = 0;
+
+        if (banco.is_usd) {
+            valorUSD = ultimoFech.patrimonio_usd;
+            valorBRL = valorUSD * (dolarFallbackHoje || 0);
+        } else {
+            valorBRL = ultimoFech.patrimonio;
+        }
+
+        // Soma aportes do mês atual se não fechado
+        const temFechMesAtual = regs.some(r => {
+            const d = new Date(r.data_fechamento);
+            return d.getMonth() === mesAtual && d.getFullYear() === anoAtual &&
+                (banco.is_usd ? r.patrimonio_usd > 0 : r.patrimonio > 0);
+        });
+        if (!temFechMesAtual) {
+            regs.forEach(r => {
+                const d = new Date(r.data_fechamento);
+                if (d.getMonth() === mesAtual && d.getFullYear() === anoAtual) {
+                    if (banco.is_usd) {
+                        valorUSD += r.aportes_usd || 0;
+                        valorBRL += (r.aportes_usd || 0) * (dolarFallbackHoje || 0);
+                    } else {
+                        valorBRL += r.aportes || 0;
+                    }
+                }
+            });
+        }
+
+        if (banco.is_usd) totalUSD += valorUSD;
+        else totalBRL += valorBRL;
+
+        linhas.push({
+            banco,
+            valorBRL: banco.is_usd ? valorBRL : valorBRL,
+            valorUSD: banco.is_usd ? valorUSD : 0,
+            ultimoFech: ultimoFech.data_fechamento
+        });
+    }
+
+    linhas.sort((a, b) => b.valorBRL - a.valorBRL);
+
+    return {
+        linhas,
+        totalBRL,
+        totalUSD,
+        totalUSDbrl: totalUSD * (dolarFallbackHoje || 0),
+        bancosBRL: todosBancos.filter(b => !b.is_usd),
+        bancosUSD: todosBancos.filter(b => b.is_usd)
+    };
+}
+
+// ── Calcular ações ───────────────────────────────────────────
+function _db_calcularAcoes() {
+    const posicoes = calcularPosicoes ? calcularPosicoes() : [];
+    let totalInvestido = 0, valorMercado = 0;
+    posicoes.forEach(p => {
+        totalInvestido += p.custoTotal;
+        valorMercado += acoesCotacoes[p.ticker]
+            ? acoesCotacoes[p.ticker].price * p.qtd
+            : p.custoTotal;
+    });
+    const pl = valorMercado - totalInvestido;
+    const rentPct = totalInvestido > 0 ? (pl / totalInvestido) * 100 : 0;
+
+    // P&L realizado
+    let plRealizado = 0;
+    const pos2 = {};
+    [...(acoesTransacoes || [])].sort((a,b) => new Date(a.data)-new Date(b.data)).forEach(t => {
+        if (!pos2[t.ticker]) pos2[t.ticker] = { qtd:0, custo:0 };
+        const p = pos2[t.ticker];
+        if (t.tipo === 'compra') { p.custo += t.quantidade * t.preco_unitario; p.qtd += t.quantidade; }
+        else { const pm = p.qtd>0 ? p.custo/p.qtd : 0; plRealizado += (t.preco_unitario-pm)*t.quantidade; p.custo -= pm*t.quantidade; p.qtd -= t.quantidade; }
+    });
+
+    return { posicoes, totalInvestido, valorMercado, pl, rentPct, plRealizado };
+}
+
+// ── Calcular imóveis ─────────────────────────────────────────
+async function _db_calcularImoveis() {
+    try {
+        const { data } = await sb.from('patrimonio').select('*').eq('tipo', 'imovel');
+        const lista = data || [];
+        const total = lista.reduce((s, i) => s + Number(i.valor), 0);
+        return { lista, total };
+    } catch(e) {
+        return { lista: [], total: 0 };
+    }
+}
+
+// ── Calcular meses ───────────────────────────────────────────
+function _db_calcularMeses() {
+    const todos = getMesesDisponiveis ? getMesesDisponiveis() : [];
+    const listaMesesAbertos = [];
+
+todos.forEach(mesAno => {
+    if (mesAno < '2026/01') return; // ignora histórico antigo
+    if (isMesAberto && isMesAberto(mesAno)) {
+            const statuses = getBancosStatusMes ? getBancosStatusMes(mesAno) : [];
+            const bancosAbertos = statuses
+                .filter(s => !s.temPatrimonio)
+                .map(s => s.banco.nome);
+            listaMesesAbertos.push({ mesAno, bancosAbertos });
+        }
+    });
+
+    return {
+        totalMeses: todos.length,
+        abertos: listaMesesAbertos.length,
+        listaMesesAbertos
+    };
+}
+
+// ── Calcular aportes ─────────────────────────────────────────
+function _db_calcularAportes() {
+    let totalBRL = 0, totalUSD = 0;
+    const porMes = {};
+
+    todosBancos.forEach(banco => {
+        const regs = todosRegistros.filter(r => r.banco_id === banco.id);
+        regs.forEach(r => {
+            if (banco.is_usd) {
+                totalUSD += r.aportes_usd || 0;
+                totalBRL += r.aportes || 0;
+            } else {
+                totalBRL += r.aportes || 0;
+            }
+            if (!porMes[r.periodo]) porMes[r.periodo] = 0;
+            porMes[r.periodo] += banco.is_usd ? (r.aportes || 0) : (r.aportes || 0);
+        });
+    });
+
+    // Acumulado
+    const periodos = Object.keys(porMes).sort((a,b) => {
+        const [anoA,mesA] = a.split('/').map(Number);
+        const [anoB,mesB] = b.split('/').map(Number);
+        return anoA !== anoB ? anoA - anoB : mesA - mesB;
+    });
+    let acum = 0;
+    const acumulado = periodos.map(p => { acum += porMes[p]; return { periodo: p, valor: acum }; });
+
+    // Rent total banco
+    const totalBancoAtual = todosBancos.reduce((s, banco) => {
+        const regs = todosRegistros.filter(r => r.banco_id === banco.id);
+        if (!regs.length) return s;
+        const ultimo = [...regs].reverse().find(r => banco.is_usd ? r.patrimonio_usd > 0 : r.patrimonio > 0);
+        if (!ultimo) return s;
+        return s + (banco.is_usd ? ultimo.patrimonio_usd * (dolarFallbackHoje||0) : ultimo.patrimonio);
+    }, 0);
+
+    const rentTotal = totalBRL > 0 ? ((totalBancoAtual - totalBRL) / totalBRL) * 100 : 0;
+
+    return { totalBRL, totalUSD, acumulado, periodos, rentTotal };
+}
+
+// ── Calcular dólar ───────────────────────────────────────────
+function _db_calcularDolar() {
+    let totalBRLAportado = 0, totalUSDaportado = 0, totalUSDpatrimonio = 0;
+    const bancosUSD = todosBancos.filter(b => b.is_usd);
+    const hoje = new Date();
+
+    bancosUSD.forEach(banco => {
+        const regs = todosRegistros.filter(r => r.banco_id === banco.id);
+        regs.forEach(r => {
+            totalBRLAportado += r.aportes || 0;
+            totalUSDaportado += r.aportes_usd || 0;
+        });
+        const regsComPat = regs.filter(r => r.patrimonio_usd > 0)
+            .sort((a,b) => new Date(b.data_fechamento)-new Date(a.data_fechamento));
+        if (regsComPat.length) {
+            const ult = regsComPat[0];
+            let pat = ult.patrimonio_usd;
+            const dUlt = new Date(ult.data_fechamento);
+            if (!(dUlt.getMonth()===hoje.getMonth() && dUlt.getFullYear()===hoje.getFullYear())) {
+                regs.forEach(r => {
+                    const d = new Date(r.data_fechamento);
+                    if (d.getMonth()===hoje.getMonth() && d.getFullYear()===hoje.getFullYear())
+                        pat += r.aportes_usd || 0;
+                });
+            }
+            totalUSDpatrimonio += pat;
+        }
+    });
+
+    return {
+        dolarComprado: totalUSDaportado > 0 ? totalBRLAportado / totalUSDaportado : 0,
+        dolarComLucro: totalUSDpatrimonio > 0 ? totalBRLAportado / totalUSDpatrimonio : 0
+    };
+}
+
+// ── Calcular opções ──────────────────────────────────────────
+function _db_calcularOpcoes() {
+    const ops = (acoesTransacoes || []).filter(t => t.nome?.startsWith('CALL') || t.nome?.startsWith('PUT'));
+    let recebido = 0, pago = 0;
+    ops.forEach(o => {
+        const total = o.quantidade * o.preco_unitario;
+        if (o.tipo === 'venda') recebido += total;
+        else pago += total;
+    });
+    return { total: ops.length, recebido, pago, liquido: recebido - pago };
+}
+
+// ── Calcular evolução (carry-forward) ────────────────────────
+async function _db_calcularEvolucao() {
+    const todos = [...new Set(todosRegistros.map(r => r.periodo))].sort((a,b) => {
+        const [anoA,mesA] = a.split('/').map(Number);
+        const [anoB,mesB] = b.split('/').map(Number);
+        return anoA !== anoB ? anoA - anoB : mesA - mesB;
+    });
+
+    const _ultPat = {};
+    const historicoMensal = [];
+
+    for (const periodo of todos) {
+        todosBancos.forEach(banco => {
+            const regsP = todosRegistros
+                .filter(r => r.banco_id === banco.id && r.periodo === periodo)
+                .filter(r => banco.is_usd ? r.patrimonio_usd > 0 : r.patrimonio > 0)
+                .sort((a,b) => new Date(b.data_fechamento)-new Date(a.data_fechamento));
+            if (regsP.length > 0) {
+                _ultPat[banco.id] = {
+                    valor: banco.is_usd ? regsP[0].patrimonio_usd : regsP[0].patrimonio,
+                    isUSD: banco.is_usd
+                };
+            }
+        });
+
+        let tot = 0;
+        Object.values(_ultPat).forEach(r => {
+            tot += r.isUSD ? r.valor * (dolarFallbackHoje||1) : r.valor;
+        });
+        if (tot > 0) historicoMensal.push({ periodo, patrimonio: tot });
+    }
+
+    // Calcula crescimento % mês a mês
+    const comCrescimento = historicoMensal.map((m, i) => {
+        const ant = i > 0 ? historicoMensal[i-1].patrimonio : m.patrimonio;
+        const crescPct = ant > 0 ? ((m.patrimonio - ant) / ant) * 100 : 0;
+        return { ...m, crescPct };
+    });
+
+    const comCrescOrdenado = [...comCrescimento]
+    .filter(m => m.periodo >= '2026/01')
+    .sort((a,b) => b.crescPct - a.crescPct);
+    return {
+        historico: historicoMensal,
+        comCrescimento,
+        melhores: comCrescOrdenado.slice(0, 5).filter(m => m.crescPct > 0),
+        piores: [...comCrescOrdenado].reverse().slice(0, 5).filter(m => m.crescPct < 0)
+    };
+}
+
+// ── Render tabela bancos ─────────────────────────────────────
+function _db_renderTabelaBancos(dados) {
+    const tbody = document.getElementById('db-tbody-bancos');
+    if (!tbody) return;
+    const total = dados.totalBRL + dados.totalUSDbrl;
+
+    tbody.innerHTML = dados.linhas.map(l => {
+        const pct = total > 0 ? (l.valorBRL / total * 100) : 0;
+        const dataStr = l.ultimoFech ? l.ultimoFech.split('-').reverse().join('/') : '—';
+        return `
+        <tr>
+            <td><span class="db-bank-flag">${l.banco.is_usd ? '🇺🇸' : '🇧🇷'} ${l.banco.nome}</span></td>
+            <td style="font-weight:700; color:${l.banco.is_usd ? '#00d4ff' : '#00ff88'};">
+                ${l.banco.is_usd ? _dbFmtUSD(l.valorUSD) + '<br><span style="font-size:11px;color:rgba(255,255,255,0.4);">≈ ' + _dbFmt(l.valorBRL) + '</span>' : _dbFmt(l.valorBRL)}
+            </td>
+            <td>
+                <div style="display:flex; align-items:center; gap:8px; min-width:100px;">
+                    <div class="db-bar-wrap" style="width:60px;">
+                        <div class="db-bar-fill" style="width:${Math.min(pct,100).toFixed(0)}%;"></div>
+                    </div>
+                    <span style="font-size:12px; color:rgba(255,255,255,0.5);">${pct.toFixed(1)}%</span>
+                </div>
+            </td>
+            <td style="font-size:12px; color:rgba(255,255,255,0.4);">${dataStr}</td>
+        </tr>`;
+    }).join('');
+}
+
+// ── Render tabela ações ──────────────────────────────────────
+function _db_renderTabelaAcoes(dados) {
+    const tbody = document.getElementById('db-tbody-acoes');
+    if (!tbody) return;
+
+    if (!dados.posicoes.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,0.3);padding:30px;">Nenhuma posição aberta</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = dados.posicoes.map(p => {
+        const pm = p.qtd > 0 ? p.custoTotal / p.qtd : 0;
+        const cot = acoesCotacoes[p.ticker];
+        const preco = cot ? cot.price : null;
+        const valorAtual = preco !== null ? preco * p.qtd : p.custoTotal;
+        const pl = preco !== null ? valorAtual - p.custoTotal : 0;
+        const plPct = p.custoTotal > 0 ? (pl / p.custoTotal) * 100 : 0;
+
+        return `
+        <tr>
+            <td><span class="db-ticker">${p.ticker}</span></td>
+            <td style="color:rgba(255,255,255,0.6);">${p.qtd % 1 === 0 ? p.qtd.toFixed(0) : p.qtd.toFixed(4)}</td>
+            <td>${_dbFmt(pm)}</td>
+            <td>${preco !== null ? _dbFmt(preco) : '<span style="color:rgba(255,255,255,0.2);">—</span>'}</td>
+            <td style="font-weight:700;">${_dbFmt(valorAtual)}</td>
+            <td class="${pl >= 0 ? 'db-badge-pos' : 'db-badge-neg'}">${_dbFmt(pl)}</td>
+            <td class="${plPct >= 0 ? 'db-badge-pos' : 'db-badge-neg'}">${plPct.toFixed(2)}%</td>
+        </tr>`;
+    }).join('');
+}
+
+// ── Render gráficos ──────────────────────────────────────────
+let _dbCharts = {};
+
+function _db_renderGraficos(dadosBancos, dadosAcoes, dadosEvolucao, dadosAportes) {
+    // Destrói anteriores
+    Object.values(_dbCharts).forEach(c => { try { c.destroy(); } catch(e) {} });
+    _dbCharts = {};
+
+    const gridColor = 'rgba(255,255,255,0.05)';
+    const tickColor = 'rgba(255,255,255,0.3)';
+
+    // 1. Evolução patrimônio
+    const ctxEv = document.getElementById('db-chart-evolucao')?.getContext('2d');
+    if (ctxEv) {
+        const ultimos = dadosEvolucao.historico.slice(-24);
+        _dbCharts.evolucao = new Chart(ctxEv, {
+            type: 'line',
+            data: {
+                labels: ultimos.map(m => _dbFmtPeriodo(m.periodo)),
+                datasets: [{
+                    label: 'Patrimônio',
+                    data: ultimos.map(m => m.patrimonio),
+                    borderColor: '#00d4ff',
+                    backgroundColor: 'rgba(0,212,255,0.06)',
+                    fill: true, tension: 0.35, pointRadius: 3,
+                    pointBackgroundColor: '#00d4ff'
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: c => _dbFmt(c.raw) } }
+                },
+                scales: {
+                    x: { ticks: { color: tickColor, font:{size:10} }, grid: { color: gridColor } },
+                    y: { ticks: { color: tickColor, callback: v => 'R$ ' + (v/1000).toFixed(0) + 'k' }, grid: { color: gridColor } }
+                }
+            }
+        });
+    }
+
+    // 2. Pizza bancos
+    const ctxPizBancos = document.getElementById('db-chart-pizza-bancos')?.getContext('2d');
+    if (ctxPizBancos && dadosBancos.linhas.length) {
+        const cores = ['#00d4ff','#00ff88','#ffd700','#fd7e14','#a855f7','#ff4d6d','#20c997','#f59e0b'];
+        _dbCharts.pizzaBancos = new Chart(ctxPizBancos, {
+            type: 'doughnut',
+            data: {
+                labels: dadosBancos.linhas.map(l => l.banco.nome),
+                datasets: [{
+                    data: dadosBancos.linhas.map(l => l.valorBRL),
+                    backgroundColor: cores,
+                    borderWidth: 1,
+                    borderColor: 'rgba(0,0,0,0.3)'
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: tickColor, font:{size:10}, padding:8 } },
+                    tooltip: { callbacks: { label: c => c.label + ': ' + _dbFmt(c.raw) } }
+                }
+            }
+        });
+    }
+
+    // 3. Crescimento mensal (barras)
+    const ctxCresc = document.getElementById('db-chart-crescimento')?.getContext('2d');
+    if (ctxCresc) {
+        const ultCresc = dadosEvolucao.comCrescimento.slice(-18);
+        _dbCharts.crescimento = new Chart(ctxCresc, {
+            type: 'bar',
+            data: {
+                labels: ultCresc.map(m => m.periodo),
+                datasets: [{
+                    label: 'Crescimento %',
+                    data: ultCresc.map(m => m.crescPct),
+                    backgroundColor: ultCresc.map(m => m.crescPct >= 0 ? 'rgba(0,255,136,0.7)' : 'rgba(255,77,109,0.7)'),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: c => c.raw.toFixed(2) + '%' } }
+                },
+                scales: {
+                    x: { ticks: { color: tickColor, font:{size:9} }, grid: { color: gridColor } },
+                    y: { ticks: { color: tickColor, callback: v => v.toFixed(1) + '%' }, grid: { color: gridColor } }
+                }
+            }
+        });
+    }
+
+    // 4. Pizza ações
+    const ctxPizAcoes = document.getElementById('db-chart-pizza-acoes')?.getContext('2d');
+    if (ctxPizAcoes && dadosAcoes.posicoes.length) {
+        const coresAcoes = ['#fd7e14','#ff9f43','#ffd700','#00d4ff','#00ff88','#a855f7','#ff4d6d','#20c997'];
+        const posOrd = [...dadosAcoes.posicoes].sort((a,b) => b.custoTotal - a.custoTotal);
+        const vals = posOrd.map(p => acoesCotacoes[p.ticker] ? acoesCotacoes[p.ticker].price * p.qtd : p.custoTotal);
+        _dbCharts.pizzaAcoes = new Chart(ctxPizAcoes, {
+            type: 'doughnut',
+            data: {
+                labels: posOrd.map(p => p.ticker),
+                datasets: [{
+                    data: vals,
+                    backgroundColor: coresAcoes,
+                    borderWidth: 1,
+                    borderColor: 'rgba(0,0,0,0.3)'
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { color: tickColor, font:{size:10} } },
+                    tooltip: { callbacks: { label: c => c.label + ': ' + _dbFmt(c.raw) } }
+                }
+            }
+        });
+    }
+
+    // 5. Aportes acumulados
+    const ctxAp = document.getElementById('db-chart-aportes')?.getContext('2d');
+    if (ctxAp && dadosAportes.acumulado.length) {
+        const ultAp = dadosAportes.acumulado.slice(-24);
+        _dbCharts.aportes = new Chart(ctxAp, {
+            type: 'line',
+            data: {
+                labels: ultAp.map(m => m.periodo),
+                datasets: [{
+                    label: 'Aportado Acumulado',
+                    data: ultAp.map(m => m.valor),
+                    borderColor: '#ffd700',
+                    backgroundColor: 'rgba(255,215,0,0.06)',
+                    fill: true, tension: 0.35, pointRadius: 2,
+                    pointBackgroundColor: '#ffd700'
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: c => _dbFmt(c.raw) } }
+                },
+                scales: {
+                    x: { ticks: { color: tickColor, font:{size:10} }, grid: { color: gridColor } },
+                    y: { ticks: { color: tickColor, callback: v => 'R$ ' + (v/1000).toFixed(0) + 'k' }, grid: { color: gridColor } }
+                }
+            }
+        });
+    }
+}
+
+function _dbFmtPeriodo(periodo) {
+    if (!periodo) return '—';
+    const [ano, mes] = periodo.split('/');
+    return `${mes}/${ano}`;
 }
 
 </script>
+
+
 <!-- 🛠️ MODAL OUTRAS FUNCIONALIDADES -->
 <div id="funcionalidadesModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg-color); z-index:8000; overflow-y:auto;">
     
@@ -5975,189 +7220,6 @@ async function salvarFechamentoMes() {
         </div>
     </div>
 </div>
-// ============================================================
-// PATCH: Correções para Top Bancos + Evolução do Patrimônio
-// Adicione este <script> ANTES de </body> no HTML original
-// ============================================================
-
-// Aguarda o sistema carregar, depois sobrescreve criarGraficosConsolidado
-const _origInicializar = window.inicializarSistema;
-
-function criarGraficosConsolidado() {
-    const isDark = document.body.getAttribute('data-theme') === 'dark';
-    const textColor = isDark ? '#e0e0e0' : '#666';
-    
-    // ─── Distribuição por Moeda (igual ao original) ───
-    if (charts.moedas) charts.moedas.destroy();
-    const ctxMoedas = document.getElementById('chartMoedas').getContext('2d');
-    
-    let totalBRL = 0;
-    let totalUSDemBRL = 0;
-    let totalUSDraw = 0;
-    
-    todosBancos.forEach(banco => {
-        const regs = todosRegistros.filter(r => r.banco_id === banco.id);
-        if (regs.length === 0) return;
-        if (banco.is_usd) {
-            const ultimo = [...regs].filter(r => r.patrimonio_usd > 0)
-                .sort((a,b) => new Date(b.data_fechamento) - new Date(a.data_fechamento))[0];
-            if (ultimo) {
-                totalUSDraw  += ultimo.patrimonio_usd;
-                totalUSDemBRL += ultimo.patrimonio_usd * (dolarFallbackHoje || 1);
-            }
-        } else {
-            const ultimo = [...regs].filter(r => r.patrimonio > 0)
-                .sort((a,b) => new Date(b.data_fechamento) - new Date(a.data_fechamento))[0];
-            if (ultimo) totalBRL += ultimo.patrimonio;
-        }
-    });
-
-    const pluginPercentMoedas = {
-        id: 'percentMoedas',
-        afterDraw(chart) {
-            const { ctx, data } = chart;
-            const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
-            chart.getDatasetMeta(0).data.forEach((arc, i) => {
-                const valor = data.datasets[0].data[i];
-                const pct = total > 0 ? ((valor / total) * 100).toFixed(1) + '%' : '';
-                const angle = (arc.startAngle + arc.endAngle) / 2;
-                const r = (arc.innerRadius + arc.outerRadius) / 2;
-                const x = arc.x + Math.cos(angle) * r;
-                const y = arc.y + Math.sin(angle) * r;
-                ctx.save(); ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Segoe UI';
-                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                ctx.fillText(pct, x, y); ctx.restore();
-            });
-        }
-    };
-
-    charts.moedas = new Chart(ctxMoedas, {
-        type: 'doughnut',
-        plugins: [pluginPercentMoedas],
-        data: {
-            labels: ['Brasil (R$)', 'Internacional (convertido R$)'],
-            datasets: [{ data: [totalBRL, totalUSDemBRL], backgroundColor: ['#28a745', '#007bff'] }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: true,
-            plugins: {
-                legend: { labels: { color: textColor } },
-                tooltip: {
-                    callbacks: {
-                        label: (c) => {
-                            const total = totalBRL + totalUSDemBRL;
-                            const pct = total > 0 ? ((c.raw / total) * 100).toFixed(1) : '0.0';
-                            if (c.dataIndex === 1)
-                                return [totalUSDraw.toLocaleString('en-US', { style: 'currency', currency: 'USD' }) + ' ≈ ' + formatarMoeda(c.raw), 'Participação: ' + pct + '%'];
-                            return [formatarMoeda(c.raw), 'Participação: ' + pct + '%'];
-                        }
-                    }
-                },
-                datalabels: { display: false }
-            }
-        }
-    });
-
-    // ─── FIX 1: Top Bancos — todos ordenados por valor real ───
-    if (charts.topBancos) charts.topBancos.destroy();
-    const ctxBancos = document.getElementById('chartBancos').getContext('2d');
-
-    const todosDados = todosBancos
-        .map(banco => {
-            if (banco.is_usd) {
-                const regs = todosRegistros.filter(r => r.banco_id === banco.id && r.patrimonio_usd > 0);
-                if (regs.length === 0) return null;
-                const ultimo = [...regs].sort((a,b) => new Date(b.data_fechamento) - new Date(a.data_fechamento))[0];
-                const valorEmBRL = (ultimo.patrimonio_usd || 0) * (dolarFallbackHoje || 1);
-                const labelValor = (ultimo.patrimonio_usd || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-                return { nome: '🇺🇸 ' + banco.nome, valor: valorEmBRL, labelValor };
-            } else {
-                const regs = todosRegistros.filter(r => r.banco_id === banco.id && r.patrimonio > 0);
-                if (regs.length === 0) return null;
-                const ultimo = [...regs].sort((a,b) => new Date(b.data_fechamento) - new Date(a.data_fechamento))[0];
-                return { nome: '🇧🇷 ' + banco.nome, valor: ultimo.patrimonio || 0 };
-            }
-        })
-        .filter(b => b && b.valor > 0)
-        .sort((a, b) => b.valor - a.valor); // 🔥 ordena todos pelo valor real
-
-    charts.topBancos = new Chart(ctxBancos, {
-        type: 'bar',
-        data: {
-            labels: todosDados.map(b => b.nome),
-            datasets: [{
-                label: 'Patrimônio (em R$)',
-                data: todosDados.map(b => b.valor),
-                backgroundColor: todosDados.map(b => b.nome.startsWith('🇧🇷') ? '#28a745' : '#007bff')
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: true,
-            indexAxis: 'y',
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: (c) => {
-                            const item = todosDados[c.dataIndex];
-                            if (item.labelValor) return item.labelValor + ' ≈ ' + formatarMoeda(c.raw);
-                            return formatarMoeda(c.raw);
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: { ticks: { color: textColor, callback: (v) => 'R$ ' + v.toLocaleString('pt-BR') } },
-                y: { ticks: { color: textColor } }
-            }
-        }
-    });
-
-
-if (charts.evolucao) charts.evolucao.destroy();
-    const ctxEvolucao = document.getElementById('chartEvolucao').getContext('2d');
-
-    const allPeriods = [...new Set(todosRegistros.map(r => r.periodo))].sort((a, b) => {
-        const [anoA, mesA] = a.split('/').map(Number);
-        const [anoB, mesB] = b.split('/').map(Number);
-        return anoA !== anoB ? anoA - anoB : mesA - mesB;
-    });
-
-    const historicoFinal = {};
-    allPeriods.forEach(periodo => {
-        const val = calcularPatrimonioCardParaPeriodo(todosBancos, periodo, allPeriods);
-        if (val > 0) historicoFinal[periodo] = val;
-    });
-
-    const labels = Object.keys(historicoFinal).slice(-12);
-    const valores = labels.map(l => historicoFinal[l]);
-    charts.evolucao = new Chart(ctxEvolucao, {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [{
-                label: 'Patrimônio Total (R$)',
-                data: valores,
-                borderColor: '#6f42c1',
-                backgroundColor: 'rgba(111, 66, 193, 0.1)',
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: true,
-            plugins: {
-                legend: { labels: { color: textColor } },
-                tooltip: { callbacks: { label: (c) => formatarMoeda(c.raw) } }
-            },
-            scales: {
-                x: { ticks: { color: textColor } },
-                y: { ticks: { color: textColor, callback: (v) => 'R$ ' + v.toLocaleString('pt-BR') } }
-            }
-        }
-    });
-}
-
 
 <!-- 📅 MODAL FECHAR MÊS -->
 <div id="fecharMesModal" class="modal">
@@ -6171,15 +7233,10 @@ if (charts.evolucao) charts.evolucao.destroy();
             </div>
             <span class="close-modal" onclick="fecharModalFecharMes()">×</span>
         </div>
-
-        <!-- Resumo de status -->
         <div id="fecharMesResumo" style="display:flex; gap:15px; margin-bottom:18px; flex-wrap:wrap;"></div>
-
-        <!-- Lista de bancos -->
         <div id="fecharMesCorpo"></div>
-
         <div style="margin-top:20px; display:flex; gap:10px;">
-            <button onclick="salvarFechamentoMes(false)" class="btn-success" style="flex:1;">
+            <button onclick="salvarFechamentoMes()" class="btn-success" style="flex:1;">
                 ✅ Salvar Patrimônios
             </button>
             <button onclick="fecharModalFecharMes()" class="btn-secondary" style="width:auto; padding:12px 20px;">
@@ -6188,6 +7245,31 @@ if (charts.evolucao) charts.evolucao.destroy();
         </div>
     </div>
 </div>
+
+<!-- 🎯 MODAL DASHBOARD COMPLETO -->
+<div id="dashboardCompletoModal">
+
+    <!-- Header fixo -->
+    <div class="db-header">
+        <h1>📊 <span>Dashboard Completo</span></h1>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <span id="db-ultima-atualizacao" style="font-size:11px; color:rgba(255,255,255,0.3);"></span>
+            <button class="db-refresh-btn" onclick="carregarDashboardCompleto()">⟳ ATUALIZAR</button>
+            <button class="db-close-btn" onclick="fecharDashboardCompleto()">×</button>
+        </div>
+    </div>
+
+    <!-- Corpo -->
+    <div class="db-body" id="db-corpo">
+        <div class="db-loading">⏳ Carregando dados...</div>
+    </div>
+</div>
+
+
+
+
+</body>
+</html>
 </body>
 </html>
 
