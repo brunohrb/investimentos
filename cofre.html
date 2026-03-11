@@ -173,21 +173,41 @@
 <div class="loading-overlay" id="ld"><div class="spinner"></div><p id="ld-txt">Carregando...</p></div>
 <div class="toast" id="toast"></div>
 
-<!-- SETUP (primeira vez — só criar senha mestra) -->
+<!-- SETUP (primeira vez — criar tabela + senha mestra) -->
 <div class="screen active" id="screen-setup">
   <div class="auth-box">
     <div class="vault-logo">
       <div class="ico">🔐</div>
       <h1>COFRE</h1>
-      <p>Primeira vez — crie sua senha mestra</p>
+      <p>Primeira configuração</p>
     </div>
-    <p class="hint">Crie uma senha forte. Ela criptografa todos os seus dados — <strong style="color:var(--text)">não é recuperável</strong>.</p>
-    <label>Senha Mestra</label>
-    <div class="pw"><input type="password" id="s-pass" placeholder="Mínimo 8 caracteres"><button class="eye" type="button" onclick="eye('s-pass',this)">👁</button></div>
-    <label>Confirmar Senha Mestra</label>
-    <div class="pw"><input type="password" id="s-pass2" placeholder="Repita a senha"><button class="eye" type="button" onclick="eye('s-pass2',this)">👁</button></div>
-    <div class="err" id="s-err"></div>
-    <button class="btn" type="button" onclick="doSetup()">🔐 Criar Cofre</button>
+
+    <!-- STEP 1 -->
+    <div id="setup-step1">
+      <p class="hint" style="margin-bottom:1rem">Antes de tudo, acesse o <strong style="color:var(--text)">Supabase → SQL Editor</strong> e execute o código abaixo para criar a tabela:</p>
+      <div class="sql-box" id="sql-block">CREATE TABLE IF NOT EXISTS vault_items (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  category text NOT NULL,
+  encrypted_data text NOT NULL,
+  created_at timestamptz DEFAULT now()
+);
+ALTER TABLE vault_items DISABLE ROW LEVEL SECURITY;</div>
+      <button class="btn btn-ghost" type="button" onclick="copySql()" style="margin-top:.8rem">⧉ Copiar SQL</button>
+      <div class="divider"></div>
+      <button class="btn" type="button" onclick="g('setup-step1').style.display='none';g('setup-step2').style.display='block'">✅ Já executei o SQL → Continuar</button>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="setup-step2" style="display:none">
+      <p class="hint" style="margin-bottom:1rem">Agora crie sua <strong style="color:var(--text)">senha mestra</strong>. Ela criptografa todos os seus dados — <strong style="color:var(--red)">não é recuperável</strong>.</p>
+      <label>Senha Mestra</label>
+      <div class="pw"><input type="password" id="s-pass" placeholder="Mínimo 8 caracteres"><button class="eye" type="button" onclick="eye('s-pass',this)">👁</button></div>
+      <label>Confirmar Senha Mestra</label>
+      <div class="pw"><input type="password" id="s-pass2" placeholder="Repita a senha"><button class="eye" type="button" onclick="eye('s-pass2',this)">👁</button></div>
+      <div class="err" id="s-err"></div>
+      <button class="btn" type="button" onclick="doSetup()">🔐 Criar Cofre</button>
+      <button class="btn btn-ghost" type="button" onclick="g('setup-step1').style.display='block';g('setup-step2').style.display='none'">← Voltar</button>
+    </div>
   </div>
 </div>
 
@@ -412,25 +432,25 @@ function val(id){return g(id).value}
 function valt(id){return g(id).value.trim()}
 function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
 
+function copySql(){
+  const sql=g('sql-block').textContent;
+  navigator.clipboard.writeText(sql).then(()=>toast('SQL copiado!')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=sql;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('SQL copiado!');
+  });
+}
+
 /* SETUP */
 async function doSetup(){
   const pw=val('s-pass'),pw2=val('s-pass2'),errEl=g('s-err');
   errEl.classList.remove('show');
   if(pw.length<8){errEl.textContent='Senha mestra precisa de ao menos 8 caracteres.';errEl.classList.add('show');return}
   if(pw!==pw2){errEl.textContent='As senhas não coincidem.';errEl.classList.add('show');return}
-  loading('Conectando...');
-  try{
-    const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-    const {error}=await client.from('vault_items').select('id').limit(1);
-    if(error)throw new Error('Erro de conexão: '+error.message);
-    const salt=CryptoJS.lib.WordArray.random(128/8).toString();
-    const derived=deriveKey(pw,salt);
-    const token=enc('VAULT_OK',derived);
-    saveCfg({salt,token});
-    unload();
-    alert('Cofre criado com sucesso! Faça login para continuar.');
-    location.reload();
-  }catch(e){unload();errEl.textContent=e.message;errEl.classList.add('show')}
+  const salt=CryptoJS.lib.WordArray.random(128/8).toString();
+  const derived=deriveKey(pw,salt);
+  const token=enc('VAULT_OK',derived);
+  saveCfg({salt,token});
+  toast('Cofre criado! Entrando...');
+  setTimeout(()=>location.reload(),900);
 }
 function doReset(){if(confirm('Apagar senha mestra local? Os dados no Supabase continuam intactos. Você poderá criar uma nova senha.')){localStorage.removeItem(CFG_KEY);location.reload()}}
 
@@ -489,7 +509,12 @@ async function saveItem(tab){
   try{
     const cipher=enc(JSON.stringify(data),MKEY);
     const {error}=await SB.from('vault_items').insert({category:tab,encrypted_data:cipher});
-    if(error)throw new Error(error.message);
+    if(error){
+      if(error.message.includes('relation') || error.message.includes('does not exist')){
+        throw new Error('Tabela não encontrada no Supabase. Acesse o Supabase → SQL Editor e execute o SQL de criação da tabela.');
+      }
+      throw new Error(error.message);
+    }
     await loadAll();
     closeModals();
     render();
@@ -590,8 +615,6 @@ function viewItem(tab,id){
       html+='</div>';
       html+='<div class="share-row">';
       html+='<button class="share-btn native" type="button" onclick="shareFile(\''+esc(att.name)+'\',\''+att.type+'\',\''+att.b64+'\')">📤 Compartilhar</button>';
-      html+='<button class="share-btn wpp" type="button" onclick="shareWhatsApp(\''+esc(att.name)+'\',\''+att.type+'\',\''+att.b64+'\')">💬 WhatsApp</button>';
-      html+='<button class="share-btn mail" type="button" onclick="shareGmail(\''+esc(att.name)+'\',\''+att.type+'\',\''+att.b64+'\')">✉ Gmail</button>';
       html+='<button class="share-btn dl" type="button" onclick="dlFile(\''+esc(att.name)+'\',\''+att.type+'\',\''+att.b64+'\')">⬇ Baixar</button>';
       html+='</div></div>';
     }
