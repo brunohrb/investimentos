@@ -363,9 +363,9 @@
 
 .news-sidebar {
     position: fixed;
-    top: 60px; /* abaixo do ticker */
+    top: 0;
     width: 260px;
-    height: calc(100vh - 60px);
+    height: 100vh;
     background: #0f1115;
     color: #fff;
     padding: 15px;
@@ -452,54 +452,7 @@
    📈 TICKER ESTILO CORRETORA
    ========================= */
 
-.ticker-wrapper {
-    width: 100%;
-    background: #111;
-    overflow: hidden;
-    border-bottom: 2px solid #222;
-}
 
-.ticker {
-    width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-}
-
-.ticker-content {
-    display: inline-block;
-    padding-left: 100%;
-    animation: tickerMove 35s linear infinite;
-}
-
-.ticker-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-right: 30px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.ticker-symbol {
-    color: #00bfff;
-}
-
-.ticker-price {
-    color: #fff;
-}
-
-.ticker-pos {
-    color: #00ff7f;
-}
-
-.ticker-neg {
-    color: #ff4d4d;
-}
-
-@keyframes tickerMove {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-100%); }
-}
 
         :root { --primary-color: #007bff; --secondary-color: #6c757d; --bg-color: #f0f2f5; --card-bg: #ffffff; --text-color: #333; --border-color: #ddd; --card-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         [data-theme="dark"] { --bg-color: #121212; --card-bg: #1e1e1e; --text-color: #e0e0e0; --border-color: #333; --card-shadow: 0 4px 20px rgba(0,0,0,0.5); }
@@ -1451,14 +1404,6 @@
     </style>
 </head>
 <body>
-<!-- 🔴 TICKER DE AÇÕES -->
-<div class="ticker-wrapper">
-    <div class="ticker">
-        <div class="ticker-content" id="tickerContent">
-            <!-- Itens serão inseridos via JS -->
-        </div>
-    </div>
-</div>
 
 
 
@@ -4181,43 +4126,6 @@ const valores = labels.map(l => historicoFinal[l]);
 // 📊 TICKER DEMO
 // =========================
 
-const ativosDemo = [
-    { symbol: "VALE3", price: 63.45, change: -0.30 },
-    { symbol: "PETR4", price: 38.21, change: 0.85 },
-    { symbol: "ITUB4", price: 29.10, change: 1.12 },
-    { symbol: "BBDC4", price: 14.87, change: -0.45 },
-    { symbol: "WEGE3", price: 41.55, change: 0.62 },
-    { symbol: "AAPL", price: 189.32, change: 0.40 },
-    { symbol: "TSLA", price: 221.15, change: -1.20 }
-];
-
-function iniciarTicker() {
-    const container = document.getElementById("tickerContent");
-    container.innerHTML = "";
-
-    ativosDemo.forEach(ativo => {
-        const item = document.createElement("div");
-        item.className = "ticker-item";
-
-        const classeVariacao = ativo.change >= 0 ? "ticker-pos" : "ticker-neg";
-
-        item.innerHTML = `
-            <span class="ticker-symbol">${ativo.symbol}</span>
-            <span class="ticker-price">R$ ${ativo.price.toFixed(2)}</span>
-            <span class="${classeVariacao}">
-                ${ativo.change >= 0 ? "+" : ""}${ativo.change.toFixed(2)}%
-            </span>
-        `;
-
-        container.appendChild(item);
-    });
-
-    // duplica conteúdo para efeito infinito
-    container.innerHTML += container.innerHTML;
-}
-
-document.addEventListener("DOMContentLoaded", iniciarTicker);
-
 // =========================
 // 📰 NOTÍCIAS CLICÁVEIS
 // =========================
@@ -6707,10 +6615,10 @@ async function carregarDashboardCompleto() {
                     Banco: ${_dbFmt(totalBancosBRL)} · Ações: ${_dbFmt(dadosAcoes.valorMercado)} · Imóveis: ${_dbFmt(dadosImoveis.total)}
                 </div>
             </div>
-<div class="db-card cyan">
+<div class="db-card cyan" onclick="abrirTotalBanco()" style="cursor:pointer;">
     <div class="db-card-label">🌍 Total Banco (BRL + USD)</div>
     <div class="db-card-value" style="font-size:22px;">${_dbFmt(totalBancosBRL)}</div>
-    <div class="db-card-sub">BRL: ${_dbFmt(dadosBancos.totalBRL)} · USD: ${_dbFmtUSD(dadosBancos.totalUSD)}</div>
+    <div class="db-card-sub">BRL: ${_dbFmt(dadosBancos.totalBRL)} · USD: ${_dbFmtUSD(dadosBancos.totalUSD)} · Ver histórico ↗</div>
 </div>
             <div class="db-card green" onclick="abrirBrasilBanco()">
                 <div class="db-card-label">🇧🇷 Brasil (Banco)</div>
@@ -9828,10 +9736,424 @@ window.addEventListener('popstate', function(e) {
         fecharInternacionalUSD();
     }
 });
+</script>
+
+<!-- ═══ MODAL TOTAL BANCO (BRL + USD) ═══ -->
+<style>
+#totalBancoModal {
+    display: none; position: fixed; top: 0; left: 0;
+    width: 100%; height: 100%; background: #070b14;
+    z-index: 6000; overflow-y: auto;
+    font-family: 'Inter','Roboto','Segoe UI',sans-serif;
+}
+#totalBancoModal .tb-thead th {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase;
+    color: rgba(255,255,255,0.5); padding: 12px 14px;
+    background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.08);
+    text-align: left; white-space: nowrap;
+}
+#totalBancoModal .bb-table td { padding: 12px 14px; }
+.tb-col-brl { color: #00ff88; }
+.tb-col-usd { color: #00d4ff; }
+</style>
+
+<div id="totalBancoModal">
+    <div class="bb-header" style="background:linear-gradient(135deg,#070b14 0%,#0d1a2e 60%,#071505 100%);border-bottom:1px solid rgba(0,255,136,0.12);">
+        <h1>
+            <svg width="32" height="32" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+                <defs><linearGradient id="tbGrad" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#00ff88"/><stop offset="100%" stop-color="#00d4ff"/></linearGradient></defs>
+                <rect width="36" height="36" rx="10" fill="url(#tbGrad)"/>
+                <text x="18" y="25" font-size="17" text-anchor="middle" fill="#070b14" font-weight="900" font-family="Georgia,serif" letter-spacing="-0.5">BEM</text>
+            </svg>
+            🌍 <span style="background:linear-gradient(90deg,#00ff88,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Total Banco (BRL + USD)</span>
+        </h1>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <select id="tb-anoFilter" class="bb-select" onchange="totalBanco_renderTabela()">
+                <option value="todos">Todos os Anos</option>
+            </select>
+            <button onclick="fecharTotalBanco()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);padding:7px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">← Voltar</button>
+        </div>
+    </div>
+
+    <div class="bb-body">
+        <div class="bb-cards" style="grid-template-columns:repeat(4,1fr);">
+            <div class="bb-stat green">
+                <div class="bb-stat-label">Patrimônio BRL</div>
+                <div class="bb-stat-value hidden-value" id="tb-patr-brl" data-privacy="true">R$ 0,00</div>
+                <div class="bb-stat-sub" id="tb-n-bancos-brl">— bancos</div>
+            </div>
+            <div class="bb-stat cyan">
+                <div class="bb-stat-label">Patrimônio USD</div>
+                <div class="bb-stat-value hidden-value" id="tb-patr-usd" data-privacy="true" style="color:#00d4ff;">$0.00</div>
+                <div class="bb-stat-sub hidden-value" id="tb-patr-usd-brl" data-privacy="true"></div>
+            </div>
+            <div class="bb-stat gold">
+                <div class="bb-stat-label">Total Aportado BRL</div>
+                <div class="bb-stat-value hidden-value" id="tb-aport-brl" data-privacy="true">R$ 0,00</div>
+            </div>
+            <div class="bb-stat" style="background:rgba(0,212,255,0.06);border-left:3px solid #00d4ff;">
+                <div class="bb-stat-label">Total Aportado USD</div>
+                <div class="bb-stat-value hidden-value" id="tb-aport-usd" data-privacy="true" style="color:#00d4ff;">$0.00</div>
+            </div>
+        </div>
+
+        <div class="bb-section-title">📅 Histórico Mensal Consolidado</div>
+        <div class="bb-table-wrap" style="overflow-x:auto;">
+            <table class="bb-table" style="min-width:860px;">
+                <thead class="tb-thead">
+                    <tr>
+                        <th>Mês/Ano</th>
+                        <th style="color:#00ff88;">Aportes R$</th>
+                        <th style="color:#00d4ff;">Aportes USD</th>
+                        <th style="color:#00ff88;">Patrimônio R$</th>
+                        <th style="color:#00d4ff;">Patrimônio USD</th>
+                        <th style="color:#00ff88;">Saldo R$</th>
+                        <th style="color:#00d4ff;">Saldo USD</th>
+                        <th>%</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tb-tbody-vis"></tbody>
+                <tbody id="tb-tbody-hidden" style="display:none;"></tbody>
+            </table>
+            <button class="bb-ver-mais" id="tb-ver-mais" style="display:none;" onclick="totalBanco_verMais()">▼ Ver histórico completo</button>
+        </div>
+
+        <!-- Gráfico -->
+        <div class="bb-section-title" style="margin-top:28px;">📈 Evolução do Patrimônio</div>
+        <div class="bb-chart-card">
+            <div style="height:320px; position:relative;">
+                <canvas id="tb-chart-evolucao"></canvas>
+            </div>
+        </div>
+
+        <div style="height:40px;"></div>
+    </div>
+</div>
+
+<script>
+// ═══ TOTAL BANCO MODAL (BRL + USD combinados) ═══
+let _tbLinhas = [];
+let _tbChart = null;
+
+function abrirTotalBanco() {
+    const modal = document.getElementById('totalBancoModal');
+    if (!modal) return;
+    document.body.appendChild(modal);
+    modal.style.cssText = 'display:block;position:fixed;top:0;left:0;width:100%;height:100%;background:#070b14;z-index:99999;overflow-y:auto;font-family:Inter,Roboto,sans-serif;';
+    history.pushState({ modal: 'totalBanco' }, '');
+    totalBanco_carregar();
+}
+
+function fecharTotalBanco() {
+    const modal = document.getElementById('totalBancoModal');
+    if (modal) modal.style.display = 'none';
+    abrirDashboardCompleto();
+}
+
+async function totalBanco_carregar() {
+    const sel = document.getElementById('tb-anoFilter');
+    if (!sel) return;
+    const anos = [...new Set(todosRegistros.map(r => r.data_fechamento.split('-')[0]))].sort((a,b) => b-a);
+    sel.innerHTML = '<option value="todos">Todos os Anos</option>';
+    anos.forEach(a => { const o = document.createElement('option'); o.value=a; o.textContent=a; sel.appendChild(o); });
+    await totalBanco_calcular();
+}
+
+async function totalBanco_calcular() {
+    const fmtBRL = v => (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    const fmtUSD = v => (v||0).toLocaleString('en-US',{style:'currency',currency:'USD'});
+    const dolar = dolarFallbackHoje || 5.7;
+
+    const bancosBRL = todosBancos.filter(b => !b.is_usd);
+    const bancosUSD = todosBancos.filter(b => b.is_usd);
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth(), anoAtual = hoje.getFullYear();
+
+    let totalPatrBRL = 0, totalPatrUSD = 0, totalAportBRL = 0, totalAportUSD = 0;
+
+    for (const banco of bancosBRL) {
+        const regs = todosRegistros.filter(r => r.banco_id === banco.id).sort((a,b) => new Date(a.data_fechamento)-new Date(b.data_fechamento));
+        if (!regs.length) continue;
+        const ultimo = [...regs].reverse().find(r => r.patrimonio > 0);
+        if (!ultimo) continue;
+        let val = ultimo.patrimonio;
+        const d = new Date(ultimo.data_fechamento);
+        if (!(d.getMonth()===mesAtual && d.getFullYear()===anoAtual)) {
+            regs.forEach(r => { const dr=new Date(r.data_fechamento); if(dr.getMonth()===mesAtual && dr.getFullYear()===anoAtual) val+=r.aportes||0; });
+        }
+        totalPatrBRL += val;
+        regs.forEach(r => totalAportBRL += r.aportes||0);
+    }
+    for (const banco of bancosUSD) {
+        const regs = todosRegistros.filter(r => r.banco_id === banco.id).sort((a,b) => new Date(a.data_fechamento)-new Date(b.data_fechamento));
+        if (!regs.length) continue;
+        const ultimo = [...regs].reverse().find(r => r.patrimonio_usd > 0);
+        if (!ultimo) continue;
+        let val = ultimo.patrimonio_usd;
+        const d = new Date(ultimo.data_fechamento);
+        if (!(d.getMonth()===mesAtual && d.getFullYear()===anoAtual)) {
+            regs.forEach(r => { const dr=new Date(r.data_fechamento); if(dr.getMonth()===mesAtual && dr.getFullYear()===anoAtual) val+=r.aportes_usd||0; });
+        }
+        totalPatrUSD += val;
+        regs.forEach(r => totalAportUSD += r.aportes_usd||0);
+    }
+
+    document.getElementById('tb-patr-brl').textContent = fmtBRL(totalPatrBRL);
+    document.getElementById('tb-patr-usd').textContent = fmtUSD(totalPatrUSD);
+    document.getElementById('tb-patr-usd-brl').textContent = '≈ ' + fmtBRL(totalPatrUSD * dolar);
+    document.getElementById('tb-n-bancos-brl').textContent = bancosBRL.length + ' banco' + (bancosBRL.length!==1?'s':'');
+    document.getElementById('tb-aport-brl').textContent = fmtBRL(totalAportBRL);
+    document.getElementById('tb-aport-usd').textContent = fmtUSD(totalAportUSD);
+
+    // Monta histórico mensal combinado
+    const meses = {};
+    todosRegistros.forEach(r => {
+        if (!meses[r.periodo]) meses[r.periodo] = { regsBRL:[], regsUSD:[], patrimonioFinalBRL:0, patrimonioFinalUSD:0 };
+        const banco = todosBancos.find(b => b.id === r.banco_id);
+        if (!banco) return;
+        if (banco.is_usd) {
+            meses[r.periodo].regsUSD.push(r);
+            if (r.patrimonio_usd > 0) meses[r.periodo].patrimonioFinalUSD += r.patrimonio_usd;
+        } else {
+            meses[r.periodo].regsBRL.push(r);
+            if (r.patrimonio > 0) meses[r.periodo].patrimonioFinalBRL += r.patrimonio;
+        }
+    });
+    const _mesKey = anoAtual + '/' + String(mesAtual+1).padStart(2,'0');
+    if (!meses[_mesKey]) meses[_mesKey] = { regsBRL:[], regsUSD:[], patrimonioFinalBRL:0, patrimonioFinalUSD:0 };
+
+    const sortedMeses = Object.keys(meses).sort((a,b) => {
+        const [anoA,mA]=a.split('/').map(Number), [anoB,mB]=b.split('/').map(Number);
+        return anoA!==anoB ? anoA-anoB : mA-mB;
+    });
+
+    let patAntBRL = 0, patAntUSD = 0;
+    _tbLinhas = [];
+
+    for (const mesAno of sortedMeses) {
+        const dm = meses[mesAno];
+        const anoReg = mesAno.split('/')[0];
+        let totalAportMesBRL = 0, totalAportMesUSD = 0;
+        let basePondBRL = patAntBRL, basePondUSD = patAntUSD;
+
+        dm.regsBRL.forEach(r => {
+            const d = new Date(r.data_fechamento+'T00:00:00');
+            const diasNoMes = new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+            const prop = (diasNoMes-d.getDate()+1)/diasNoMes;
+            totalAportMesBRL += r.aportes||0;
+            basePondBRL += (r.aportes||0)*prop;
+        });
+        dm.regsUSD.forEach(r => {
+            const d = new Date(r.data_fechamento+'T00:00:00');
+            const diasNoMes = new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+            const prop = (diasNoMes-d.getDate()+1)/diasNoMes;
+            totalAportMesUSD += r.aportes_usd||0;
+            basePondUSD += (r.aportes_usd||0)*prop;
+        });
+
+        const saldoBRL = dm.patrimonioFinalBRL - patAntBRL - totalAportMesBRL;
+        const saldoUSD = dm.patrimonioFinalUSD - patAntUSD - totalAportMesUSD;
+        const baseComb = basePondBRL + basePondUSD * dolar;
+        const saldoComb = saldoBRL + saldoUSD * dolar;
+        const crescPct = baseComb > 0 ? (saldoComb / baseComb) * 100 : 0;
+
+        const nRegs = dm.regsBRL.length + dm.regsUSD.length;
+        const mesId = mesAno.replace('/','_');
+        const hideClass = (typeof privacidadeAtiva !== 'undefined' && privacidadeAtiva) ? 'hidden-value' : '';
+
+        const aberto = (() => {
+            const todosBancosIds = [...bancosBRL, ...bancosUSD];
+            return todosBancosIds.some(banco => {
+                const regs = todosRegistros.filter(r => r.banco_id === banco.id && r.periodo === mesAno);
+                if (banco.is_usd) return !regs.some(r => r.patrimonio_usd > 0);
+                return !regs.some(r => r.patrimonio > 0);
+            });
+        })();
+
+        const badge = aberto
+            ? `<span class="bb-badge-open">🔴 Fechar mês</span>`
+            : `<span class="bb-badge-closed">✅</span>`;
+
+        _tbLinhas.push({ mesAno, anoReg, badge, hideClass,
+            totalAportMesBRL, totalAportMesUSD,
+            patrimonioFinalBRL: dm.patrimonioFinalBRL,
+            patrimonioFinalUSD: dm.patrimonioFinalUSD,
+            saldoBRL, saldoUSD, crescPct, nRegs, mesId });
+
+        patAntBRL = dm.patrimonioFinalBRL;
+        patAntUSD = dm.patrimonioFinalUSD;
+    }
+    _tbLinhas.reverse();
+    totalBanco_renderTabela();
+    totalBanco_renderGrafico();
+}
+
+function totalBanco_renderTabela() {
+    const fmtBRL = v => (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    const fmtUSD = v => (v||0).toLocaleString('en-US',{style:'currency',currency:'USD'});
+    const anoSelEl = document.getElementById('tb-anoFilter');
+    const tbody    = document.getElementById('tb-tbody-vis');
+    const tbodyH   = document.getElementById('tb-tbody-hidden');
+    const btnVM    = document.getElementById('tb-ver-mais');
+    if (!tbody || !tbodyH || !btnVM) return;
+
+    const anoSel = anoSelEl ? anoSelEl.value : 'todos';
+    const filtradas = anoSel === 'todos' ? _tbLinhas : _tbLinhas.filter(r => r.anoReg === anoSel);
+
+    function rowHTML(r) {
+        return `
+            <td style="white-space:nowrap;color:#fff;font-weight:600;">${r.mesAno} ${r.badge}</td>
+            <td class="${r.hideClass}" style="color:#00ff88;">${fmtBRL(r.totalAportMesBRL)}</td>
+            <td class="${r.hideClass}" style="color:#00d4ff;">${fmtUSD(r.totalAportMesUSD)}</td>
+            <td class="${r.hideClass}" style="color:#00ff88;font-weight:700;">${fmtBRL(r.patrimonioFinalBRL)}</td>
+            <td class="${r.hideClass}" style="color:#00d4ff;font-weight:700;">${fmtUSD(r.patrimonioFinalUSD)}</td>
+            <td class="${r.saldoBRL>=0?'bb-pos':'bb-neg'} ${r.hideClass}">${fmtBRL(r.saldoBRL)}</td>
+            <td class="${r.saldoUSD>=0?'bb-pos':'bb-neg'} ${r.hideClass}">${fmtUSD(r.saldoUSD)}</td>
+            <td class="${r.crescPct>=0?'bb-pos':'bb-neg'} ${r.hideClass}" style="font-weight:700;">${r.crescPct.toFixed(2)}%</td>
+            <td><span style="color:rgba(255,255,255,0.4);font-size:12px;">${r.nRegs} lançamento${r.nRegs!==1?'s':''}</span></td>`;
+    }
+
+    const visiveis = filtradas.slice(0,3);
+    const ocultas  = filtradas.slice(3);
+    tbody.innerHTML = visiveis.map(r => `<tr>${rowHTML(r)}</tr>`).join('');
+
+    if (ocultas.length > 0) {
+        tbodyH.innerHTML = ocultas.map(r => `<tr>${rowHTML(r)}</tr>`).join('');
+        tbodyH.style.display = 'none';
+        btnVM.style.display = 'block';
+        btnVM.textContent = '▼ Ver histórico completo (' + ocultas.length + ' meses)';
+    } else {
+        tbodyH.innerHTML = ''; tbodyH.style.display = 'none'; btnVM.style.display = 'none';
+    }
+}
+
+function totalBanco_verMais() {
+    document.getElementById('tb-tbody-hidden').style.display = 'table-row-group';
+    document.getElementById('tb-ver-mais').style.display = 'none';
+}
+
+function totalBanco_renderGrafico() {
+    if (_tbChart) { try { _tbChart.destroy(); } catch(e){} _tbChart = null; }
+    const ctx = document.getElementById('tb-chart-evolucao')?.getContext('2d');
+    if (!ctx) return;
+
+    const dados = [..._tbLinhas].reverse().filter(r => r.patrimonioFinalBRL > 0 || r.patrimonioFinalUSD > 0);
+    if (!dados.length) return;
+
+    const tickColor = 'rgba(255,255,255,0.3)';
+    const gridColor = 'rgba(255,255,255,0.05)';
+    const fmtBRL = v => 'R$ ' + (v/1000000).toFixed(2) + 'M';
+    const fmtUSD = v => '$ ' + (v/1000).toFixed(1) + 'k';
+    const fmtBRLfull = v => (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    const fmtUSDfull = v => (v||0).toLocaleString('en-US',{style:'currency',currency:'USD'});
+
+    _tbChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dados.map(d => d.mesAno),
+            datasets: [
+                {
+                    label: '🟢 Patrimônio R$',
+                    data: dados.map(d => d.patrimonioFinalBRL),
+                    borderColor: '#00ff88',
+                    backgroundColor: 'rgba(0,255,136,0.08)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#00ff88',
+                    pointBorderColor: '#070b14',
+                    pointBorderWidth: 2,
+                    borderWidth: 2.5,
+                    yAxisID: 'yBRL'
+                },
+                {
+                    label: '🔵 Patrimônio USD',
+                    data: dados.map(d => d.patrimonioFinalUSD),
+                    borderColor: '#00d4ff',
+                    backgroundColor: 'rgba(0,212,255,0.06)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#00d4ff',
+                    pointBorderColor: '#070b14',
+                    pointBorderWidth: 2,
+                    borderWidth: 2.5,
+                    yAxisID: 'yUSD'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        color: 'rgba(255,255,255,0.7)',
+                        font: { size: 12, weight: '600' },
+                        usePointStyle: true,
+                        pointStyleWidth: 12,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(7,11,20,0.95)',
+                    borderColor: 'rgba(255,255,255,0.1)',
+                    borderWidth: 1,
+                    padding: 12,
+                    titleColor: 'rgba(255,255,255,0.7)',
+                    titleFont: { size: 12 },
+                    bodyFont: { size: 13, weight: '700' },
+                    callbacks: {
+                        label: c => c.dataset.yAxisID === 'yBRL'
+                            ? '  BRL: ' + fmtBRLfull(c.raw)
+                            : '  USD: ' + fmtUSDfull(c.raw)
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: tickColor, font: { size: 11 }, maxRotation: 45 },
+                    grid: { color: gridColor }
+                },
+                yBRL: {
+                    position: 'left',
+                    ticks: {
+                        color: '#00ff88',
+                        font: { size: 11 },
+                        callback: v => fmtBRL(v)
+                    },
+                    grid: { color: gridColor },
+                    title: { display: true, text: 'R$ (BRL)', color: '#00ff88', font: { size: 11, weight: '700' } }
+                },
+                yUSD: {
+                    position: 'right',
+                    ticks: {
+                        color: '#00d4ff',
+                        font: { size: 11 },
+                        callback: v => fmtUSD(v)
+                    },
+                    grid: { display: false },
+                    title: { display: true, text: '$ (USD)', color: '#00d4ff', font: { size: 11, weight: '700' } }
+                }
+            }
+        }
+    });
+}
+
+window.addEventListener('popstate', function(e) {
+    if (document.getElementById('totalBancoModal')?.style.display === 'block') {
+        fecharTotalBanco();
+    }
+});
 
 // ══════════════════════════════════════════════════
 // 📜 HISTÓRICO DE OPERAÇÕES (dados estáticos)
-// ══════════════════════════════════════════════════
 
 const HIST_OPC_DATA = [
 ["V","2021-11-01","01/11/2021","ABEVL178","ABEV3",0.0,6000,"CALL"],
