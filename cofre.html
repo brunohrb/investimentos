@@ -173,33 +173,21 @@
 <div class="loading-overlay" id="ld"><div class="spinner"></div><p id="ld-txt">Carregando...</p></div>
 <div class="toast" id="toast"></div>
 
-<!-- SETUP -->
+<!-- SETUP (primeira vez — só criar senha mestra) -->
 <div class="screen active" id="screen-setup">
   <div class="auth-box">
     <div class="vault-logo">
       <div class="ico">🔐</div>
       <h1>COFRE</h1>
-      <p>Primeira configuração</p>
+      <p>Primeira vez — crie sua senha mestra</p>
     </div>
-    <p class="hint">Crie uma conta gratuita no <strong style="color:var(--text)">Supabase</strong> e execute o SQL abaixo no painel (SQL Editor).</p>
-    <label>SQL — cole no Supabase → SQL Editor → Run</label>
-    <div class="sql-box">CREATE TABLE IF NOT EXISTS vault_items (<br>
-&nbsp;&nbsp;id uuid DEFAULT gen_random_uuid() PRIMARY KEY,<br>
-&nbsp;&nbsp;category text NOT NULL,<br>
-&nbsp;&nbsp;encrypted_data text NOT NULL,<br>
-&nbsp;&nbsp;created_at timestamptz DEFAULT now()<br>
-);<br>ALTER TABLE vault_items DISABLE ROW LEVEL SECURITY;</div>
-    <div class="divider"></div>
-    <label>Supabase URL</label>
-    <input type="url" id="s-url" placeholder="https://xxxxxxxx.supabase.co">
-    <label>Supabase Anon Key</label>
-    <input type="text" id="s-key" placeholder="eyJhbGci...">
-    <label>Senha Mestra (anote — não é recuperável)</label>
-    <div class="pw"><input type="password" id="s-pass" placeholder="Crie uma senha forte (mín. 8 caracteres)"><button class="eye" type="button" onclick="eye('s-pass',this)">👁</button></div>
+    <p class="hint">Crie uma senha forte. Ela criptografa todos os seus dados — <strong style="color:var(--text)">não é recuperável</strong>.</p>
+    <label>Senha Mestra</label>
+    <div class="pw"><input type="password" id="s-pass" placeholder="Mínimo 8 caracteres"><button class="eye" type="button" onclick="eye('s-pass',this)">👁</button></div>
     <label>Confirmar Senha Mestra</label>
     <div class="pw"><input type="password" id="s-pass2" placeholder="Repita a senha"><button class="eye" type="button" onclick="eye('s-pass2',this)">👁</button></div>
     <div class="err" id="s-err"></div>
-    <button class="btn" type="button" onclick="doSetup()">⚙ Configurar Cofre</button>
+    <button class="btn" type="button" onclick="doSetup()">🔐 Criar Cofre</button>
   </div>
 </div>
 
@@ -380,6 +368,15 @@
 
 <script>
 const CFG_KEY='vault_cfg';
+// credentials obfuscated — decoded at runtime
+(function(){
+  const _k='C0fr3S3cr3t0!@#$2025';
+  const _d=s=>{const b=atob(s);let r='';for(let i=0;i<b.length;i++)r+=String.fromCharCode(b.charCodeAt(i)^_k.charCodeAt(i%_k.length));return r};
+  window._SU=_d('K0QSAkBpHEwcQhVJSjJAQlZVSkM6Ux4IUjhLG1xAAUBAIkJXVx5RWg==');
+  window._SK=_d('JkksGlEUUAo9Wj55dDpqFXxZe0YKXjRHUBB6VTtYBGh3A2kdHFVLfzNTVT9aHFopCFcsckkZTmJIamF8MHkIOF8JWipEehkFWRl7SEBTX3suaiEkBzddDxhWPEBJIRBMBnlbQipTC0tACWAqRHoZdlQiERBbfHF/M2k+I1ocWSZBfQ59WQ5JaQZ+ZlYweQskBzBwKkR+HnEVD2dHSH9mUnJ+VUIdPgpTO1ITe2VwV2NbW3N8J3gKK1U4BlYqeTBoeQ9CewNYXVwFeDY1BzxRBA==');
+})();
+const SUPABASE_URL=window._SU;
+const SUPABASE_KEY=window._SK;
 let SB=null,MKEY=null,currentTab='passwords',pendingFile=null,pendingDocFile=null;
 let cache={passwords:[],documents:[],files:[],personal:[]};
 const TABS={
@@ -396,7 +393,12 @@ function dec(cipher,key){try{const b=CryptoJS.AES.decrypt(cipher,key);const s=b.
 
 /* CONFIG */
 function saveCfg(c){localStorage.setItem(CFG_KEY,JSON.stringify(c))}
-function loadCfg(){try{return JSON.parse(localStorage.getItem(CFG_KEY))}catch{return null}}
+function loadCfg(){
+  try{
+    const stored=JSON.parse(localStorage.getItem(CFG_KEY))||{};
+    return {...stored,url:SUPABASE_URL,key:SUPABASE_KEY};
+  }catch{return {url:SUPABASE_URL,key:SUPABASE_KEY}}
+}
 
 /* UI */
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active')}
@@ -412,26 +414,25 @@ function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 
 /* SETUP */
 async function doSetup(){
-  const url=valt('s-url'),key=valt('s-key'),pw=val('s-pass'),pw2=val('s-pass2'),errEl=g('s-err');
+  const pw=val('s-pass'),pw2=val('s-pass2'),errEl=g('s-err');
   errEl.classList.remove('show');
-  if(!url||!key){errEl.textContent='Informe URL e Anon Key do Supabase.';errEl.classList.add('show');return}
   if(pw.length<8){errEl.textContent='Senha mestra precisa de ao menos 8 caracteres.';errEl.classList.add('show');return}
   if(pw!==pw2){errEl.textContent='As senhas não coincidem.';errEl.classList.add('show');return}
   loading('Conectando...');
   try{
-    const client=window.supabase.createClient(url,key);
+    const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
     const {error}=await client.from('vault_items').select('id').limit(1);
-    if(error)throw new Error('Erro de conexão: '+error.message+'. Verifique se criou a tabela e desabilitou o RLS (DISABLE ROW LEVEL SECURITY).');
+    if(error)throw new Error('Erro de conexão: '+error.message);
     const salt=CryptoJS.lib.WordArray.random(128/8).toString();
     const derived=deriveKey(pw,salt);
     const token=enc('VAULT_OK',derived);
-    saveCfg({url,key,salt,token});
+    saveCfg({salt,token});
     unload();
-    alert('Cofre configurado com sucesso! Faça login para continuar.');
+    alert('Cofre criado com sucesso! Faça login para continuar.');
     location.reload();
   }catch(e){unload();errEl.textContent=e.message;errEl.classList.add('show')}
 }
-function doReset(){if(confirm('Remover configuração local? Os dados no Supabase continuam intactos.')){localStorage.removeItem(CFG_KEY);location.reload()}}
+function doReset(){if(confirm('Apagar senha mestra local? Os dados no Supabase continuam intactos. Você poderá criar uma nova senha.')){localStorage.removeItem(CFG_KEY);location.reload()}}
 
 /* LOGIN */
 async function doLogin(){
@@ -695,7 +696,15 @@ function processDocFile(file){
 }
 
 /* INIT */
-(function(){const cfg=loadCfg();if(!cfg||!cfg.url||!cfg.key||!cfg.token)showScreen('setup');else showScreen('login')})();
+(function(){
+  const stored=JSON.parse(localStorage.getItem(CFG_KEY)||'{}');
+  if(stored&&stored.token){
+    showScreen('login');
+  } else {
+    // First time: show inline first-time setup (just password creation)
+    showScreen('setup');
+  }
+})();
 </script>
 </body>
 </html>
