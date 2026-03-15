@@ -1649,7 +1649,15 @@
 </p>
 </div>
     
-<div class="total-card" style="background: linear-gradient(135deg, #fd7e14, #ff9f43); cursor:pointer; transition: transform 0.15s, box-shadow 0.15s;" onclick="abrirAcoes()" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.25)'" onmouseout="this.style.transform=''; this.style.boxShadow=''"><h3>📈 Ações</h3><p id="patrimonioAcoes" class="hidden-value" data-privacy="true">R$ 0,00</p><p style="font-size:11px; opacity:0.75; margin:4px 0 0;">clique para abrir ↗</p></div>    
+<div class="total-card" style="background: linear-gradient(135deg, #fd7e14, #ff9f43); cursor:pointer; transition: transform 0.15s, box-shadow 0.15s; position:relative;" onclick="abrirAcoes()" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.25)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+    <button id="acoes-card-privacyBtn" onclick="event.stopPropagation(); togglePrivacy();" title="Ocultar/mostrar valores"
+        style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.2);border:none;cursor:pointer;font-size:16px;padding:4px 7px;border-radius:50%;opacity:0.85;transition:opacity 0.2s,transform 0.15s;line-height:1;"
+        onmouseover="this.style.opacity=1;this.style.transform='scale(1.2)'"
+        onmouseout="this.style.opacity=0.85;this.style.transform='scale(1)'">👁️</button>
+    <h3>📈 Ações</h3>
+    <p id="patrimonioAcoes" class="hidden-value" data-privacy="true">R$ 0,00</p>
+    <p style="font-size:11px; opacity:0.75; margin:4px 0 0;">clique para abrir ↗</p>
+</div>    
     <!-- Linha 2: 5 cards de informações (um vai quebrar para linha 3 ou podemos ajustar depois) -->
     <div class="stats-card"><h4>Aportado BRL</h4><p id="totalAportadoBRL" class="hidden-value" data-privacy="true">R$ 0,00</p></div>
     
@@ -1850,38 +1858,36 @@ async function inicializarSistema() {
     // Abre o Dashboard Completo como tela principal
     await abrirDashboardCompleto();
     document.getElementById('mainContainer').style.opacity = '1';
+
+    // Garante modo oculto ativo ao carregar
+    setTimeout(aplicarPrivacy, 300);
 }
 
+function aplicarPrivacy() {
+    document.querySelectorAll('[data-privacy="true"]').forEach(el => {
+        if (privacidadeAtiva) el.classList.add('hidden-value');
+        else el.classList.remove('hidden-value');
+    });
+    document.querySelectorAll('.hidden-value').forEach(el => {
+        el.setAttribute('data-privacy', 'true');
+    });
+    document.querySelectorAll('.db-card-value, .db-card-sub').forEach(el => {
+        if (privacidadeAtiva) el.classList.add('hidden-value');
+        else el.classList.remove('hidden-value');
+    });
+    const icon = privacidadeAtiva ? '👁️' : '🙈';
+    ['privacyBtn','db-privacyBtn','bb-privacy-btn','usd-privacy-btn','acoes-privacyBtn','acoes-card-privacyBtn'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = icon;
+    });
+}
 
 function togglePrivacy() {
     privacidadeAtiva = !privacidadeAtiva;
 
-    function aplicarPrivacy() {
-        // Elementos estáticos com data-privacy
-        document.querySelectorAll('[data-privacy="true"]').forEach(el => {
-            if (privacidadeAtiva) el.classList.add('hidden-value');
-            else el.classList.remove('hidden-value');
-        });
-        // Elementos dinâmicos com classe hidden-value já aplicada
-        document.querySelectorAll('.hidden-value').forEach(el => {
-            el.setAttribute('data-privacy', 'true');
-        });
-        // Valores do dashboard completo (db-card-value e db-card-sub)
-        document.querySelectorAll('.db-card-value, .db-card-sub').forEach(el => {
-            if (privacidadeAtiva) el.classList.add('hidden-value');
-            else el.classList.remove('hidden-value');
-        });
-    }
-
     aplicarPrivacy();
     atualizarTabela();
     setTimeout(aplicarPrivacy, 150);
-
-    const icon = privacidadeAtiva ? '👁️' : '🙈';
-    ['privacyBtn','db-privacyBtn','bb-privacy-btn','usd-privacy-btn','acoes-privacyBtn'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = icon;
-    });
 
     // Re-renderiza cards de opções se estiver aberta
     if (typeof atualizarCardsOpcoes === 'function' &&
@@ -4855,13 +4861,27 @@ function renderizarCarteira() {
         if (cot?.nome && (!p.nome || p.nome === p.ticker)) p.nome = cot.nome;
 
         const valorAtual = preco !== null ? preco * p.qtd : null;
-        const pl    = valorAtual !== null ? valorAtual - p.custoTotal : null;
-        const plPct = p.custoTotal > 0 && pl !== null ? (pl / p.custoTotal) * 100 : null;
+        // ── P&L com trava de strike ──────────────────────────────────────
+        // Se há strike ativo e o preço de mercado ultrapassou o strike,
+        // o ganho máximo real é (strike - pm) * qtd + prêmios recebidos com opções.
+        const strikeAtivo = callAtivaCol?.strike || null;
+        const travadoPorStrike = strikeAtivo && preco !== null && preco > strikeAtivo;
+        let pl, plPct;
+        if (travadoPorStrike) {
+            pl    = (strikeAtivo - pm) * p.qtd + lucroOpc;
+            plPct = p.custoTotal > 0 ? (pl / p.custoTotal) * 100 : null;
+        } else {
+            pl    = valorAtual !== null ? valorAtual - p.custoTotal : null;
+            plPct = p.custoTotal > 0 && pl !== null ? (pl / p.custoTotal) * 100 : null;
+        }
+        // ────────────────────────────────────────────────────────────────
         const hide  = privacidadeAtiva ? 'hidden-value' : '';
 
         const cotDisplay   = preco !== null ? `<strong>${formatarMoeda(preco)}</strong>` : `<span style="color:#aaa;font-size:11px;">sem cotação</span>`;
         const valDisplay   = valorAtual !== null ? `<span class="${hide} ${pl>=0?'pos':'neg'}">${formatarMoeda(valorAtual)}</span>` : `<span class="${hide}" style="color:#aaa">${formatarMoeda(p.custoTotal)}</span>`;
-        const plDisplay    = pl !== null ? `<span class="${hide} ${pl>=0?'pos':'neg'}">${formatarMoeda(pl)}</span>` : `<span style="color:#aaa">—</span>`;
+        const plDisplay    = pl !== null
+            ? `<span class="${hide} ${pl>=0?'pos':'neg'}" title="${travadoPorStrike ? `🔒 Travado: strike ${formatarMoeda(strikeAtivo)} + prêmios ${formatarMoeda(lucroOpc)}` : ''}">${travadoPorStrike ? '🔒 ' : ''}${formatarMoeda(pl)}</span>`
+            : `<span style="color:#aaa">—</span>`;
         const plPctDisplay = plPct !== null ? `<span class="${pl>=0?'pos':'neg'}">${plPct.toFixed(2)}%</span>` : `<span style="color:#aaa">—</span>`;
         const diaDisplay   = cot ? `<span class="${cot.changePct>=0?'pos':'neg'}" style="font-size:12px;">${cot.changePct>=0?'▲':'▼'} ${Math.abs(cot.changePct).toFixed(2)}%</span>` : `<span style="color:#aaa">—</span>`;
 
@@ -4995,12 +5015,25 @@ function renderizarGraficoLinha() {
 // ── Dashboard Cards ─────────────────────────────
 function atualizarDashboardAcoes() {
     const pos = calcularPosicoes();
-    let investido = 0, mercado = 0;
+    let investido = 0, mercado = 0, pl = 0;
     pos.forEach(p => {
+        const cot        = acoesCotacoes[p.ticker];
+        const preco      = cot ? cot.price : null;
+        const pm         = p.qtd > 0 ? p.custoTotal / p.qtd : 0;
+        const callAtiva  = getCallCoberta(p.ticker);
+        const strikeAtivo = callAtiva?.strike || null;
+        const lucroOpc   = calcularLucroOpcoesTicker(p.ticker);
+
         investido += p.custoTotal;
-        mercado   += acoesCotacoes[p.ticker] ? acoesCotacoes[p.ticker].price * p.qtd : p.custoTotal;
+        mercado   += preco !== null ? preco * p.qtd : p.custoTotal;
+
+        // P&L: se preço acima do strike, cap pelo strike + prêmios
+        if (strikeAtivo && preco !== null && preco > strikeAtivo) {
+            pl += (strikeAtivo - pm) * p.qtd + lucroOpc;
+        } else {
+            pl += preco !== null ? preco * p.qtd - p.custoTotal : 0;
+        }
     });
-    const pl  = mercado - investido;
     const pct = investido > 0 ? (pl / investido) * 100 : 0;
     const cor = pl >= 0 ? 'linear-gradient(135deg, #28a745, #20c997)' : 'linear-gradient(135deg, #dc3545, #e83e8c)';
 
