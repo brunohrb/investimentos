@@ -1459,6 +1459,18 @@
 <div id="listaBancosConfig" style="font-size:14px"></div>
 
 
+        <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0">
+        <h4 style="margin-bottom:6px;">🔑 Token brapi.dev</h4>
+        <p style="font-size:12px;color:#888;margin-bottom:8px;">Necessário para cotações de ações fora da lista gratuita (ex: BBAS3, ITUB4). <a href="https://brapi.dev" target="_blank" style="color:#007bff;">Obter token grátis →</a></p>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="brapiTokenInput" placeholder="Cole seu token aqui..."
+                style="flex:1;padding:10px;border:1px solid var(--border-color);border-radius:8px;background:var(--card-bg);color:var(--text-color);font-size:13px;"
+                value="">
+            <button onclick="salvarBrapiToken()" style="background:#007bff;color:white;border:none;padding:10px 16px;border-radius:8px;font-size:13px;cursor:pointer;white-space:nowrap;width:auto;">Salvar</button>
+        </div>
+        <div id="brapiTokenStatus" style="font-size:12px;margin-top:6px;color:#888;"></div>
+
+        <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0">
         <p style="font-size:12px; color:#888">Backup & Restauração (Excel)</p>
         <button onclick="exportarExcel()" class="btn-success" style="margin-bottom:10px">Exportar Excel</button>
         <input type="file" id="importExcel" style="display:none" onchange="importarExcel(event)">
@@ -1642,12 +1654,9 @@
     <p id="patrimonioUSD" class="hidden-value" data-privacy="true">$0,00</p>
     <p id="patrimonioUSDBRL" class="hidden-value" style="font-size:0.85em; margin-top:6px; opacity:0.8;" data-privacy="true">R$ 0,00</p>
 </div>    
-    <div class="total-card" style="background: linear-gradient(135deg, #6f42c1, #e83e8c);"><h3>🌍 Total</h3><p id="patrimonioTotal" class="hidden-value" data-privacy="true">R$ 0,00</p>
-<p id="patrimonioTotalUSD" class="hidden-value" 
-   style="font-size:0.85em; margin-top:6px; opacity:0.8;" data-privacy="true">
-   US$ 0,00
-</p>
-</div>
+    <!-- patrimonioTotal mantido oculto para cálculos internos -->
+    <span id="patrimonioTotal" style="display:none;" data-privacy="true"></span>
+    <span id="patrimonioTotalUSD" style="display:none;" data-privacy="true"></span>
     
 <div class="total-card" style="background: linear-gradient(135deg, #fd7e14, #ff9f43); cursor:pointer; transition: transform 0.15s, box-shadow 0.15s; position:relative;" onclick="abrirAcoes()" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.25)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
     <button id="acoes-card-privacyBtn" onclick="event.stopPropagation(); togglePrivacy();" title="Ocultar/mostrar valores"
@@ -1836,30 +1845,27 @@ function entrarNoSistema() {
     inicializarSistema();
 }
 async function inicializarSistema() {
-    await carregarBancos();
-    await carregarTodosRegistros();
-    carregarCotacoesHoje();
+    // ── Carrega bancos + registros + dólar em PARALELO ──
+    await Promise.all([
+        carregarBancos(),
+        carregarTodosRegistros(),
+        carregarCotacoesHoje(),
+    ]);
     carteiraMudou();
 
-    // ✅ Carrega ações antes de abrir o dashboard
-    try {
-        const { data: dataAcoes } = await sb
-            .from('acoes_transacoes')
-            .select('*')
-            .order('data', { ascending: false });
-        if (dataAcoes) {
-            acoesTransacoes = dataAcoes;
-            await atualizarCotacoesAcoes();
-        }
-    } catch(e) {
-        console.warn('Ações não carregadas:', e);
-    }
-    
-    // Abre o Dashboard Completo como tela principal
+    // Carrega transações de ações (sem bloquear o dashboard)
+    sb.from('acoes_transacoes').select('*').order('data', { ascending: false })
+        .then(({ data: dataAcoes }) => {
+            if (dataAcoes) {
+                acoesTransacoes = dataAcoes;
+                // Cotações em background — não bloqueia o dashboard
+                atualizarCotacoesAcoes().catch(() => {});
+            }
+        }).catch(e => console.warn('Ações não carregadas:', e));
+
+    // Abre o Dashboard imediatamente, sem esperar cotações de ações
     await abrirDashboardCompleto();
     document.getElementById('mainContainer').style.opacity = '1';
-
-    // Garante modo oculto ativo ao carregar
     setTimeout(aplicarPrivacy, 300);
 }
 
@@ -1918,6 +1924,25 @@ function togglePrivacy() {
     function abrirConfig() {
     document.getElementById('configModal').style.display = 'flex';
     renderizarBancosConfig();
+    const token = localStorage.getItem('brapi_token') || '';
+    const inp = document.getElementById('brapiTokenInput');
+    if (inp) inp.value = token;
+    const status = document.getElementById('brapiTokenStatus');
+    if (status) status.textContent = token ? '✅ Token salvo' : '⚠️ Sem token — BBAS3 e outros podem não ter cotação';
+}
+
+function salvarBrapiToken() {
+    const val = document.getElementById('brapiTokenInput')?.value?.trim() || '';
+    if (val) {
+        localStorage.setItem('brapi_token', val);
+        document.getElementById('brapiTokenStatus').textContent = '✅ Token salvo! Atualizando cotações...';
+        document.getElementById('brapiTokenStatus').style.color = '#28a745';
+        setTimeout(() => atualizarCotacoesAcoes(), 500);
+    } else {
+        localStorage.removeItem('brapi_token');
+        document.getElementById('brapiTokenStatus').textContent = '🗑️ Token removido';
+        document.getElementById('brapiTokenStatus').style.color = '#dc3545';
+    }
 }
 
     function fecharConfig() { document.getElementById('configModal').style.display = 'none'; }
@@ -3103,17 +3128,8 @@ function delay(ms) {
 }
 
 async function converterUSDParaBRL(valorUSD, ano, mes) {
-    if (dolarFallbackHoje) {
-        return valorUSD * dolarFallbackHoje;
-    }
-    return valorUSD * 5.80; // fallback fixo
-}
-
-async function converterUSDParaBRL(valorUSD, ano, mes) {
-    if (dolarFallbackHoje) {
-        return valorUSD * dolarFallbackHoje;
-    }
-    return valorUSD * 5.80; // fallback fixo
+    if (dolarFallbackHoje) return valorUSD * dolarFallbackHoje;
+    return valorUSD * 5.80;
 }
 
 
@@ -4686,78 +4702,128 @@ async function carregarAcoes() {
     renderizarGraficoLinha();
 }
 
-// ── Cotações via brapi.dev ───────────────────────
+// ── Cotações de Ações Brasileiras ───────────────────────
 async function atualizarCotacoesAcoes() {
     const tickers = [...new Set(
-    acoesTransacoes
-        .filter(t => !t.nome?.startsWith('CALL') && !t.nome?.startsWith('PUT'))
-        .map(t => t.ticker)
-)];
+        acoesTransacoes
+            .filter(t => !t.nome?.startsWith('CALL') && !t.nome?.startsWith('PUT'))
+            .map(t => t.ticker)
+    )];
     if (!tickers.length) {
         document.getElementById('acoes-status').textContent = 'Nenhuma ação cadastrada';
         return;
     }
 
-    // Tenta brapi primeiro (sem chave, limite 15/min)
-    let sucesso = false;
-    try {
-        const tickerStr = tickers.slice(0, 20).join(',');
-        const res  = await fetch(`https://brapi.dev/api/quote/${tickerStr}?fundamental=false`);
-        if (!res.ok) throw new Error('status ' + res.status);
-        const data = await res.json();
+    const brapiToken = localStorage.getItem('brapi_token') || '';
 
-        if (data.results && data.results.length > 0) {
-            data.results.forEach(s => {
+    // ── 1. brapi em lote (com token se disponível, sem token se não) ──
+    async function tentarBrapiLote(lista, token) {
+        const tokenParam = token ? `&token=${token}` : '';
+        try {
+            const res = await fetch(`https://brapi.dev/api/quote/${lista.join(',')}?fundamental=false${tokenParam}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            (data.results || []).forEach(s => {
                 if (s.regularMarketPrice) {
-                    acoesCotacoes[s.symbol] = {
+                    const sym = s.symbol.replace('.SA','');
+                    acoesCotacoes[sym] = {
                         price:     s.regularMarketPrice,
-                        change:    s.regularMarketChange    || 0,
+                        change:    s.regularMarketChange || 0,
                         changePct: s.regularMarketChangePercent || 0,
-                        nome:      s.longName || s.shortName || s.symbol
+                        nome:      s.longName || s.shortName || sym
                     };
                 }
             });
-            sucesso = true;
+        } catch(e) { console.warn('brapi lote falhou:', e.message); }
+    }
+
+    // Tenta com token primeiro, depois sem token
+    if (brapiToken) await tentarBrapiLote(tickers, brapiToken);
+    await tentarBrapiLote(tickers.filter(t => !acoesCotacoes[t]?.price), '');
+
+    // ── 2. Para cada ticker ainda sem cotação — busca individual ──
+    const semCotacao = () => tickers.filter(t => !acoesCotacoes[t]?.price);
+
+    for (const ticker of semCotacao()) {
+        const symbol = ticker + (/^[A-Z]{4}\d/.test(ticker) ? '.SA' : '');
+        let got = false;
+
+        // 2a. brapi individual com token
+        if (brapiToken && !got) {
+            try {
+                const res = await fetch(`https://brapi.dev/api/quote/${ticker}?fundamental=false&token=${brapiToken}`);
+                const data = await res.json();
+                const s = data.results?.[0];
+                if (s?.regularMarketPrice) {
+                    acoesCotacoes[ticker] = { price: s.regularMarketPrice, change: s.regularMarketChange||0, changePct: s.regularMarketChangePercent||0, nome: s.longName||s.shortName||ticker };
+                    got = true;
+                }
+            } catch(e) {}
         }
-    } catch(e) {
-        console.warn('brapi falhou:', e.message);
+
+        // 2b. Yahoo Finance v7 direto (sem proxy — funciona de alguns navegadores)
+        if (!got) {
+            try {
+                const res = await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,longName`, { mode: 'cors' });
+                const data = await res.json();
+                const q = data?.quoteResponse?.result?.[0];
+                if (q?.regularMarketPrice) {
+                    acoesCotacoes[ticker] = { price: q.regularMarketPrice, change: q.regularMarketChange||0, changePct: q.regularMarketChangePercent||0, nome: q.longName||q.shortName||ticker };
+                    got = true;
+                }
+            } catch(e) {}
+        }
+
+        // 2c. Yahoo v8 via corsproxy.io
+        if (!got) {
+            try {
+                const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`;
+                const res  = await fetch(`https://corsproxy.io/?${encodeURIComponent(yUrl)}`);
+                const data = await res.json();
+                const meta = data?.chart?.result?.[0]?.meta;
+                if (meta?.regularMarketPrice) {
+                    acoesCotacoes[ticker] = { price: meta.regularMarketPrice, change: 0, changePct: meta.regularMarketChangePercent||0, nome: meta.longName||meta.shortName||ticker };
+                    got = true;
+                }
+            } catch(e) {}
+        }
+
+        // 2d. Yahoo v8 via allorigins
+        if (!got) {
+            try {
+                const yUrl = `https://query2.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`;
+                const res  = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(yUrl)}`);
+                const data = await res.json();
+                const meta = data?.chart?.result?.[0]?.meta;
+                if (meta?.regularMarketPrice) {
+                    acoesCotacoes[ticker] = { price: meta.regularMarketPrice, change: 0, changePct: meta.regularMarketChangePercent||0, nome: meta.longName||meta.shortName||ticker };
+                    got = true;
+                }
+            } catch(e) {}
+        }
+
+        // 2e. HG Brasil Finance (API BR gratuita)
+        if (!got) {
+            try {
+                const res  = await fetch(`https://api.hgbrasil.com/finance/stock_price?symbol=${ticker}&key=demo`);
+                const data = await res.json();
+                const s    = data?.results?.[ticker];
+                if (s?.price) {
+                    acoesCotacoes[ticker] = { price: s.price, change: s.change_amount||0, changePct: s.change_percent||0, nome: s.name||ticker };
+                    got = true;
+                }
+            } catch(e) {}
+        }
+
+        if (!got) console.warn(`❌ Sem cotação: ${ticker}`);
+        await new Promise(r => setTimeout(r, 150));
     }
 
-    // Fallback: busca ticker por ticker individualmente (pega os que faltaram)
-    const semCotacao = tickers.filter(t => !acoesCotacoes[t] || !acoesCotacoes[t].price);
-for (const ticker of semCotacao) {
-        // Tenta brapi primeiro
-        try {
-            const res  = await fetch(`https://brapi.dev/api/quote/${ticker}?fundamental=false&dividends=false`);
-            const data = await res.json();
-            if (data.results?.[0]?.regularMarketPrice) {
-                const s = data.results[0];
-                acoesCotacoes[ticker] = { price: s.regularMarketPrice, change: s.regularMarketChange||0, changePct: s.regularMarketChangePercent||0, nome: s.longName||s.shortName||ticker };
-                sucesso = true;
-                await new Promise(r => setTimeout(r, 200));
-                continue;
-            }
-        } catch(e) { /* tenta Yahoo */ }
-
-   // Fallback Yahoo Finance
-        try {
-            const sufixo = /^[A-Z]{4}\d/.test(ticker) ? '.SA' : '';
-            const _yUrl  = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker+sufixo}?interval=1d&range=1d`;
-            const res    = await fetch(`https://corsproxy.io/?` + encodeURIComponent(_yUrl));
-            const data   = await res.json();
-            const meta   = data?.chart?.result?.[0]?.meta;
-            if (meta?.regularMarketPrice) {
-                acoesCotacoes[ticker] = { price: meta.regularMarketPrice, change: 0, changePct: meta.regularMarketChangePercent||0, nome: meta.longName||meta.shortName||ticker };
-                sucesso = true;
-            }
-        } catch(e) { /* silencioso */ }
-
-        await new Promise(r => setTimeout(r, 200));
-    }
-    const hora = new Date().toLocaleTimeString('pt-BR');
-    const comCot = tickers.filter(t => acoesCotacoes[t]?.price).length;
-    document.getElementById('acoes-status').textContent = sucesso
-        ? `🟢 ${comCot}/${tickers.length} cotações às ${hora}`
+    const hora    = new Date().toLocaleTimeString('pt-BR');
+    const comCot  = tickers.filter(t => acoesCotacoes[t]?.price).length;
+    const semCot  = tickers.length - comCot;
+    document.getElementById('acoes-status').textContent = comCot > 0
+        ? `🟢 ${comCot}/${tickers.length} cotações às ${hora}${semCot > 0 ? ` · ⚠️ ${semCot} sem cotação` : ''}`
         : `🟡 API offline — cotações manuais`;
 
     renderizarCarteira();
@@ -6561,20 +6627,18 @@ function abrirDashboardCompleto() {
     const modal = document.getElementById('dashboardCompletoModal');
     document.body.appendChild(modal);
     modal.style.cssText = 'display:block;position:fixed;top:0;left:0;width:100%;height:100%;z-index:5000;overflow-y:auto;background:#070b14;';
-    // Sincroniza cotações no header do dashboard
-// Sincroniza cotações — tenta múltiplas vezes até aparecer
-function _sincCotacoes() {
-    const dEl = document.getElementById('valorDolar');
-    const eEl = document.getElementById('valorEuro');
-    const dbD = document.getElementById('db-valorDolar');
-    const dbE = document.getElementById('db-valorEuro');
-    if (dbD && dEl && dEl.textContent && dEl.textContent !== '--') dbD.textContent = dEl.textContent;
-    if (dbE && eEl && eEl.textContent && eEl.textContent !== '--') dbE.textContent = eEl.textContent;
-}
-_sincCotacoes();
-setTimeout(_sincCotacoes, 800);
-setTimeout(_sincCotacoes, 2000);
-setTimeout(_sincCotacoes, 4000);
+
+    // Sincroniza cotações no header
+    function _sincCotacoes() {
+        const dEl = document.getElementById('valorDolar');
+        const eEl = document.getElementById('valorEuro');
+        const dbD = document.getElementById('db-valorDolar');
+        const dbE = document.getElementById('db-valorEuro');
+        if (dbD && dEl?.textContent && dEl.textContent !== '--') dbD.textContent = dEl.textContent;
+        if (dbE && eEl?.textContent && eEl.textContent !== '--') dbE.textContent = eEl.textContent;
+    }
+    _sincCotacoes();
+    setTimeout(_sincCotacoes, 1000); // apenas 1 retry
     carregarDashboardCompleto();
 }
 
@@ -6611,20 +6675,21 @@ async function carregarDashboardCompleto() {
     const corpo = document.getElementById('db-corpo');
     corpo.innerHTML = '<div class="db-loading">⏳ Calculando tudo...</div>';
 
-    // Aguarda cotações se ainda não carregaram
-    if (!dolarFallbackHoje) await new Promise(r => setTimeout(r, 500));
+    // Aguarda dólar apenas se ainda não chegou (normalmente já veio em paralelo)
+    if (!dolarFallbackHoje) await new Promise(r => setTimeout(r, 300));
 
-    const now = new Date();
-
-    // ── Coleta todos os dados ──────────────────────────────
-    const dadosBancos   = await _db_calcularBancos();
+    // ── Coleta async em PARALELO ──────────────────────────
+    const [dadosBancos, dadosImoveis, dadosEvolucao] = await Promise.all([
+        _db_calcularBancos(),
+        _db_calcularImoveis(),
+        _db_calcularEvolucao(),
+    ]);
+    // Síncronos — instantâneos
     const dadosAcoes    = _db_calcularAcoes();
-    const dadosImoveis  = await _db_calcularImoveis();
     const dadosMeses    = _db_calcularMeses();
     const dadosAportes  = _db_calcularAportes();
     const dadosDolar    = _db_calcularDolar();
     const dadosOpcoes   = _db_calcularOpcoes();
-    const dadosEvolucao = await _db_calcularEvolucao();
 
     // ── Totais gerais ──────────────────────────────────────
     const totalBancosBRL = dadosBancos.totalBRL + dadosBancos.totalUSDbrl;
@@ -6638,14 +6703,7 @@ async function carregarDashboardCompleto() {
 
         <!-- ═══ HERO ═══ -->
         <div class="db-section-title">💎 VISÃO GERAL DO PATRIMÔNIO</div>
-        <div class="db-hero-grid">
-            <div class="db-card cyan hero" onclick="fecharDashboardCompleto()">
-                <div class="db-card-label">🌍 Patrimônio Total (Banco + Ações + Imóveis)</div>
-                <div class="db-card-value" id="db-total-geral">${_dbFmt(totalGeral)}</div>
-                <div class="db-card-sub">
-                    Banco: ${_dbFmt(totalBancosBRL)} · Ações: ${_dbFmt(dadosAcoes.valorMercado)} · Imóveis: ${_dbFmt(dadosImoveis.total)}
-                </div>
-            </div>
+        <div class="db-hero-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
 <div class="db-card cyan" onclick="abrirTotalBanco()" style="cursor:pointer;">
     <div class="db-card-label">🌍 Total Banco (BRL + USD)</div>
     <div class="db-card-value" style="font-size:22px;">${_dbFmt(totalBancosBRL)}</div>
@@ -6669,7 +6727,7 @@ async function carregarDashboardCompleto() {
                     (${dadosAcoes.rentPct.toFixed(2)}%)
                 </div>
             </div>
-            <div class="db-card purple" onclick="fecharDashboardCompleto(); abrirPatrimonio();">
+            <div class="db-card purple" onclick="fecharDashboardCompleto(); abrirPatrimonio();" style="display:none;">
                 <div class="db-card-label">🏠 Imóveis</div>
                 <div class="db-card-value">${_dbFmt(dadosImoveis.total)}</div>
                 <div class="db-card-sub">${dadosImoveis.lista.length} imóvel${dadosImoveis.lista.length !== 1 ? 's' : ''}</div>
@@ -6739,6 +6797,10 @@ async function carregarDashboardCompleto() {
         <div class="db-chart-card">
             <div class="db-chart-title">🪙 Distribuição por Moeda</div>
             <div style="height:220px; position:relative;"><canvas id="db-chart-pizza-moeda"></canvas></div>
+        </div>
+        <div class="db-chart-card">
+            <div class="db-chart-title">🌍 Patrimônio Total — Composição</div>
+            <div style="height:220px; position:relative;"><canvas id="db-chart-pizza-patrimonio-total"></canvas></div>
         </div>
     </div>
 </div>
@@ -6913,7 +6975,7 @@ async function carregarDashboardCompleto() {
     // ── Preenche tabelas e gráficos ──────────────────────
     _db_renderTabelaBancos(dadosBancos);
     _db_renderTabelaAcoes(dadosAcoes);
-    _db_renderGraficos(dadosBancos, dadosAcoes, dadosEvolucao, dadosAportes);
+    _db_renderGraficos(dadosBancos, dadosAcoes, dadosEvolucao, dadosAportes, dadosImoveis);
 }
 
 // ── Helpers de formatação ───────────────────────────────────
@@ -7271,7 +7333,7 @@ function _db_renderTabelaAcoes(dados) {
 // ── Render gráficos ──────────────────────────────────────────
 let _dbCharts = {};
 
-function _db_renderGraficos(dadosBancos, dadosAcoes, dadosEvolucao, dadosAportes) {
+function _db_renderGraficos(dadosBancos, dadosAcoes, dadosEvolucao, dadosAportes, dadosImoveis) {
     // Destrói anteriores
     Object.values(_dbCharts).forEach(c => { try { c.destroy(); } catch(e) {} });
     _dbCharts = {};
@@ -7365,7 +7427,49 @@ if (ctxMoeda) {
     });
 }
 
-    // 3. Crescimento mensal (barras)
+    // 3. Pizza patrimônio total (Banco BRL + Banco USD + Ações + Imóveis)
+    const ctxPatTotal = document.getElementById('db-chart-pizza-patrimonio-total')?.getContext('2d');
+    if (ctxPatTotal) {
+        const segBancoBRL  = dadosBancos.totalBRL    || 0;
+        const segBancoUSD  = dadosBancos.totalUSDbrl  || 0;
+        const segAcoes     = dadosAcoes.valorMercado  || 0;
+        const segImoveis   = (dadosImoveis?.total)    || 0;
+        const totalGeral   = segBancoBRL + segBancoUSD + segAcoes + segImoveis;
+        const pct = v => totalGeral > 0 ? (v / totalGeral * 100).toFixed(1) + '%' : '0%';
+        _dbCharts.pizzaPatTotal = new Chart(ctxPatTotal, {
+            type: 'doughnut',
+            data: {
+                labels: [
+                    `Banco BRL (${pct(segBancoBRL)})`,
+                    `Banco USD (${pct(segBancoUSD)})`,
+                    `Ações (${pct(segAcoes)})`,
+                    `Imóveis (${pct(segImoveis)})`
+                ],
+                datasets: [{
+                    data: [segBancoBRL, segBancoUSD, segAcoes, segImoveis],
+                    backgroundColor: ['#00ff88', '#00d4ff', '#fd7e14', '#a855f7'],
+                    borderWidth: 2,
+                    borderColor: 'rgba(0,0,0,0.4)'
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: tickColor, font: { size: 10 }, padding: 10 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: c => `${c.label.split(' (')[0]}: ${_dbFmt(c.raw)} (${pct(c.raw)})`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 4. Crescimento mensal (barras)
     const ctxCresc = document.getElementById('db-chart-crescimento')?.getContext('2d');
     if (ctxCresc) {
         const ultCresc = dadosEvolucao.comCrescimento.slice(-18);
