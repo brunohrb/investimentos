@@ -5639,6 +5639,45 @@ function preencherFiltrosOpcoes() {
         ativos.forEach(a => { const o = document.createElement('option'); o.value=a; o.textContent=a; sel.appendChild(o); });
         sel.value = val;
     });
+
+    // Preencher filtro de estratégias dinamicamente
+    const EST_LABELS = {
+        'STRANGLE':             '🔀 Strangle',
+        'Venda Coberta de CALL':'📊 Venda Coberta CALL',
+        'Venda Coberta de PUT': '📊 Venda Coberta PUT',
+        'Compra de CALL':       '📈 Compra CALL',
+        'Compra de PUT':        '📉 Compra PUT',
+        'Straddle (Venda)':     '🔁 Straddle Venda',
+        'Straddle (Compra)':    '🔁 Straddle Compra',
+        'Bull Call Spread':     '📈 Bull Call Spread',
+        'Bear Put Spread':      '📉 Bear Put Spread',
+        'Personalizado':        '⚙️ Personalizado',
+    };
+    const supaEsts = listaOpcoes.map(o => {
+        const parts = o.nome?.split('|') || [];
+        const raw = (parts[1] || '').trim();
+        return raw.toLowerCase().includes('strangle') ? 'STRANGLE' : raw;
+    }).filter(Boolean);
+    const histEsts = (typeof HIST_OPC_DATA !== 'undefined' ? HIST_OPC_DATA : [])
+        .map(r => String(r[8] || '')).filter(Boolean);
+    const todasEsts = [...new Set([...supaEsts, ...histEsts])].sort();
+
+    const selEst = document.getElementById('opc-tabela-filtro-estrategia');
+    if (selEst) {
+        const valEst = selEst.value;
+        selEst.innerHTML = '<option value="">Estratégia</option>';
+        todasEsts.forEach(e => {
+            const opt = document.createElement('option');
+            opt.value = e;
+            opt.textContent = EST_LABELS[e] || e;
+            selEst.appendChild(opt);
+        });
+        const avOpt = document.createElement('option');
+        avOpt.value = 'AVULSO';
+        avOpt.textContent = '📌 Avulso';
+        selEst.appendChild(avOpt);
+        selEst.value = valEst;
+    }
 }
 
 function atualizarCardsOpcoes() {
@@ -5691,8 +5730,8 @@ function atualizarCardsOpcoes() {
     if (filtroAtivo)      opcoes = opcoes.filter(o => o.ativo === filtroAtivo);
     if (filtroTipo)       opcoes = opcoes.filter(o => o.tipo  === filtroTipo);
     if (filtroModal)      opcoes = opcoes.filter(o => o.modal === filtroModal.toUpperCase());
-    if (filtroEstrategia === 'STRANGLE') opcoes = opcoes.filter(o => o.estrategia === 'STRANGLE');
-    if (filtroEstrategia === 'AVULSO')   opcoes = opcoes.filter(o => o.estrategia !== 'STRANGLE');
+    if (filtroEstrategia === 'AVULSO')        opcoes = opcoes.filter(o => !o.estrategia || o.estrategia === '');
+    else if (filtroEstrategia)               opcoes = opcoes.filter(o => o.estrategia === filtroEstrategia);
     if (filtroDe)         opcoes = opcoes.filter(o => o.data >= filtroDe);
     if (filtroAte)        opcoes = opcoes.filter(o => o.data <= filtroAte);
 
@@ -5827,8 +5866,8 @@ function renderizarOpcoes() {
     if (filtAtivo)  lista = lista.filter(o => o.ativo === filtAtivo);
     if (filtTipo)   lista = lista.filter(o => o.tipo === filtTipo);
     if (filtModal)  lista = lista.filter(o => o.modal === filtModal);
-    if (filtEst === 'STRANGLE') lista = lista.filter(o => o.estrategia === 'STRANGLE');
-    if (filtEst === 'AVULSO')   lista = lista.filter(o => o.estrategia !== 'STRANGLE');
+    if (filtEst === 'AVULSO')        lista = lista.filter(o => !o.estrategia || o.estrategia === '');
+    else if (filtEst)               lista = lista.filter(o => o.estrategia === filtEst);
     if (filtDe)     lista = lista.filter(o => o.data >= filtDe);
     if (filtAte)    lista = lista.filter(o => o.data <= filtAte);
 
@@ -7997,8 +8036,6 @@ function _dbFmtPeriodo(periodo) {
                 </select>
                 <select id="opc-tabela-filtro-estrategia" onchange="renderizarOpcoes(); atualizarCardsOpcoes();" style="flex:1;min-width:110px;max-width:150px;padding:6px 10px;font-size:12px;border-radius:7px;border:1px solid var(--border-color);background:var(--bg-color);color:var(--text-color);">
                     <option value="">Estratégia</option>
-                    <option value="STRANGLE">🔀 Strangle</option>
-                    <option value="AVULSO">📌 Avulso</option>
                 </select>
                 <div style="display:flex;align-items:center;gap:4px;flex:1;min-width:200px;">
                     <span style="font-size:11px;color:#888;white-space:nowrap;">De</span>
