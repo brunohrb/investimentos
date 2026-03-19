@@ -5659,14 +5659,19 @@ function atualizarCardsOpcoes() {
     });
 
     // ── Opções: Supabase ──
-    const supaOpc = listaOpcoes.map(o => ({
-        tipo:      o.tipo,                        // 'compra' / 'venda'
-        valor:     Math.abs(o.preco_unitario || 0) * Math.abs(o.quantidade || 0),
-        ativo:     ((o.nome?.split(' ') || [])[1] || o.ticker?.slice(0,4) || '').toUpperCase(),
-        data:      o.data || '',
-        modal:     (o.modalidade || '').toUpperCase(),   // 'CALL' / 'PUT'
-        estrategia:''   // Supabase não tem estratégia neste mapeamento
-    }));
+    const supaOpc = listaOpcoes.map(o => {
+        const _nomeParts = o.nome?.split('|') || [];
+        const _rawEst    = (_nomeParts[1] || '').trim();
+        const _estrategia = _rawEst.toLowerCase().includes('strangle') ? 'STRANGLE' : _rawEst;
+        return {
+            tipo:      o.tipo,
+            valor:     Math.abs(o.preco_unitario || 0) * Math.abs(o.quantidade || 0),
+            ativo:     ((o.nome?.split(' ') || [])[1] || o.ticker?.slice(0,4) || '').toUpperCase(),
+            data:      o.data || '',
+            modal:     (o.modalidade || '').toUpperCase(),
+            estrategia: _estrategia
+        };
+    });
 
     // ── Opções: Histórico estático ──
     // net = valor líquido com sinal (+ = recebido, - = pago); usa r[9] para Strangle
@@ -5783,7 +5788,8 @@ function renderizarOpcoes() {
         const isCall    = o.nome?.startsWith('CALL');
         const nomeParts = o.nome?.split('|');
         const nomeBase  = nomeParts?.[0]?.trim() || '';
-        const estVal    = nomeParts?.[1]?.trim() || '';
+        const rawEstVal = nomeParts?.[1]?.trim() || '';
+        const estVal    = rawEstVal.toLowerCase().includes('strangle') ? 'STRANGLE' : rawEstVal;
         const ativo     = nomeBase.split(' ')[1] || detectAtivo(o.ticker);
         const strikeStr = nomeBase.includes('Strike') ? nomeBase.split('Strike ')[1] : '—';
         return {
@@ -5822,7 +5828,7 @@ function renderizarOpcoes() {
     if (filtTipo)   lista = lista.filter(o => o.tipo === filtTipo);
     if (filtModal)  lista = lista.filter(o => o.modal === filtModal);
     if (filtEst === 'STRANGLE') lista = lista.filter(o => o.estrategia === 'STRANGLE');
-    if (filtEst === 'AVULSO')   lista = lista.filter(o => !o.estrategia || o.estrategia === '');
+    if (filtEst === 'AVULSO')   lista = lista.filter(o => o.estrategia !== 'STRANGLE');
     if (filtDe)     lista = lista.filter(o => o.data >= filtDe);
     if (filtAte)    lista = lista.filter(o => o.data <= filtAte);
 
