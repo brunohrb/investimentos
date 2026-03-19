@@ -1061,10 +1061,102 @@
 .acoes-empty-icon { font-size: 48px; margin-bottom: 10px; }
 .acoes-empty h3 { margin: 0 0 6px; }
 
+/* ── Section Header ── */
+.acoes-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.acoes-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.acoes-section-accent {
+    display: inline-block;
+    width: 4px;
+    height: 18px;
+    background: linear-gradient(180deg, #fd7e14, #ff9f43);
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+.acoes-section-title h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-color);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.acoes-count-badge {
+    background: rgba(253,126,20,0.12);
+    color: #fd7e14;
+    border: 1px solid rgba(253,126,20,0.25);
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.acoes-section-filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.acoes-filter-select {
+    padding: 7px 10px;
+    font-size: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-color);
+    width: auto;
+    cursor: pointer;
+}
+
+/* ── P&L Realizado ── */
+#acoes-pl-realizado-box {
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 13px;
+    margin-top: 8px;
+    background: rgba(253,126,20,0.04) !important;
+    border: 1px solid rgba(253,126,20,0.15) !important;
+}
+
+/* ── Chart cards melhorados ── */
+.acoes-chart-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+}
+.acoes-chart-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #fd7e14, #007bff);
+    border-radius: 12px 12px 0 0;
+}
+.acoes-chart-card h4 {
+    margin: 0 0 14px 0;
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+}
+
 @media (max-width: 768px) {
     .acoes-charts-row   { grid-template-columns: 1fr; }
     .acoes-form-grid    { grid-template-columns: 1fr; }
-    .acoes-body         { padding: 14px; }
+    .acoes-body         { padding: 12px 14px; }
+    .acoes-dash-grid    { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+    .total-card         { padding: 14px 16px !important; }
+    .total-card p       { font-size: 18px !important; }
+    .total-card h3      { font-size: 12px !important; }
+    .acoes-section-header { flex-direction: column; align-items: flex-start; }
     #acoesModal .modal-content { width: 100% !important; max-width: 100% !important; height: 100vh !important; border-radius: 0 !important; }
 }
 
@@ -1334,6 +1426,88 @@
     .opc-cards-grid { grid-template-columns: 1fr; }
     .opc-filter-row { flex-direction: column; }
     .opc-filter-row select, .opc-filter-row input { width: 100%; min-width: unset; }
+}
+
+/* ===========================
+   📱 RESPONSIVO GLOBAL – MOBILE
+   =========================== */
+@media (max-width: 768px) {
+    /* Ações modal: barra de filtros de opções */
+    #secao-opcoes .acoes-filter-bar-wrap > div {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+    #secao-opcoes .acoes-filter-bar-wrap select,
+    #secao-opcoes .acoes-filter-bar-wrap input[type="date"] {
+        flex: 1 1 calc(50% - 6px) !important;
+        min-width: 120px !important;
+        max-width: none !important;
+    }
+
+    /* Header tabs: compact */
+    .acoes-tabs { padding: 0 12px; }
+    .acoes-tab-btn { padding: 11px 14px; font-size: 12px; }
+
+    /* Acoes body */
+    .acoes-header { padding: 14px 16px; }
+    .acoes-header h2 { font-size: 17px; }
+
+    /* Cards grid: 2 colunas */
+    .acoes-dash-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px; }
+    .total-card { padding: 14px 15px; }
+    .total-card p { font-size: 17px !important; }
+    .total-card h3 { font-size: 12px !important; }
+
+    /* Botões de registrar opção */
+    #secao-opcoes > div > button { min-width: 140px; font-size: 13px; padding: 11px 14px; }
+
+    /* Opcoes filter compact */
+    #opc-tabela-filtro-ativo,
+    #opc-tabela-filtro-tipo,
+    #opc-tabela-filtro-modal,
+    #opc-tabela-filtro-estrategia {
+        flex: 1 1 calc(50% - 6px) !important;
+        max-width: none !important;
+        min-width: 110px !important;
+    }
+    #opc-tabela-filtro-de,
+    #opc-tabela-filtro-ate {
+        flex: 1 1 calc(50% - 6px) !important;
+        max-width: none !important;
+    }
+
+    /* Gráficos */
+    .acoes-charts-row { grid-template-columns: 1fr; gap: 12px; }
+
+    /* Seção header */
+    .acoes-section-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .acoes-section-filters { width: 100%; }
+    .acoes-filter-select { width: 100%; }
+
+    /* Tabela scroll */
+    .acoes-table-wrap { border-radius: 8px; }
+    .acoes-table { min-width: 650px; }
+
+    /* Expand row */
+    .acoes-expand-inner { grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 12px; }
+
+    /* Form registrar */
+    .acoes-form-card { padding: 18px; }
+    .acoes-tipo-row { gap: 8px; }
+}
+
+@media (max-width: 480px) {
+    .acoes-dash-grid { grid-template-columns: 1fr 1fr !important; }
+    .total-card p { font-size: 15px !important; }
+    .total-card h3 { font-size: 11px !important; }
+    .acoes-body { padding: 10px 12px; }
+    .acoes-tab-btn { padding: 10px 11px; font-size: 11px; }
+    .acoes-tabs { padding: 0 8px; }
+    .acoes-header { padding: 12px 14px; }
+    .acoes-header h2 { font-size: 15px; }
+    .acoes-expand-inner { grid-template-columns: 1fr 1fr; gap: 6px; padding: 10px; }
+    #secao-opcoes > div:first-of-type { flex-direction: column; }
+    #secao-opcoes > div:first-of-type > button { width: 100%; }
 }
 
 /* ===========================
@@ -4896,6 +5070,7 @@ function calcularLucroOpcoesTicker(ticker) {
 
 // ── Renderizar Carteira ─────────────────────────
 function renderizarCarteira() {
+    atualizarDashboardAcoes();
     let pos = calcularPosicoes();
     const filtroTicker = document.getElementById('carteira-filtro-ticker')?.value || '';
     if (filtroTicker) pos = pos.filter(p => p.ticker === filtroTicker);
@@ -5080,7 +5255,10 @@ function renderizarGraficoLinha() {
 
 // ── Dashboard Cards ─────────────────────────────
 function atualizarDashboardAcoes() {
-    const pos = calcularPosicoes();
+    let pos = calcularPosicoes();
+    const filtroTicker = document.getElementById('carteira-filtro-ticker')?.value || '';
+    if (filtroTicker) pos = pos.filter(p => p.ticker === filtroTicker);
+
     let investido = 0, mercado = 0, pl = 0;
     pos.forEach(p => {
         const cot        = acoesCotacoes[p.ticker];
@@ -5109,6 +5287,17 @@ function atualizarDashboardAcoes() {
     document.getElementById('acoes-rentabilidade').textContent   = pct.toFixed(2) + '%';
     document.getElementById('acoes-card-pl').style.background    = cor;
     document.getElementById('acoes-card-rent').style.background  = cor;
+
+    // ── Card Opções: soma lucro de opções dos tickers filtrados ──
+    const lucroOpcoes = pos.reduce((sum, p) => sum + calcularLucroOpcoesTicker(p.ticker), 0);
+    const rentOpcoes  = investido > 0 ? (lucroOpcoes / investido) * 100 : 0;
+    const elOpcLucro  = document.getElementById('acoes-opcoes-lucro');
+    const elOpcRent   = document.getElementById('acoes-opcoes-rent');
+    const cardOpc     = document.getElementById('acoes-card-opcoes');
+    if (elOpcLucro) elOpcLucro.textContent = formatarMoeda(lucroOpcoes);
+    if (elOpcRent)  elOpcRent.textContent  = (rentOpcoes >= 0 ? '+' : '') + rentOpcoes.toFixed(2).replace('.', ',') + '%';
+    if (cardOpc)    cardOpc.style.background = lucroOpcoes >= 0
+        ? 'linear-gradient(135deg, #0a2818, #1a5c32)' : 'linear-gradient(135deg, #7f0000, #dc3545)';
 
     // Atualiza card do Consolidado Total
     const elPrincipal = document.getElementById('patrimonioAcoes');
@@ -5884,7 +6073,7 @@ function renderizarOpcoes() {
     lista.forEach(o => {
         const isCall = o.modal === 'call';
         const hide   = privacidadeAtiva ? 'hidden-value' : '';
-        const total  = o.premio * o.qtd;
+        const total  = (o.tipo === 'venda' ? 1 : -1) * Math.abs(o.premio) * Math.abs(o.qtd);
         const estBadge = o.estrategia === 'STRANGLE'
             ? `<span class="hist-badge-strangle" style="font-size:10px;">Strangle</span>`
             : o.estrategiaLabel !== '—' && o.estrategiaLabel
@@ -5908,9 +6097,9 @@ function renderizarOpcoes() {
             <td style="font-family:monospace;font-size:11px;"><span class="ticker-badge" style="background:${isCall?'linear-gradient(135deg,#0056b3,#007bff)':'linear-gradient(135deg,#6f42c1,#e83e8c)'};">${o.codigo}</span></td>
             <td style="font-size:12px;font-weight:600;color:#fd7e14;">${o.ativo}</td>
             <td class="${hide}" style="font-size:12px;">${o.strikeStr}</td>
-            <td class="${hide}">${formatarMoeda(o.premio)}</td>
+            <td class="${hide}" style="font-weight:600;color:${o.tipo==='venda'?'#28a745':'#dc3545'}">${o.tipo==='venda'?'+':'−'}${formatarMoeda(Math.abs(o.premio))}</td>
             <td class="${hide}">${o.qtd.toLocaleString('pt-BR')}</td>
-            <td class="${hide}"><strong style="color:${total>=0?'#28a745':'#dc3545'}">${formatarMoeda(total)}</strong></td>
+            <td class="${hide}"><strong style="color:${total>=0?'#28a745':'#dc3545'}">${total>=0?'+':'−'}${formatarMoeda(Math.abs(total))}</strong></td>
             <td>${actionBtn}</td>
         `;
         tbody.appendChild(tr);
@@ -7836,6 +8025,11 @@ function _dbFmtPeriodo(periodo) {
                     <h3>🚀 Rentabilidade</h3>
                     <p id="acoes-rentabilidade" class="hidden-value" data-privacy="true">0,00%</p>
                 </div>
+                <div class="total-card" id="acoes-card-opcoes" style="background: linear-gradient(135deg, #0a2818, #1a5c32);">
+                    <h3>⚡ Opções</h3>
+                    <p id="acoes-opcoes-lucro" class="hidden-value" data-privacy="true">R$ 0,00</p>
+                    <span id="acoes-opcoes-rent" style="font-size:12px;opacity:0.85;font-weight:600;">+0,00%</span>
+                </div>
             </div>
 
             <!-- ─── TAB CARTEIRA ─── -->
@@ -7851,14 +8045,16 @@ function _dbFmtPeriodo(periodo) {
                     </div>
                 </div>
 
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
-    <h3 style="margin:0; font-size:15px;">Posições Abertas</h3>
-    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-        <select id="carteira-filtro-ticker" onchange="renderizarCarteira()" 
-            style="padding:7px 10px;font-size:12px;border-radius:7px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);width:auto;">
-            <option value="">Todas as ações</option>
+<div class="acoes-section-header">
+    <div class="acoes-section-title">
+        <span class="acoes-section-accent"></span>
+        <h3>Posições Abertas</h3>
+        <span id="acoes-count-pos" class="acoes-count-badge"></span>
+    </div>
+    <div class="acoes-section-filters">
+        <select id="carteira-filtro-ticker" onchange="renderizarCarteira()" class="acoes-filter-select">
+            <option value="">🏦 Todos os ativos</option>
         </select>
-        <span id="acoes-count-pos" style="font-size:12px; color:#888;"></span>
     </div>
 </div>
 
