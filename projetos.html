@@ -958,18 +958,24 @@ Seja específico, use linguagem profissional mas acessível, e inclua dicas prá
     setTimeout(() => resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const OPENAI_KEY = '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';
+
+      const PROXY = 'https://corsproxy.io/?url=https://api.openai.com/v1/chat/completions';
+      const response = await fetch(PROXY, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_KEY}`
+        },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'gpt-4o',
           max_tokens: 1500,
           messages: [{
             role: 'user',
             content: [
               {
-                type: 'image',
-                source: { type: 'base64', media_type: imageType, data: imageBase64 }
+                type: 'image_url',
+                image_url: { url: `data:${imageType};base64,${imageBase64}` }
               },
               { type: 'text', text: prompt }
             ]
@@ -977,10 +983,13 @@ Seja específico, use linguagem profissional mas acessível, e inclua dicas prá
         })
       });
 
-      if (!response.ok) throw new Error(`API error: ${response.status}`);
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error?.message || `API error: ${response.status}`);
+      }
 
       const data = await response.json();
-      const text = data.content.find(b => b.type === 'text')?.text || '';
+      const text = data.choices?.[0]?.message?.content || '';
 
       // Render with formatting
       resultContent.innerHTML = formatResponse(text);
