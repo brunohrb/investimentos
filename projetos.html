@@ -703,6 +703,27 @@
   <!-- RIGHT: SIDEBAR -->
   <div class="sidebar">
 
+    <!-- API KEY -->
+    <div class="panel">
+      <div class="panel-header"><span class="dot" style="background:var(--accent)"></span> Chave da API OpenAI</div>
+      <div class="panel-body">
+        <div class="field">
+          <label>Sua API Key</label>
+          <div style="position:relative">
+            <input type="password" id="apiKeyInput" placeholder="sk-proj-..."
+              style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 40px 9px 12px;outline:none;transition:border-color 0.2s;"
+              oninput="checkApiKey()"
+              onfocus="this.style.borderColor='var(--gold)'"
+              onblur="this.style.borderColor='var(--border)'">
+            <button onclick="toggleApiVis()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;" id="visBtn">👁</button>
+          </div>
+          <div id="apiStatus" style="font-size:11px;margin-top:6px;color:var(--text3)">
+            Cole sua chave em <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--gold);text-decoration:none">platform.openai.com/api-keys</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- TIPO DE AMBIENTE -->
     <div class="panel">
       <div class="panel-header"><span class="dot"></span> Configurações</div>
@@ -958,7 +979,8 @@ Seja específico, use linguagem profissional mas acessível, e inclua dicas prá
     setTimeout(() => resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 
     try {
-      const OPENAI_KEY = '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';
+      const OPENAI_KEY = document.getElementById('apiKeyInput').value.trim();
+      if (!OPENAI_KEY) { toast('⚠️ Cole sua chave da OpenAI primeiro!'); btn.disabled = false; btn.classList.remove('loading'); return; }
 
       const PROXY = 'https://corsproxy.io/?url=https://api.openai.com/v1/chat/completions';
       const response = await fetch(PROXY, {
@@ -1014,6 +1036,37 @@ Seja específico, use linguagem profissional mas acessível, e inclua dicas prá
       .replace(/\n/g, '<br>');
     return '<p>' + html + '</p>';
   }
+
+  function toggleApiVis() {
+    const inp = document.getElementById('apiKeyInput');
+    const btn = document.getElementById('visBtn');
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+    else { inp.type = 'password'; btn.textContent = '👁'; }
+  }
+
+  function checkApiKey() {
+    const val = document.getElementById('apiKeyInput').value.trim();
+    const status = document.getElementById('apiStatus');
+    if (val.startsWith('sk-') && val.length > 20) {
+      status.innerHTML = '<span style="color:var(--green)">✓ Chave detectada</span>';
+      // save to sessionStorage
+      sessionStorage.setItem('oai_key', val);
+    } else if (val.length > 0) {
+      status.innerHTML = '<span style="color:var(--accent)">⚠ Formato inválido</span>';
+    } else {
+      status.innerHTML = 'Cole sua chave em <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--gold);text-decoration:none">platform.openai.com/api-keys</a>';
+    }
+  }
+
+  // restore key from session
+  window.addEventListener('DOMContentLoaded', () => {
+    const saved = sessionStorage.getItem('oai_key');
+    if (saved) {
+      document.getElementById('apiKeyInput').value = saved;
+      checkApiKey();
+    }
+  });
+
 </script>
 </body>
 </html>
