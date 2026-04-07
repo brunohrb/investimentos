@@ -1809,6 +1809,11 @@
 <button class="btn-icon" onclick="abrirDashboardCompleto()" title="Dashboard Completo">📊</button>
 <button onclick="abrirCarteirasBanco()" title="Análise de Carteiras" style="background:linear-gradient(135deg,#0056b3,#00bfff);border:none;color:white;padding:8px 14px;cursor:pointer;border-radius:20px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap;">📂 Carteiras</button>
 <button class="btn-icon" onclick="abrirConfig()">⚙️</button>
+<button id="btn-sync-header" onclick="syncAgora()" title="Sincronizar saldos automaticamente"
+  style="background:linear-gradient(135deg,#1b5e20,#43a047);border:none;color:white;padding:8px 14px;cursor:pointer;border-radius:20px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap;">
+  ⚡ Sync
+</button>
+<a href="sync.html" title="Configurar automação" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:white;padding:8px 12px;cursor:pointer;border-radius:50%;font-size:18px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;text-decoration:none;">🔗</a>
 </div>
 
     </header>
@@ -2113,6 +2118,34 @@ function togglePrivacy() {
         let num = v.replace(/[^\d,]/g, '').replace(',', '.');
         return (isNeg ? -1 : 1) * (parseFloat(num) || 0);
     }
+
+    // ── Sync automático ───────────────────────────────────────────────────────
+    async function syncAgora() {
+        const btn = document.getElementById('btn-sync-header');
+        if (!btn) return;
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Sync...';
+        try {
+            const cfg = window.SUPABASE_CONFIG;
+            const res = await fetch(`${cfg.url}/functions/v1/sync-all`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${cfg.key}`, 'Content-Type': 'application/json' },
+                body: '{}'
+            });
+            const data = await res.json();
+            const totalSuccess = data.results?.reduce((n, r) => n + (r.success ?? 0), 0) ?? 0;
+            const totalError   = data.results?.reduce((n, r) => n + (r.error   ?? 0), 0) ?? 0;
+            btn.innerHTML = totalError === 0 ? `✅ ${totalSuccess} ok` : `⚠️ ${totalSuccess}ok/${totalError}err`;
+            // Recarrega saldos após sync
+            setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 3500);
+            if (typeof carregarBancos === 'function') await carregarBancos();
+        } catch (err) {
+            btn.innerHTML = '❌ Erro';
+            setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 3000);
+        }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     function abrirConfig() {
     document.getElementById('configModal').style.display = 'flex';
