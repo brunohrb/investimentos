@@ -1863,6 +1863,14 @@
     <h3>📈 Ações</h3>
     <p id="patrimonioAcoes" class="hidden-value" data-privacy="true">R$ 0,00</p>
     <p style="font-size:11px; opacity:0.75; margin:4px 0 0;">clique para abrir ↗</p>
+</div>
+
+<!-- Card Pluggy: Posições nas Corretoras -->
+<div class="total-card" id="pluggyCard" style="background: linear-gradient(135deg, #6f42c1, #a855f7); cursor:pointer; transition: transform 0.15s, box-shadow 0.15s; position:relative; display:none;" onclick="abrirPluggy()" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.25)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+    <div id="pluggyCardSyncBadge" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.25);border-radius:20px;padding:2px 8px;font-size:10px;color:rgba(255,255,255,0.7);">🔄 sync</div>
+    <h3>🏦 Corretoras</h3>
+    <p id="pluggyTotalSaldo" class="hidden-value" data-privacy="true">R$ 0,00</p>
+    <p id="pluggyUltimaSync" style="font-size:10px; opacity:0.7; margin:4px 0 0;">Carregando...</p>
 </div>    
     <!-- Linha 2: 5 cards de informações (um vai quebrar para linha 3 ou podemos ajustar depois) -->
     <div class="stats-card"><h4>Aportado BRL</h4><p id="totalAportadoBRL" class="hidden-value" data-privacy="true">R$ 0,00</p></div>
@@ -14640,7 +14648,169 @@ async function cartRenderFGC() {
 
 // Carteiras salvas carregam no mobile também
 window.addEventListener('resize', cartRenderBanksList);
+
+// ══════════════════════════════════════════════════════════════════════
+// PLUGGY — Posições automáticas das corretoras
+// ══════════════════════════════════════════════════════════════════════
+
+const PLUGGY_TIPOS_LABEL = {
+  STOCK: 'Ação', FUND: 'Fundo', FIXED_INCOME: 'Renda Fixa',
+  TREASURE: 'Tesouro', ETF: 'ETF', COE: 'COE',
+  REAL_ESTATE: 'FII', PENSION: 'Previdência', CRYPTO: 'Cripto',
+  BANK: 'Conta', CREDIT: 'Crédito', INVESTMENT: 'Investimento'
+};
+
+async function pluggyCarregarCard() {
+  try {
+    const { data: contas } = await sb.from('pluggy_contas').select('saldo,atualizado_em').order('atualizado_em', { ascending: false });
+    if (!contas || !contas.length) return;
+    const total = contas.reduce((s, c) => s + Number(c.saldo || 0), 0);
+    document.getElementById('pluggyTotalSaldo').textContent = fmtBRL(total);
+    const sincEm = contas[0].atualizado_em ? new Date(contas[0].atualizado_em).toLocaleDateString('pt-BR') : '';
+    document.getElementById('pluggyUltimaSync').textContent = sincEm ? `atualizado em ${sincEm} ↗` : 'clique para abrir ↗';
+    document.getElementById('pluggyCard').style.display = '';
+    applyPrivacy();
+  } catch(e) { /* tabelas não criadas ainda */ }
+}
+
+async function abrirPluggy() {
+  const modal = document.getElementById('pluggyModal');
+  document.body.appendChild(modal);
+  modal.style.display = 'flex';
+  modal.style.zIndex = '6000';
+  history.pushState({ modal: 'pluggy' }, '');
+  await carregarPluggy();
+}
+
+function fecharPluggy() {
+  document.getElementById('pluggyModal').style.display = 'none';
+}
+
+async function carregarPluggy() {
+  document.getElementById('pluggy-status').textContent = 'Carregando...';
+  try {
+    const [{ data: itens }, { data: contas }, { data: investimentos }] = await Promise.all([
+      sb.from('pluggy_itens').select('*').order('conector_nome'),
+      sb.from('pluggy_contas').select('*').order('conector_nome'),
+      sb.from('pluggy_investimentos').select('*').order('conector_nome,tipo,nome')
+    ]);
+
+    if (!itens || !itens.length) {
+      document.getElementById('pluggy-status').textContent = '⚠️ Nenhuma corretora sincronizada ainda. Execute o workflow no GitHub.';
+      document.getElementById('pluggy-body').innerHTML = `
+        <div style="padding:40px;text-align:center;color:var(--text-secondary);">
+          <div style="font-size:48px;margin-bottom:16px;">🔌</div>
+          <h3 style="margin-bottom:8px;">Sem dados ainda</h3>
+          <p style="font-size:14px;">O sync automático roda todo dia às 7h (dias úteis).<br>Para rodar agora: GitHub → Actions → "Sync Investimentos" → Run workflow</p>
+        </div>`;
+      return;
+    }
+
+    const totalGeral = [...(contas || []), ...(investimentos || [])].reduce((s, r) => s + Number(r.saldo || 0), 0);
+    document.getElementById('pluggy-status').textContent = `Total: ${fmtBRL(totalGeral)} • ${itens.length} corretora(s) • última sync ${new Date((itens[0]?.sincronizado_em || '')).toLocaleString('pt-BR')}`;
+
+    // Agrupa por corretora
+    const grupos = {};
+    itens.forEach(item => { grupos[item.item_id] = { item, contas: [], investimentos: [] }; });
+    (contas || []).forEach(c => { if (grupos[c.item_id]) grupos[c.item_id].contas.push(c); });
+    (investimentos || []).forEach(i => { if (grupos[i.item_id]) grupos[i.item_id].investimentos.push(i); });
+
+    let html = '';
+    Object.values(grupos).forEach(({ item, contas: cs, investimentos: invs }) => {
+      const totalCorretora = [...cs, ...invs].reduce((s, r) => s + Number(r.saldo || 0), 0);
+      const statusColor = item.status === 'UPDATED' ? '#28a745' : item.status === 'UPDATING' ? '#ffd700' : '#ff6b6b';
+
+      html += `<div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;margin-bottom:18px;overflow:hidden;">
+        <div style="padding:14px 18px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div>
+            <span style="font-size:16px;font-weight:700;">${item.conector_nome}</span>
+            <span style="margin-left:10px;font-size:11px;background:${statusColor}22;color:${statusColor};padding:2px 8px;border-radius:20px;">${item.status}</span>
+          </div>
+          <span class="hidden-value" data-privacy="true" style="font-size:18px;font-weight:700;color:#a855f7;">${fmtBRL(totalCorretora)}</span>
+        </div>`;
+
+      // Contas / saldos
+      if (cs.length) {
+        html += `<div style="padding:12px 18px 0;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:0.5;margin-bottom:8px;">Saldos</div>`;
+        cs.forEach(c => {
+          html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border-color);">
+            <span style="font-size:13px;">${c.nome} <span style="opacity:0.5;font-size:11px;">${PLUGGY_TIPOS_LABEL[c.tipo] || c.tipo}</span></span>
+            <span class="hidden-value" data-privacy="true" style="font-weight:600;">${fmtBRL(c.saldo)}</span>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+
+      // Investimentos
+      if (invs.length) {
+        // Agrupa por tipo
+        const porTipo = {};
+        invs.forEach(i => { (porTipo[i.tipo] = porTipo[i.tipo] || []).push(i); });
+
+        html += `<div style="padding:12px 18px;">`;
+        Object.entries(porTipo).forEach(([tipo, lista]) => {
+          const totalTipo = lista.reduce((s, i) => s + Number(i.saldo || 0), 0);
+          html += `<div style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span style="font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:0.5;">${PLUGGY_TIPOS_LABEL[tipo] || tipo}</span>
+              <span class="hidden-value" data-privacy="true" style="font-size:11px;opacity:0.6;">${fmtBRL(totalTipo)}</span>
+            </div>`;
+          lista.forEach(inv => {
+            const variacao = inv.rendimento_mes ? `<span style="font-size:11px;color:${inv.rendimento_mes >= 0 ? '#28a745' : '#ff6b6b'};margin-left:6px;">${inv.rendimento_mes >= 0 ? '+' : ''}${Number(inv.rendimento_mes).toFixed(2)}% mês</span>` : '';
+            const venc = inv.vencimento ? `<span style="font-size:10px;opacity:0.45;margin-left:6px;">venc. ${new Date(inv.vencimento).toLocaleDateString('pt-BR')}</span>` : '';
+            html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border-color);">
+              <div style="min-width:0;">
+                <span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${inv.codigo ? `<b>${inv.codigo}</b> — ` : ''}${inv.nome}</span>${venc}
+                ${variacao}
+              </div>
+              <span class="hidden-value" data-privacy="true" style="font-weight:600;white-space:nowrap;margin-left:12px;">${fmtBRL(inv.saldo)}</span>
+            </div>`;
+          });
+          html += `</div>`;
+        });
+        html += `</div>`;
+      }
+
+      html += `</div>`;
+    });
+
+    document.getElementById('pluggy-body').innerHTML = html;
+    applyPrivacy();
+  } catch(e) {
+    document.getElementById('pluggy-status').textContent = '❌ Erro: ' + e.message;
+  }
+}
+
+// Carrega card do Pluggy junto com o dashboard
+document.addEventListener('DOMContentLoaded', () => {
+  // Aguarda um tick para o Supabase estar pronto
+  setTimeout(pluggyCarregarCard, 1500);
+});
 </script>
+
+<!-- ══ MODAL PLUGGY ════════════════════════════════════════════════════ -->
+<div id="pluggyModal" class="modal" style="display:none;">
+  <div class="modal-content" style="width:100%;max-width:100%;height:100vh;border-radius:0!important;overflow-y:auto;">
+    <!-- Header -->
+    <div class="acoes-header">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div>
+          <h2>🏦 Posições nas Corretoras</h2>
+          <p class="acoes-header-sub" id="pluggy-status">Carregando...</p>
+        </div>
+      </div>
+      <div class="acoes-header-actions">
+        <button onclick="togglePrivacy()" title="Ocultar/mostrar valores"
+          style="background:none;border:none;cursor:pointer;font-size:22px;padding:4px 8px;opacity:0.75;transition:opacity 0.2s,transform 0.15s;"
+          onmouseover="this.style.opacity=1;this.style.transform='scale(1.2)'"
+          onmouseout="this.style.opacity=0.75;this.style.transform='scale(1)'">👁️</button>
+        <button class="acoes-close" onclick="fecharPluggy()">×</button>
+      </div>
+    </div>
+    <!-- Body -->
+    <div id="pluggy-body" style="padding:20px;max-width:900px;margin:0 auto;"></div>
+  </div>
+</div>
 
 </body>
 </html>
