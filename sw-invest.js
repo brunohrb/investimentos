@@ -1,4 +1,4 @@
-const CACHE_NAME = 'investimentos-v1';
+const CACHE_NAME = 'investimentos-v2';
 const STATIC_ASSETS = [
   '/pessoal/investimentos',
   '/pessoal/logo.png',
@@ -28,20 +28,27 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Deixa passar requisições do Supabase e APIs externas
+  // Deixa passar requisições externas sem interceptar
   if (
     event.request.url.includes('supabase.co') ||
     event.request.url.includes('cdn.jsdelivr') ||
     event.request.url.includes('cdnjs.') ||
     event.request.url.includes('brapi.dev') ||
-    event.request.url.includes('pluggy')
+    event.request.url.includes('pluggy') ||
+    event.request.url.includes('fonts.googleapis') ||
+    event.request.url.includes('fonts.gstatic')
   ) {
     return;
   }
 
+  // Network-first: sempre busca versão mais recente, usa cache só se offline
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request);
-    })
+    fetch(event.request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
