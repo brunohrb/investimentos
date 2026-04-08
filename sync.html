@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sync — Configuração de Automação</title>
+  <script src="config.js"></script>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --bg2: #1a1d27;
+      --bg3: #222636;
+      --border: #2e3250;
+      --text: #e8eaf6;
+      --text2: #8b90b0;
+      --primary: #5c6bc0;
+      --primary-hover: #7986cb;
+      --success: #4caf50;
+      --error: #ef5350;
+      --warning: #ff9800;
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+    .container { max-width: 860px; margin: 0 auto; }
+    header { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+    header h1 { font-size: 1.5rem; font-weight: 700; }
+    header .back { color: var(--text2); text-decoration: none; font-size: 0.9rem; }
+    header .back:hover { color: var(--text); }
+    .section { margin-bottom: 32px; }
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text2);
+      margin-bottom: 12px;
+    }
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .card-header .info { display: flex; align-items: center; gap: 12px; }
+    .provider-logo {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      background: var(--bg3);
+    }
+    .provider-name { font-weight: 600; font-size: 1rem; }
+    .provider-subtitle { font-size: 0.8rem; color: var(--text2); margin-top: 2px; }
+    .badge {
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .badge-connected { background: #1b5e2055; color: var(--success); border: 1px solid #2e7d3260; }
+    .badge-disconnected { background: #b71c1c22; color: var(--error); border: 1px solid #c62828aa; }
+    .badge-pending { background: #e65100aa; color: #ffcc80; border: 1px solid #f4511e55; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 580px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 0.8rem; color: var(--text2); font-weight: 500; }
+    input, select {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+    input:focus, select:focus { border-color: var(--primary); }
+    select option { background: var(--bg3); }
+    .actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    button {
+      border: none;
+      border-radius: 6px;
+      padding: 9px 18px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, opacity .15s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-danger { background: #b71c1c; color: #fff; }
+    .btn-danger:hover { background: var(--error); }
+    .btn-success { background: #2e7d32; color: #fff; }
+    .btn-success:hover { background: var(--success); }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .msg {
+      font-size: 0.82rem;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+    .msg-success { background: #1b5e2044; color: var(--success); border: 1px solid #2e7d3250; }
+    .msg-error   { background: #b71c1c33; color: #ef9a9a;      border: 1px solid #c6282850; }
+    .msg-info    { background: #1a237e44; color: #90caf9;      border: 1px solid #1565c050; }
+    .sync-log { margin-top: 8px; }
+    .log-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 6px;
+      background: var(--bg3);
+      margin-bottom: 6px;
+      font-size: 0.83rem;
+    }
+    .log-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-success { background: var(--success); }
+    .dot-error   { background: var(--error); }
+    .dot-partial { background: var(--warning); }
+    .log-bank { font-weight: 600; flex: 1; }
+    .log-balance { color: var(--text2); }
+    .log-time { color: var(--text2); font-size: 0.78rem; margin-left: auto; }
+    .sync-bar {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .sync-bar .left { display: flex; flex-direction: column; gap: 4px; }
+    .sync-bar .title { font-weight: 700; font-size: 1rem; }
+    .sync-bar .subtitle { color: var(--text2); font-size: 0.82rem; }
+    .loader {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid #ffffff44;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hint { font-size: 0.78rem; color: var(--text2); margin-top: 6px; line-height: 1.5; }
+    a { color: var(--primary-hover); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .step-list { counter-reset: steps; list-style: none; padding: 0; }
+    .step-list li {
+      counter-increment: steps;
+      display: flex; gap: 12px;
+      align-items: flex-start;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+    .step-list li:last-child { border-bottom: none; }
+    .step-list li::before {
+      content: counter(steps);
+      background: var(--primary);
+      color: #fff;
+      border-radius: 50%;
+      min-width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-top: 1px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <a class="back" href="investimentos.html">← Investimentos</a>
+    <h1>⚡ Automação de Saldos</h1>
+  </header>
+
+  <!-- ── Sync Now ─────────────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="sync-bar">
+      <div class="left">
+        <div class="title">Sincronização Manual</div>
+        <div class="subtitle" id="last-sync-label">Verificando último sync...</div>
+      </div>
+      <button class="btn-success" id="btn-sync-all" onclick="syncAll()">
+        ▶ Sincronizar Agora
+      </button>
+    </div>
+    <div id="sync-result" style="margin-top:12px;display:none;"></div>
+  </div>
+
+  <!-- ── Pluggy (XP, Inter, Bradesco, C6, Avenue BR) ──────────────────── -->
+  <div class="section">
+    <div class="section-title">Open Finance Brasil — Pluggy</div>
+    <div class="card">
+      <div class="card-header">
+        <div class="info">
+          <div class="provider-logo">🏦</div>
+          <div>
+            <div class="provider-name">Pluggy</div>
+            <div class="provider-subtitle">XP Investimentos · Inter · Bradesco · C6 Bank · e mais 200 bancos</div>
+          </div>
+        </div>
+        <span class="badge badge-pending" id="pluggy-badge">Configurar</span>
+      </div>
+
+      <ol class="step-list">
+        <li>Crie uma conta grátis em <a href="https://dashboard.pluggy.ai" target="_blank">dashboard.pluggy.ai</a></li>
+        <li>Crie uma aplicação e copie o <strong>Client ID</strong> e <strong>Client Secret</strong></li>
+        <li>No Supabase → Edge Functions → Secrets, adicione:<br>
+          <code>PLUGGY_CLIENT_ID</code> e <code>PLUGGY_CLIENT_SECRET</code></li>
+        <li>Clique em <strong>Conectar banco</strong> abaixo para autenticar cada banco via Open Finance (OAuth)</li>
+      </ol>
+
+      <div class="form-grid" style="margin-top:16px;">
+        <div class="form-group full">
+          <label>Selecionar banco para conectar</label>
+          <select id="pluggy-banco-sel"></select>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" id="btn-pluggy-connect" onclick="pluggyConnect()">
+          🔗 Conectar banco via Open Finance
+        </button>
+      </div>
+      <div id="pluggy-msg"></div>
+
+      <div id="pluggy-connections" style="margin-top:14px;"></div>
+    </div>
+  </div>
+
+  <!-- ── Tastytrade ───────────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">Tastytrade</div>
+    <div class="card">
+      <div class="card-header">
+        <div class="info">
+          <div class="provider-logo">📈</div>
+          <div>
+            <div class="provider-name">Tastytrade</div>
+            <div class="provider-subtitle">API REST oficial</div>
+          </div>
+        </div>
+        <span class="badge badge-pending" id="tasty-badge">Configurar</span>
+      </div>
+
+      <ol class="step-list">
+        <li>No Supabase → Edge Functions → Secrets, adicione:<br>
+          <code>TASTYTRADE_USERNAME</code> e <code>TASTYTRADE_PASSWORD</code></li>
+        <li>Selecione o banco correspondente e informe o número da conta</li>
+        <li>Salve — o sync vai buscar o NLV (Net Liquidating Value) automaticamente</li>
+      </ol>
+
+      <div class="form-grid" style="margin-top:16px;">
+        <div class="form-group">
+          <label>Banco no sistema</label>
+          <select id="tasty-banco-sel"></select>
+        </div>
+        <div class="form-group">
+          <label>Número da conta (ex: 5WX12345)</label>
+          <input type="text" id="tasty-account" placeholder="5WX12345" />
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" onclick="saveProvider('tastytrade')">💾 Salvar</button>
+      </div>
+      <div id="tasty-msg"></div>
+      <div id="tasty-connections" style="margin-top:14px;"></div>
+    </div>
+  </div>
+
+  <!-- ── OKX ─────────────────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">OKX — Crypto</div>
+    <div class="card">
+      <div class="card-header">
+        <div class="info">
+          <div class="provider-logo">₿</div>
+          <div>
+            <div class="provider-name">OKX</div>
+            <div class="provider-subtitle">API com chave Read-Only</div>
+          </div>
+        </div>
+        <span class="badge badge-pending" id="okx-badge">Configurar</span>
+      </div>
+
+      <ol class="step-list">
+        <li>No OKX → Assets → API Management → crie uma chave <strong>Read-Only</strong></li>
+        <li>No Supabase → Edge Functions → Secrets, adicione:<br>
+          <code>OKX_API_KEY</code> · <code>OKX_API_SECRET</code> · <code>OKX_API_PASSPHRASE</code></li>
+        <li>Selecione o banco correspondente e salve</li>
+      </ol>
+
+      <div class="form-grid" style="margin-top:16px;">
+        <div class="form-group full">
+          <label>Banco no sistema</label>
+          <select id="okx-banco-sel"></select>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" onclick="saveProvider('okx')">💾 Salvar</button>
+      </div>
+      <div id="okx-msg"></div>
+      <div id="okx-connections" style="margin-top:14px;"></div>
+    </div>
+  </div>
+
+  <!-- ── Plaid (PNC) ─────────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">PNC Bank — Plaid</div>
+    <div class="card">
+      <div class="card-header">
+        <div class="info">
+          <div class="provider-logo">🏛️</div>
+          <div>
+            <div class="provider-name">Plaid</div>
+            <div class="provider-subtitle">PNC Bank · e qualquer banco americano</div>
+          </div>
+        </div>
+        <span class="badge badge-pending" id="plaid-badge">Configurar</span>
+      </div>
+
+      <ol class="step-list">
+        <li>Crie uma conta em <a href="https://dashboard.plaid.com" target="_blank">dashboard.plaid.com</a> e acesse Production</li>
+        <li>No Supabase → Secrets, adicione:<br>
+          <code>PLAID_CLIENT_ID</code> · <code>PLAID_SECRET</code> · <code>PLAID_ENV=production</code></li>
+        <li>Selecione o banco e clique em <strong>Conectar via Plaid</strong> — você será redirecionado para o login do PNC</li>
+      </ol>
+
+      <div class="form-grid" style="margin-top:16px;">
+        <div class="form-group full">
+          <label>Banco no sistema</label>
+          <select id="plaid-banco-sel"></select>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" onclick="plaidLink()">🔗 Conectar via Plaid Link</button>
+      </div>
+      <div class="hint">Após conectar, o access_token é salvo automaticamente e o sync passa a funcionar.</div>
+      <div id="plaid-msg"></div>
+      <div id="plaid-connections" style="margin-top:14px;"></div>
+    </div>
+  </div>
+
+  <!-- ── Avenue ──────────────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">Avenue Securities</div>
+    <div class="card">
+      <div class="card-header">
+        <div class="info">
+          <div class="provider-logo">🇺🇸</div>
+          <div>
+            <div class="provider-name">Avenue</div>
+            <div class="provider-subtitle">Integração via API interna</div>
+          </div>
+        </div>
+        <span class="badge badge-pending" id="avenue-badge">Configurar</span>
+      </div>
+
+      <ol class="step-list">
+        <li>No Supabase → Secrets, adicione:<br>
+          <code>AVENUE_EMAIL</code> e <code>AVENUE_PASSWORD</code></li>
+        <li>Selecione o banco correspondente e salve</li>
+        <li>O sync busca o saldo total da carteira automaticamente</li>
+      </ol>
+
+      <div class="form-grid" style="margin-top:16px;">
+        <div class="form-group full">
+          <label>Banco no sistema</label>
+          <select id="avenue-banco-sel"></select>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" onclick="saveProvider('avenue')">💾 Salvar</button>
+      </div>
+      <div id="avenue-msg"></div>
+      <div id="avenue-connections" style="margin-top:14px;"></div>
+    </div>
+  </div>
+
+  <!-- ── Sync Log ─────────────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-title">Histórico de Sincronizações</div>
+    <div id="sync-log-container">
+      <div class="card" style="color:var(--text2);font-size:.85rem;">Carregando...</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Pluggy Connect Widget -->
+<script src="https://cdn.pluggy.ai/pluggy-connect/v2/pluggy-connect.js"></script>
+
+<script>
+// ── Supabase client ──────────────────────────────────────────────────────────
+const { createClient } = (() => {
+  // minimal inline supabase client
+  function createClient(url, key) {
+    const headers = { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' }
+    function from(table) {
+      return {
+        async select(cols = '*') {
+          const res = await fetch(`${url}/rest/v1/${table}?select=${cols}`, { headers })
+          return { data: await res.json(), error: res.ok ? null : 'error' }
+        },
+        async insert(rows) {
+          const res = await fetch(`${url}/rest/v1/${table}`, {
+            method: 'POST', headers: { ...headers, 'Prefer': 'return=representation' },
+            body: JSON.stringify(rows)
+          })
+          return { data: await res.json(), error: res.ok ? null : await res.text() }
+        },
+        async upsert(rows, opts = {}) {
+          const res = await fetch(`${url}/rest/v1/${table}`, {
+            method: 'POST', headers: { ...headers, 'Prefer': 'resolution=merge-duplicates,return=representation' },
+            body: JSON.stringify(rows)
+          })
+          return { data: await res.json(), error: res.ok ? null : await res.text() }
+        },
+        async delete() {
+          let q = `${url}/rest/v1/${table}`
+          return {
+            eq(col, val) {
+              q += `?${col}=eq.${val}`
+              return { async then(resolve) { const r = await fetch(q, { method: 'DELETE', headers }); resolve({ error: r.ok ? null : 'error' }) } }
+            }
+          }
+        },
+        filter(col, op, val) { return this },
+        order(col) { return this }
+      }
+    }
+    async function rpc(fn, params = {}) {
+      const res = await fetch(`${url}/rest/v1/rpc/${fn}`, {
+        method: 'POST', headers, body: JSON.stringify(params)
+      })
+      return { data: await res.json(), error: res.ok ? null : 'error' }
+    }
+    return { from, rpc }
+  }
+  return { createClient }
+})()
+
+const cfg = window.SUPABASE_CONFIG
+const sb = createClient(cfg.url, cfg.key)
+const FUNCTIONS_BASE = `${cfg.url}/functions/v1`
+
+let banks = []
+
+// ── Load banks ───────────────────────────────────────────────────────────────
+
+async function loadBanks() {
+  const res = await fetch(`${cfg.url}/rest/v1/bancos?select=*&order=nome`, {
+    headers: { 'apikey': cfg.key, 'Authorization': `Bearer ${cfg.key}` }
+  })
+  banks = await res.json()
+  const selIds = ['pluggy-banco-sel','tasty-banco-sel','okx-banco-sel','plaid-banco-sel','avenue-banco-sel']
+  selIds.forEach(id => {
+    const sel = document.getElementById(id)
+    if (!sel) return
+    sel.innerHTML = banks.map(b => `<option value="${b.id}">${b.nome} (${b.is_usd ? 'USD' : 'BRL'})</option>`).join('')
+  })
+}
+
+// ── Load existing connections ─────────────────────────────────────────────────
+
+async function loadConnections() {
+  const res = await fetch(`${cfg.url}/rest/v1/sync_providers?select=*,bancos(nome,is_usd)&order=created_at`, {
+    headers: { 'apikey': cfg.key, 'Authorization': `Bearer ${cfg.key}` }
+  })
+  if (!res.ok) return
+  const providers = await res.json()
+  if (!Array.isArray(providers)) return
+
+  const grouped = {}
+  for (const p of providers) {
+    if (!grouped[p.provider]) grouped[p.provider] = []
+    grouped[p.provider].push(p)
+  }
+
+  const badges = { pluggy: 'pluggy-badge', tastytrade: 'tasty-badge', okx: 'okx-badge', plaid: 'plaid-badge', avenue: 'avenue-badge' }
+  const containers = { pluggy: 'pluggy-connections', tastytrade: 'tasty-connections', okx: 'okx-connections', plaid: 'plaid-connections', avenue: 'avenue-connections' }
+
+  for (const [prov, list] of Object.entries(grouped)) {
+    const badge = document.getElementById(badges[prov])
+    const container = document.getElementById(containers[prov])
+    if (badge) { badge.textContent = `${list.length} conectado${list.length > 1 ? 's' : ''}`; badge.className = 'badge badge-connected' }
+    if (container) {
+      container.innerHTML = list.map(p => `
+        <div class="log-item">
+          <div class="log-dot dot-success"></div>
+          <div class="log-bank">${p.bancos?.nome ?? '—'}</div>
+          <div class="log-balance">${p.provider_account_id ?? p.provider_item_id ?? 'configurado'}</div>
+          <div class="log-time">${p.last_synced_at ? new Date(p.last_synced_at).toLocaleString('pt-BR') : 'nunca sincronizado'}</div>
+          <button class="btn-danger" style="padding:4px 10px;font-size:.75rem;" onclick="removeProvider('${p.id}','${prov}')">✕</button>
+        </div>`).join('')
+    }
+  }
+}
+
+// ── Load sync logs ────────────────────────────────────────────────────────────
+
+async function loadSyncLogs() {
+  const res = await fetch(`${cfg.url}/rest/v1/sync_logs?select=*&order=created_at.desc&limit=30`, {
+    headers: { 'apikey': cfg.key, 'Authorization': `Bearer ${cfg.key}` }
+  })
+  const logs = await res.json()
+  const container = document.getElementById('sync-log-container')
+  if (!Array.isArray(logs) || !logs.length) {
+    container.innerHTML = '<div class="card" style="color:var(--text2);font-size:.85rem;">Nenhuma sincronização realizada ainda.</div>'
+    return
+  }
+  container.innerHTML = logs.map(l => `
+    <div class="log-item">
+      <div class="log-dot dot-${l.status === 'success' ? 'success' : l.status === 'partial' ? 'partial' : 'error'}"></div>
+      <div class="log-bank">${l.banco_nome ?? l.provider}</div>
+      <div class="log-balance">${l.balance_brl ? 'R$ ' + l.balance_brl.toLocaleString('pt-BR',{minimumFractionDigits:2}) : ''}${l.balance_usd ? '$ ' + l.balance_usd.toLocaleString('en-US',{minimumFractionDigits:2}) : ''}</div>
+      ${l.message ? `<div class="log-balance" style="color:var(--text2)">${l.message}</div>` : ''}
+      <div class="log-time">${new Date(l.created_at).toLocaleString('pt-BR')}</div>
+    </div>`).join('')
+
+  // Update last sync label
+  const lastMaster = logs.find(l => l.provider === 'sync-all')
+  if (lastMaster) {
+    document.getElementById('last-sync-label').textContent =
+      `Último sync: ${new Date(lastMaster.created_at).toLocaleString('pt-BR')} — ${lastMaster.message}`
+  } else {
+    document.getElementById('last-sync-label').textContent = 'Nenhum sync automático realizado ainda'
+  }
+}
+
+// ── Save provider ─────────────────────────────────────────────────────────────
+
+async function saveProvider(provider) {
+  const bancoSelMap = { tastytrade: 'tasty-banco-sel', okx: 'okx-banco-sel', plaid: 'plaid-banco-sel', avenue: 'avenue-banco-sel' }
+  const msgMap = { tastytrade: 'tasty-msg', okx: 'okx-msg', plaid: 'plaid-msg', avenue: 'avenue-msg' }
+  const bancoId = document.getElementById(bancoSelMap[provider])?.value
+  const msgEl = document.getElementById(msgMap[provider])
+
+  const payload = { banco_id: bancoId, provider, enabled: true }
+
+  if (provider === 'tastytrade') {
+    const accountNum = document.getElementById('tasty-account')?.value?.trim()
+    if (!accountNum) { showMsg(msgEl, 'Informe o número da conta', 'error'); return }
+    payload.provider_account_id = accountNum
+  }
+
+  const res = await fetch(`${cfg.url}/rest/v1/sync_providers`, {
+    method: 'POST',
+    headers: { 'apikey': cfg.key, 'Authorization': `Bearer ${cfg.key}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+    body: JSON.stringify([payload])
+  })
+
+  if (res.ok) {
+    showMsg(msgEl, '✓ Salvo com sucesso!', 'success')
+    await loadConnections()
+  } else {
+    showMsg(msgEl, `Erro: ${await res.text()}`, 'error')
+  }
+}
+
+// ── Remove provider ───────────────────────────────────────────────────────────
+
+async function removeProvider(id, provider) {
+  if (!confirm('Remover esta conexão?')) return
+  await fetch(`${cfg.url}/rest/v1/sync_providers?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: { 'apikey': cfg.key, 'Authorization': `Bearer ${cfg.key}` }
+  })
+  await loadConnections()
+}
+
+// ── Pluggy Connect ────────────────────────────────────────────────────────────
+
+async function pluggyConnect() {
+  const bancoId = document.getElementById('pluggy-banco-sel')?.value
+  const msgEl = document.getElementById('pluggy-msg')
+
+  // Get a Pluggy Connect token from our Edge Function
+  const res = await fetch(`${FUNCTIONS_BASE}/sync-pluggy-token`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${cfg.key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ banco_id: bancoId })
+  })
+
+  if (!res.ok) {
+    showMsg(msgEl, 'Não foi possível gerar o token do Pluggy. Verifique se os secrets PLUGGY_CLIENT_ID e PLUGGY_CLIENT_SECRET estão configurados.', 'error')
+    return
+  }
+
+  const { connectToken } = await res.json()
+
+  // Open Pluggy Connect widget
+  const pluggyConnect = new PluggyConnect({
+    connectToken,
+    onSuccess: async ({ item }) => {
+      // Save the item_id for this bank connection
+      const saveRes = await fetch(`${cfg.url}/rest/v1/sync_providers`, {
+        method: 'POST',
+        headers: { 'apikey': cfg.key, 'Authorization': `Bearer ${cfg.key}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+        body: JSON.stringify([{ banco_id: bancoId, provider: 'pluggy', provider_item_id: item.id, enabled: true }])
+      })
+      if (saveRes.ok) {
+        showMsg(msgEl, `✓ Banco conectado! item_id: ${item.id}`, 'success')
+        await loadConnections()
+      }
+    },
+    onError: (err) => showMsg(msgEl, `Erro ao conectar: ${err.message}`, 'error'),
+  })
+  pluggyConnect.init()
+}
+
+// ── Plaid Link ────────────────────────────────────────────────────────────────
+
+async function plaidLink() {
+  const bancoId = document.getElementById('plaid-banco-sel')?.value
+  const msgEl = document.getElementById('plaid-msg')
+
+  // Get a Plaid Link token from our Edge Function
+  const res = await fetch(`${FUNCTIONS_BASE}/sync-plaid-token`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${cfg.key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ banco_id: bancoId })
+  })
+
+  if (!res.ok) {
+    showMsg(msgEl, 'Não foi possível gerar o token do Plaid. Verifique os secrets PLAID_CLIENT_ID e PLAID_SECRET.', 'error')
+    return
+  }
+
+  const { link_token } = await res.json()
+
+  // Load Plaid Link script dynamically
+  const script = document.createElement('script')
+  script.src = 'https://cdn.plaid.com/link/v2/stable/link-initialize.js'
+  script.onload = () => {
+    const handler = window.Plaid.create({
+      token: link_token,
+      onSuccess: async (public_token) => {
+        // Exchange public_token for access_token via our Edge Function
+        const exRes = await fetch(`${FUNCTIONS_BASE}/sync-plaid-exchange`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${cfg.key}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ public_token, banco_id: bancoId })
+        })
+        if (exRes.ok) {
+          showMsg(msgEl, '✓ PNC conectado com sucesso!', 'success')
+          await loadConnections()
+        } else {
+          showMsg(msgEl, 'Erro ao salvar token do Plaid.', 'error')
+        }
+      },
+      onExit: () => {},
+    })
+    handler.open()
+  }
+  document.head.appendChild(script)
+}
+
+// ── Sync All ──────────────────────────────────────────────────────────────────
+
+async function syncAll() {
+  const btn = document.getElementById('btn-sync-all')
+  const resultEl = document.getElementById('sync-result')
+  btn.disabled = true
+  btn.innerHTML = '<span class="loader"></span>Sincronizando...'
+  resultEl.style.display = 'none'
+
+  try {
+    const res = await fetch(`${FUNCTIONS_BASE}/sync-all`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${cfg.key}`, 'Content-Type': 'application/json' },
+      body: '{}'
+    })
+    const data = await res.json()
+
+    if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`)
+
+    const totalSuccess = data.results?.reduce((n, r) => n + (r.success ?? 0), 0) ?? 0
+    const totalError = data.results?.reduce((n, r) => n + (r.error ?? 0), 0) ?? 0
+
+    resultEl.style.display = 'block'
+    resultEl.innerHTML = `
+      <div class="msg ${totalError === 0 ? 'msg-success' : totalSuccess > 0 ? 'msg-info' : 'msg-error'}">
+        ${totalError === 0
+          ? `✓ ${totalSuccess} conta${totalSuccess !== 1 ? 's' : ''} sincronizada${totalSuccess !== 1 ? 's' : ''} com sucesso!`
+          : `⚠ ${totalSuccess} ok · ${totalError} com erro — verifique os logs abaixo`}
+      </div>`
+
+    await loadSyncLogs()
+  } catch (err) {
+    resultEl.style.display = 'block'
+    resultEl.innerHTML = `<div class="msg msg-error">Erro: ${err.message}</div>`
+  } finally {
+    btn.disabled = false
+    btn.innerHTML = '▶ Sincronizar Agora'
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function showMsg(el, text, type) {
+  if (!el) return
+  el.innerHTML = `<div class="msg msg-${type}">${text}</div>`
+  setTimeout(() => { el.innerHTML = '' }, 6000)
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+
+async function init() {
+  await loadBanks()
+  await loadConnections()
+  await loadSyncLogs()
+}
+
+init()
+</script>
+</body>
+</html>
