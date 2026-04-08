@@ -607,30 +607,49 @@
    =========================== */
 @media (max-width: 768px) {
 
-    /* Grid do dashboard vira 1 coluna */
+    /* Cards em carrossel horizontal com scroll snap (estilo app nativo) */
     .dashboard-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
+        display: flex !important;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+        gap: 12px !important;
+        padding: 4px 4px 14px !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        scroll-snap-type: x mandatory;
+        margin-left: -4px;
+        margin-right: -4px;
     }
+    .dashboard-grid::-webkit-scrollbar { display: none; }
 
-    /* Card azul ocupa largura total */
-    .total-card {
+    .dashboard-grid .total-card,
+    .dashboard-grid .stats-card {
+        flex: 0 0 190px !important;
+        min-width: 190px !important;
+        scroll-snap-align: start;
         min-height: auto;
-        padding: 22px;
     }
 
-    /* Tamanho do valor principal */
+    /* Card principal (primeiro) um pouco mais largo */
+    .dashboard-grid .total-card:first-child {
+        flex: 0 0 210px !important;
+        min-width: 210px !important;
+    }
+
+    /* Valor principal nos cards azuis */
     .total-card p {
-        font-size: 26px;
+        font-size: 22px;
+        word-break: break-word;
     }
 
     /* Cards brancos */
     .stats-card {
-        padding: 18px;
+        padding: 14px;
     }
 
     .stats-card p {
-        font-size: 18px;
+        font-size: 16px;
     }
 
     /* Header não quebra */
