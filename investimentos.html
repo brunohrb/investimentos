@@ -3,17 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Investimentos BEM</title>
-
-    <!-- PWA -->
-    <link rel="manifest" href="manifest-invest.json">
-    <meta name="theme-color" content="#0056b3">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Investimentos">
-    <meta name="mobile-web-app-capable" content="yes">
-    <link rel="apple-touch-icon" href="logo.png">
-
+    <title>Investimento - Fechamento Mensal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -545,6 +535,7 @@
         .btn-delete { background-color: #dc3545; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
+        #configModal { z-index: 999999 !important; }
         .modal-content { background: var(--card-bg); padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; position: relative; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
         .close-modal { cursor: pointer; font-size: 24px; }
@@ -607,49 +598,30 @@
    =========================== */
 @media (max-width: 768px) {
 
-    /* Cards em carrossel horizontal com scroll snap (estilo app nativo) */
+    /* Grid do dashboard vira 1 coluna */
     .dashboard-grid {
-        display: flex !important;
-        flex-direction: row !important;
-        overflow-x: auto !important;
-        overflow-y: visible !important;
-        gap: 12px !important;
-        padding: 4px 4px 14px !important;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        scroll-snap-type: x mandatory;
-        margin-left: -4px;
-        margin-right: -4px;
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
-    .dashboard-grid::-webkit-scrollbar { display: none; }
 
-    .dashboard-grid .total-card,
-    .dashboard-grid .stats-card {
-        flex: 0 0 190px !important;
-        min-width: 190px !important;
-        scroll-snap-align: start;
+    /* Card azul ocupa largura total */
+    .total-card {
         min-height: auto;
+        padding: 22px;
     }
 
-    /* Card principal (primeiro) um pouco mais largo */
-    .dashboard-grid .total-card:first-child {
-        flex: 0 0 210px !important;
-        min-width: 210px !important;
-    }
-
-    /* Valor principal nos cards azuis */
+    /* Tamanho do valor principal */
     .total-card p {
-        font-size: 22px;
-        word-break: break-word;
+        font-size: 26px;
     }
 
     /* Cards brancos */
     .stats-card {
-        padding: 14px;
+        padding: 18px;
     }
 
     .stats-card p {
-        font-size: 16px;
+        font-size: 18px;
     }
 
     /* Header não quebra */
@@ -1606,98 +1578,6 @@
     background: rgba(255,193,7,0.15);
     color: #c8900a;
 }
-
-/* ═══════════════════════════════════════
-   APP SHELL — Navegação Nativa Mobile
-   ═══════════════════════════════════════ */
-
-/* Safe area + espaço para a bottom nav */
-.container {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
-}
-
-/* Header fixo com blur (iOS feel) */
-header {
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 200 !important;
-    backdrop-filter: blur(14px) !important;
-    -webkit-backdrop-filter: blur(14px) !important;
-    background: rgba(255,255,255,0.88) !important;
-}
-[data-theme="dark"] header {
-    background: rgba(30,30,30,0.88) !important;
-}
-
-/* Bottom Navigation Bar */
-#appBottomNav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: calc(60px + env(safe-area-inset-bottom));
-    padding-bottom: env(safe-area-inset-bottom);
-    background: var(--card-bg);
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    align-items: stretch;
-    z-index: 500;
-    box-shadow: 0 -2px 20px rgba(0,0,0,0.10);
-}
-
-.app-nav-btn {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    border: none;
-    background: none;
-    cursor: pointer;
-    color: var(--text-color);
-    font-size: 10px;
-    font-weight: 600;
-    padding: 6px 0;
-    transition: all 0.18s ease;
-    opacity: 0.42;
-    letter-spacing: 0.3px;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-    width: auto;
-    min-height: unset;
-}
-
-.app-nav-btn .nav-icon {
-    font-size: 22px;
-    line-height: 1;
-    transition: transform 0.18s ease;
-    display: block;
-}
-
-.app-nav-btn.active {
-    color: var(--primary-color);
-    opacity: 1;
-}
-
-.app-nav-btn.active .nav-icon {
-    transform: translateY(-2px);
-}
-
-.app-nav-btn:active .nav-icon {
-    transform: scale(0.86);
-}
-
-/* Scroll anchor */
-.scroll-anchor {
-    scroll-margin-top: 72px;
-}
-
-/* Desktop: esconde bottom nav */
-@media (min-width: 769px) {
-    #appBottomNav { display: none; }
-    .container { padding-bottom: 20px !important; }
-}
     </style>
 </head>
 <body>
@@ -1768,10 +1648,16 @@ header {
         <div id="brapiTokenStatus" style="font-size:12px;margin-top:6px;color:#888;"></div>
 
         <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0">
-        <p style="font-size:12px; color:#888">Backup & Restauração (Excel)</p>
-        <button onclick="exportarExcel()" class="btn-success" style="margin-bottom:10px">Exportar Excel</button>
-        <input type="file" id="importExcel" style="display:none" onchange="importarExcel(event)">
-        <button onclick="document.getElementById('importExcel').click()" class="btn-secondary">Importar Excel</button>
+        <p style="font-size:13px; font-weight:600; margin-bottom:4px;">💾 Backup & Restauração</p>
+        <p style="font-size:11px; color:#888; margin-bottom:12px;">Salva/restaura <strong>todos</strong> os dados: bancos, registros, ações, dividendos, patrimônio e carteiras.</p>
+        <button onclick="exportarExcel()" class="btn-success" style="margin-bottom:10px; display:flex; align-items:center; gap:8px; justify-content:center;">
+            ⬇️ Fazer Backup (Excel)
+        </button>
+        <input type="file" id="importExcel" accept=".xlsx" style="display:none" onchange="importarExcel(event)">
+        <button onclick="document.getElementById('importExcel').click()" class="btn-secondary" style="display:flex; align-items:center; gap:8px; justify-content:center;">
+            ⬆️ Restaurar Backup (Excel)
+        </button>
+        <p style="font-size:10px; color:#e53935; margin-top:8px;">⚠️ Restaurar apaga todos os dados atuais antes de importar.</p>
     </div>
 </div>
 
@@ -1930,38 +1816,9 @@ header {
 <button class="btn-icon" onclick="abrirDashboardCompleto()" title="Dashboard Completo">📊</button>
 <button onclick="abrirCarteirasBanco()" title="Análise de Carteiras" style="background:linear-gradient(135deg,#0056b3,#00bfff);border:none;color:white;padding:8px 14px;cursor:pointer;border-radius:20px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap;">📂 Carteiras</button>
 <button class="btn-icon" onclick="abrirConfig()">⚙️</button>
-<button id="btn-sync-header" onclick="syncAgora()" title="Sincronizar saldos automaticamente"
-  style="background:linear-gradient(135deg,#1b5e20,#43a047);border:none;color:white;padding:8px 14px;cursor:pointer;border-radius:20px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap;">
-  ⚡ Sync
-</button>
-<a href="sync.html" title="Configurar automação" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:white;padding:8px 12px;cursor:pointer;border-radius:50%;font-size:18px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;text-decoration:none;">🔗</a>
 </div>
 
     </header>
-
-<!-- ═══ APP BOTTOM NAVIGATION ═══ -->
-<div id="appBottomNav">
-    <button class="app-nav-btn active" onclick="navTab('inicio', this)">
-        <span class="nav-icon">🏠</span>
-        <span>Início</span>
-    </button>
-    <button class="app-nav-btn" onclick="navTab('registrar', this)">
-        <span class="nav-icon">➕</span>
-        <span>Registrar</span>
-    </button>
-    <button class="app-nav-btn" onclick="navTab('historico', this)">
-        <span class="nav-icon">📋</span>
-        <span>Histórico</span>
-    </button>
-    <button class="app-nav-btn" onclick="navTab('graficos', this)">
-        <span class="nav-icon">📊</span>
-        <span>Gráficos</span>
-    </button>
-    <button class="app-nav-btn" onclick="abrirConfig()">
-        <span class="nav-icon">⚙️</span>
-        <span>Config</span>
-    </button>
-</div>
 
 <!-- BOTÃO CARTEIRAS FIXO VISÍVEL -->
 <div id="btnCarteirasBancoFixo" style="display:none; margin-bottom:16px;">
@@ -1978,7 +1835,6 @@ header {
 </div>
     
 <!-- Dashboard NORMAL -->
-<div id="anchor-inicio" class="scroll-anchor"></div>
 <div class="dashboard-grid" id="dashboardNormal">
     <div class="total-card"><h3>Patrimônio do Banco</h3><p id="patrimonioTotalGeral" class="hidden-value" data-privacy="true">R$ 0,00</p><p id="patrimonioTotalGeralUSD" class="hidden-value" style="display:none; font-size:0.85em; margin-top:5px; color:#666;" data-privacy="true">US$ 0,00 / R$ 0,00</p></div>
     <div class="stats-card"><h4>Ganho sobre Aportado</h4><p id="rendimentoMedio" class="hidden-value" data-privacy="true">0,00%</p></div>
@@ -2009,14 +1865,6 @@ header {
     <h3>📈 Ações</h3>
     <p id="patrimonioAcoes" class="hidden-value" data-privacy="true">R$ 0,00</p>
     <p style="font-size:11px; opacity:0.75; margin:4px 0 0;">clique para abrir ↗</p>
-</div>
-
-<!-- Card Pluggy: Posições nas Corretoras -->
-<div class="total-card" id="pluggyCard" style="background: linear-gradient(135deg, #6f42c1, #a855f7); cursor:pointer; transition: transform 0.15s, box-shadow 0.15s; position:relative; display:none;" onclick="abrirPluggy()" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.25)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
-    <div id="pluggyCardSyncBadge" style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.25);border-radius:20px;padding:2px 8px;font-size:10px;color:rgba(255,255,255,0.7);">🔄 sync</div>
-    <h3>🏦 Corretoras</h3>
-    <p id="pluggyTotalSaldo" class="hidden-value" data-privacy="true">R$ 0,00</p>
-    <p id="pluggyUltimaSync" style="font-size:10px; opacity:0.7; margin:4px 0 0;">Carregando...</p>
 </div>    
     <!-- Linha 2: 5 cards de informações (um vai quebrar para linha 3 ou podemos ajustar depois) -->
     <div class="stats-card"><h4>Aportado BRL</h4><p id="totalAportadoBRL" class="hidden-value" data-privacy="true">R$ 0,00</p></div>
@@ -2034,7 +1882,6 @@ header {
 </div>
 </div>
 
-<div id="anchor-registrar" class="scroll-anchor"></div>
 <div class="controls">
     <div class="controls-row">
 <select id="carteiraSelector" onchange="carteiraMudou()">
@@ -2095,7 +1942,6 @@ header {
     </div>
     
     <!-- 📋 TABELA (mostra só 3 linhas inicialmente) -->
-    <div id="anchor-historico" class="scroll-anchor"></div>
     <div class="table-wrapper">
         <table>
             <thead><tr id="tabelaHead"><th>Mês/Ano</th><th>Aportes R$</th><th>Patr. R$</th><th>Aporte $</th><th>Patr. $</th><th>% $</th><th>Ações</th></tr></thead>
@@ -2119,7 +1965,6 @@ header {
 
 
 
-<div id="anchor-graficos" class="scroll-anchor"></div>
  <div class="charts-grid" id="chartsGrid">
         <div class="chart-container" id="chartEvolucaoBanco"><h3>Evolução do Banco</h3><canvas id="patrimonioChart"></canvas></div>
         <div class="chart-container"><h3>Distribuição por Banco</h3><canvas id="pizzaChart"></canvas></div>
@@ -2128,21 +1973,6 @@ header {
 </div>
 
 <script>
-
-/* ═══ APP BOTTOM NAV ═══ */
-function navTab(section, btn) {
-    document.querySelectorAll('.app-nav-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    const anchor = document.getElementById('anchor-' + section);
-    if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    // Se for "registrar", foca o campo data
-    if (section === 'registrar') {
-        setTimeout(() => {
-            const d = document.getElementById('dataInput');
-            if (d) d.focus();
-        }, 400);
-    }
-}
 
 let bancos = [];
 let todosBancos = [];
@@ -2290,34 +2120,6 @@ function togglePrivacy() {
         let num = v.replace(/[^\d,]/g, '').replace(',', '.');
         return (isNeg ? -1 : 1) * (parseFloat(num) || 0);
     }
-
-    // ── Sync automático ───────────────────────────────────────────────────────
-    async function syncAgora() {
-        const btn = document.getElementById('btn-sync-header');
-        if (!btn) return;
-        const original = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '⏳ Sync...';
-        try {
-            const cfg = window.SUPABASE_CONFIG;
-            const res = await fetch(`${cfg.url}/functions/v1/sync-all`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${cfg.key}`, 'Content-Type': 'application/json' },
-                body: '{}'
-            });
-            const data = await res.json();
-            const totalSuccess = data.results?.reduce((n, r) => n + (r.success ?? 0), 0) ?? 0;
-            const totalError   = data.results?.reduce((n, r) => n + (r.error   ?? 0), 0) ?? 0;
-            btn.innerHTML = totalError === 0 ? `✅ ${totalSuccess} ok` : `⚠️ ${totalSuccess}ok/${totalError}err`;
-            // Recarrega saldos após sync
-            setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 3500);
-            if (typeof carregarBancos === 'function') await carregarBancos();
-        } catch (err) {
-            btn.innerHTML = '❌ Erro';
-            setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 3000);
-        }
-    }
-    // ─────────────────────────────────────────────────────────────────────────
 
     function abrirConfig() {
     document.getElementById('configModal').style.display = 'flex';
@@ -3345,34 +3147,145 @@ async function consolidarPatrimonioHistorico() {
         document.getElementById('btnCancelar').style.display = 'none';
     }
 
-    function exportarExcel() {
-        const wsBancos = XLSX.utils.json_to_sheet(bancos);
-        const wsRegistros = XLSX.utils.json_to_sheet(todosRegistros);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, wsBancos, "Bancos");
-        XLSX.utils.book_append_sheet(wb, wsRegistros, "Registros");
-        XLSX.writeFile(wb, "InvestFlow_Backup.xlsx");
+    async function exportarExcel() {
+        showLoading(true);
+        try {
+            const wb = XLSX.utils.book_new();
+            const data = new Date();
+            const dataStr = `${data.getFullYear()}${String(data.getMonth()+1).padStart(2,'0')}${String(data.getDate()).padStart(2,'0')}`;
+
+            // Bancos
+            const { data: dBancos } = await sb.from('bancos').select('*');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dBancos || []), "Bancos");
+
+            // Registros mensais
+            const { data: dRegistros } = await sb.from('registros').select('*').order('data_fechamento', { ascending: true });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dRegistros || []), "Registros");
+
+            // Patrimônio (imóveis)
+            const { data: dPatrimonio } = await sb.from('patrimonio').select('*');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dPatrimonio || []), "Patrimonio");
+
+            // Ações - Transações
+            const { data: dAcoesT } = await sb.from('acoes_transacoes').select('*').order('data', { ascending: true });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dAcoesT || []), "Acoes_Transacoes");
+
+            // Ações - Dividendos
+            const { data: dAcoesD } = await sb.from('acoes_dividendos').select('*');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dAcoesD || []), "Acoes_Dividendos");
+
+            // Carteiras Análise
+            const { data: dCarteiras } = await sb.from('carteiras_analise').select('*');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dCarteiras || []), "Carteiras");
+
+            // Carteira Ativos
+            const { data: dAtivos } = await sb.from('carteira_ativos').select('*');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dAtivos || []), "Carteira_Ativos");
+
+            XLSX.writeFile(wb, `InvestFlow_Backup_${dataStr}.xlsx`);
+            alert('✅ Backup exportado com sucesso!\n\n7 tabelas salvas: Bancos, Registros, Patrimônio, Ações (transações e dividendos), Carteiras e Ativos.');
+        } catch(err) {
+            alert('Erro ao exportar: ' + err.message);
+        }
+        showLoading(false);
     }
 
     async function importarExcel(event) {
-        const file = event.target.files[0]; if (!file) return;
+        const file = event.target.files[0];
+        if (!file) return;
+        // Limpar o input para permitir reimportar o mesmo arquivo
+        event.target.value = '';
+
         const reader = new FileReader();
         reader.onload = async (e) => {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
-            const jsonBancos = XLSX.utils.sheet_to_json(workbook.Sheets["Bancos"]);
-            const jsonRegistros = XLSX.utils.sheet_to_json(workbook.Sheets["Registros"]);
-            if (confirm("Isso irá apagar seus dados atuais e restaurar do Excel. Continuar?")) {
-                showLoading(true);
+
+            // Verificar se é um backup válido
+            const abasEsperadas = ["Bancos", "Registros"];
+            const abasFaltando = abasEsperadas.filter(a => !workbook.Sheets[a]);
+            if (abasFaltando.length > 0) {
+                alert('❌ Arquivo inválido. Este arquivo não parece ser um backup do InvestFlow.\nAbas necessárias não encontradas: ' + abasFaltando.join(', '));
+                return;
+            }
+
+            const jsonBancos        = XLSX.utils.sheet_to_json(workbook.Sheets["Bancos"] || {});
+            const jsonRegistros     = XLSX.utils.sheet_to_json(workbook.Sheets["Registros"] || {});
+            const jsonPatrimonio    = workbook.Sheets["Patrimonio"]        ? XLSX.utils.sheet_to_json(workbook.Sheets["Patrimonio"]) : [];
+            const jsonAcoesT        = workbook.Sheets["Acoes_Transacoes"]  ? XLSX.utils.sheet_to_json(workbook.Sheets["Acoes_Transacoes"]) : [];
+            const jsonAcoesD        = workbook.Sheets["Acoes_Dividendos"]  ? XLSX.utils.sheet_to_json(workbook.Sheets["Acoes_Dividendos"]) : [];
+            const jsonCarteiras     = workbook.Sheets["Carteiras"]         ? XLSX.utils.sheet_to_json(workbook.Sheets["Carteiras"]) : [];
+            const jsonAtivos        = workbook.Sheets["Carteira_Ativos"]   ? XLSX.utils.sheet_to_json(workbook.Sheets["Carteira_Ativos"]) : [];
+
+            const resumo = `📦 Backup encontrado:\n• ${jsonBancos.length} bancos\n• ${jsonRegistros.length} registros\n• ${jsonPatrimonio.length} imóveis\n• ${jsonAcoesT.length} transações de ações\n• ${jsonAcoesD.length} dividendos\n• ${jsonCarteiras.length} carteiras\n• ${jsonAtivos.length} ativos\n\n⚠️ ATENÇÃO: Todos os dados atuais serão APAGADOS e substituídos.\n\nDeseja continuar?`;
+
+            if (!confirm(resumo)) return;
+
+            showLoading(true);
+            try {
+                // 1. Apagar tudo (ordem importa por foreign keys)
+                await sb.from('carteira_ativos').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                await sb.from('carteiras_analise').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                await sb.from('acoes_dividendos').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                await sb.from('acoes_transacoes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+                await sb.from('patrimonio').delete().neq('id', '00000000-0000-0000-0000-000000000000');
                 await sb.from('registros').delete().neq('id', '00000000-0000-0000-0000-000000000000');
                 await sb.from('bancos').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
+                // 2. Restaurar Bancos (guardar mapeamento de IDs antigos → novos)
+                const mapaIds = {};
                 for (let b of jsonBancos) {
-                    const { data: newB } = await sb.from('bancos').insert([{ nome: b.nome, is_usd: b.is_usd }]).select();
-                    const oldId = b.id; const newId = newB[0].id;
-                    const regsDoBanco = jsonRegistros.filter(r => r.banco_id === oldId);
-                    for (let r of regsDoBanco) { delete r.id; r.banco_id = newId; await sb.from('registros').insert([r]); }
+                    const oldId = b.id;
+                    const payload = { nome: b.nome, is_usd: b.is_usd };
+                    const { data: newB } = await sb.from('bancos').insert([payload]).select();
+                    if (newB && newB[0]) mapaIds[oldId] = newB[0].id;
                 }
-                showLoading(false); alert('Restauração concluída!'); location.reload();
+
+                // 3. Restaurar Registros (remapear banco_id)
+                for (let r of jsonRegistros) {
+                    const novoPayload = { ...r };
+                    delete novoPayload.id;
+                    if (mapaIds[novoPayload.banco_id]) novoPayload.banco_id = mapaIds[novoPayload.banco_id];
+                    await sb.from('registros').insert([novoPayload]);
+                }
+
+                // 4. Restaurar Patrimônio
+                for (let p of jsonPatrimonio) {
+                    const novoP = { ...p }; delete novoP.id;
+                    await sb.from('patrimonio').insert([novoP]);
+                }
+
+                // 5. Restaurar Ações Transações (mapear carteira_id se necessário)
+                const mapaCarteiras = {};
+                for (let c of jsonCarteiras) {
+                    const oldId = c.id;
+                    const novoC = { ...c }; delete novoC.id;
+                    const { data: newC } = await sb.from('carteiras_analise').insert([novoC]).select();
+                    if (newC && newC[0]) mapaCarteiras[oldId] = newC[0].id;
+                }
+
+                for (let a of jsonAtivos) {
+                    const novoA = { ...a }; delete novoA.id;
+                    if (mapaCarteiras[novoA.carteira_id]) novoA.carteira_id = mapaCarteiras[novoA.carteira_id];
+                    await sb.from('carteira_ativos').insert([novoA]);
+                }
+
+                for (let t of jsonAcoesT) {
+                    const novoT = { ...t }; delete novoT.id;
+                    await sb.from('acoes_transacoes').insert([novoT]);
+                }
+
+                for (let d of jsonAcoesD) {
+                    const novoD = { ...d }; delete novoD.id;
+                    await sb.from('acoes_dividendos').insert([novoD]);
+                }
+
+                showLoading(false);
+                alert('✅ Restauração concluída com sucesso!\nA página será recarregada.');
+                location.reload();
+            } catch(err) {
+                showLoading(false);
+                alert('❌ Erro durante a restauração: ' + err.message + '\n\nSeus dados podem estar incompletos. Tente novamente.');
             }
         };
         reader.readAsArrayBuffer(file);
@@ -14812,178 +14725,7 @@ async function cartRenderFGC() {
 
 // Carteiras salvas carregam no mobile também
 window.addEventListener('resize', cartRenderBanksList);
-
-// ══════════════════════════════════════════════════════════════════════
-// PLUGGY — Posições automáticas das corretoras
-// ══════════════════════════════════════════════════════════════════════
-
-const PLUGGY_TIPOS_LABEL = {
-  STOCK: 'Ação', FUND: 'Fundo', FIXED_INCOME: 'Renda Fixa',
-  TREASURE: 'Tesouro', ETF: 'ETF', COE: 'COE',
-  REAL_ESTATE: 'FII', PENSION: 'Previdência', CRYPTO: 'Cripto',
-  BANK: 'Conta', CREDIT: 'Crédito', INVESTMENT: 'Investimento'
-};
-
-async function pluggyCarregarCard() {
-  try {
-    const { data: contas } = await sb.from('pluggy_contas').select('saldo,atualizado_em').order('atualizado_em', { ascending: false });
-    if (!contas || !contas.length) return;
-    const total = contas.reduce((s, c) => s + Number(c.saldo || 0), 0);
-    document.getElementById('pluggyTotalSaldo').textContent = fmtBRL(total);
-    const sincEm = contas[0].atualizado_em ? new Date(contas[0].atualizado_em).toLocaleDateString('pt-BR') : '';
-    document.getElementById('pluggyUltimaSync').textContent = sincEm ? `atualizado em ${sincEm} ↗` : 'clique para abrir ↗';
-    document.getElementById('pluggyCard').style.display = '';
-    applyPrivacy();
-  } catch(e) { /* tabelas não criadas ainda */ }
-}
-
-async function abrirPluggy() {
-  const modal = document.getElementById('pluggyModal');
-  document.body.appendChild(modal);
-  modal.style.display = 'flex';
-  modal.style.zIndex = '6000';
-  history.pushState({ modal: 'pluggy' }, '');
-  await carregarPluggy();
-}
-
-function fecharPluggy() {
-  document.getElementById('pluggyModal').style.display = 'none';
-}
-
-async function carregarPluggy() {
-  document.getElementById('pluggy-status').textContent = 'Carregando...';
-  try {
-    const [{ data: itens }, { data: contas }, { data: investimentos }] = await Promise.all([
-      sb.from('pluggy_itens').select('*').order('conector_nome'),
-      sb.from('pluggy_contas').select('*').order('conector_nome'),
-      sb.from('pluggy_investimentos').select('*').order('conector_nome,tipo,nome')
-    ]);
-
-    if (!itens || !itens.length) {
-      document.getElementById('pluggy-status').textContent = '⚠️ Nenhuma corretora sincronizada ainda. Execute o workflow no GitHub.';
-      document.getElementById('pluggy-body').innerHTML = `
-        <div style="padding:40px;text-align:center;color:var(--text-secondary);">
-          <div style="font-size:48px;margin-bottom:16px;">🔌</div>
-          <h3 style="margin-bottom:8px;">Sem dados ainda</h3>
-          <p style="font-size:14px;">O sync automático roda todo dia às 7h (dias úteis).<br>Para rodar agora: GitHub → Actions → "Sync Investimentos" → Run workflow</p>
-        </div>`;
-      return;
-    }
-
-    const totalGeral = [...(contas || []), ...(investimentos || [])].reduce((s, r) => s + Number(r.saldo || 0), 0);
-    document.getElementById('pluggy-status').textContent = `Total: ${fmtBRL(totalGeral)} • ${itens.length} corretora(s) • última sync ${new Date((itens[0]?.sincronizado_em || '')).toLocaleString('pt-BR')}`;
-
-    // Agrupa por corretora
-    const grupos = {};
-    itens.forEach(item => { grupos[item.item_id] = { item, contas: [], investimentos: [] }; });
-    (contas || []).forEach(c => { if (grupos[c.item_id]) grupos[c.item_id].contas.push(c); });
-    (investimentos || []).forEach(i => { if (grupos[i.item_id]) grupos[i.item_id].investimentos.push(i); });
-
-    let html = '';
-    Object.values(grupos).forEach(({ item, contas: cs, investimentos: invs }) => {
-      const totalCorretora = [...cs, ...invs].reduce((s, r) => s + Number(r.saldo || 0), 0);
-      const statusColor = item.status === 'UPDATED' ? '#28a745' : item.status === 'UPDATING' ? '#ffd700' : '#ff6b6b';
-
-      html += `<div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;margin-bottom:18px;overflow:hidden;">
-        <div style="padding:14px 18px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;gap:12px;">
-          <div>
-            <span style="font-size:16px;font-weight:700;">${item.conector_nome}</span>
-            <span style="margin-left:10px;font-size:11px;background:${statusColor}22;color:${statusColor};padding:2px 8px;border-radius:20px;">${item.status}</span>
-          </div>
-          <span class="hidden-value" data-privacy="true" style="font-size:18px;font-weight:700;color:#a855f7;">${fmtBRL(totalCorretora)}</span>
-        </div>`;
-
-      // Contas / saldos
-      if (cs.length) {
-        html += `<div style="padding:12px 18px 0;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:0.5;margin-bottom:8px;">Saldos</div>`;
-        cs.forEach(c => {
-          html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border-color);">
-            <span style="font-size:13px;">${c.nome} <span style="opacity:0.5;font-size:11px;">${PLUGGY_TIPOS_LABEL[c.tipo] || c.tipo}</span></span>
-            <span class="hidden-value" data-privacy="true" style="font-weight:600;">${fmtBRL(c.saldo)}</span>
-          </div>`;
-        });
-        html += `</div>`;
-      }
-
-      // Investimentos
-      if (invs.length) {
-        // Agrupa por tipo
-        const porTipo = {};
-        invs.forEach(i => { (porTipo[i.tipo] = porTipo[i.tipo] || []).push(i); });
-
-        html += `<div style="padding:12px 18px;">`;
-        Object.entries(porTipo).forEach(([tipo, lista]) => {
-          const totalTipo = lista.reduce((s, i) => s + Number(i.saldo || 0), 0);
-          html += `<div style="margin-bottom:12px;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-              <span style="font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:0.5;">${PLUGGY_TIPOS_LABEL[tipo] || tipo}</span>
-              <span class="hidden-value" data-privacy="true" style="font-size:11px;opacity:0.6;">${fmtBRL(totalTipo)}</span>
-            </div>`;
-          lista.forEach(inv => {
-            const variacao = inv.rendimento_mes ? `<span style="font-size:11px;color:${inv.rendimento_mes >= 0 ? '#28a745' : '#ff6b6b'};margin-left:6px;">${inv.rendimento_mes >= 0 ? '+' : ''}${Number(inv.rendimento_mes).toFixed(2)}% mês</span>` : '';
-            const venc = inv.vencimento ? `<span style="font-size:10px;opacity:0.45;margin-left:6px;">venc. ${new Date(inv.vencimento).toLocaleDateString('pt-BR')}</span>` : '';
-            html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border-color);">
-              <div style="min-width:0;">
-                <span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${inv.codigo ? `<b>${inv.codigo}</b> — ` : ''}${inv.nome}</span>${venc}
-                ${variacao}
-              </div>
-              <span class="hidden-value" data-privacy="true" style="font-weight:600;white-space:nowrap;margin-left:12px;">${fmtBRL(inv.saldo)}</span>
-            </div>`;
-          });
-          html += `</div>`;
-        });
-        html += `</div>`;
-      }
-
-      html += `</div>`;
-    });
-
-    document.getElementById('pluggy-body').innerHTML = html;
-    applyPrivacy();
-  } catch(e) {
-    document.getElementById('pluggy-status').textContent = '❌ Erro: ' + e.message;
-  }
-}
-
-// Carrega card do Pluggy junto com o dashboard
-document.addEventListener('DOMContentLoaded', () => {
-  // Aguarda um tick para o Supabase estar pronto
-  setTimeout(pluggyCarregarCard, 1500);
-});
 </script>
 
-<!-- ══ MODAL PLUGGY ════════════════════════════════════════════════════ -->
-<div id="pluggyModal" class="modal" style="display:none;">
-  <div class="modal-content" style="width:100%;max-width:100%;height:100vh;border-radius:0!important;overflow-y:auto;">
-    <!-- Header -->
-    <div class="acoes-header">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div>
-          <h2>🏦 Posições nas Corretoras</h2>
-          <p class="acoes-header-sub" id="pluggy-status">Carregando...</p>
-        </div>
-      </div>
-      <div class="acoes-header-actions">
-        <button onclick="togglePrivacy()" title="Ocultar/mostrar valores"
-          style="background:none;border:none;cursor:pointer;font-size:22px;padding:4px 8px;opacity:0.75;transition:opacity 0.2s,transform 0.15s;"
-          onmouseover="this.style.opacity=1;this.style.transform='scale(1.2)'"
-          onmouseout="this.style.opacity=0.75;this.style.transform='scale(1)'">👁️</button>
-        <button class="acoes-close" onclick="fecharPluggy()">×</button>
-      </div>
-    </div>
-    <!-- Body -->
-    <div id="pluggy-body" style="padding:20px;max-width:900px;margin:0 auto;"></div>
-  </div>
-</div>
-
-
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw-invest.js?v=3')
-        .catch(() => {});
-    });
-  }
-</script>
 </body>
 </html>
