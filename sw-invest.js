@@ -1,8 +1,8 @@
-const CACHE_NAME = 'investimentos-v2';
+const CACHE_NAME = 'investimentos-v3';
+
+// Só cacheia assets estáticos — NUNCA o HTML principal
 const STATIC_ASSETS = [
-  '/pessoal/investimentos',
-  '/pessoal/logo.png',
-  'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap'
+  '/pessoal/logo.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -15,33 +15,38 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
+  // Apaga TODOS os caches antigos
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      )
+      Promise.all(keys.map((key) => caches.delete(key)))
     )
   );
   self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
-  // Deixa passar requisições externas sem interceptar
+  const url = event.request.url;
+
+  // Deixa passar tudo que não seja do próprio domínio
   if (
-    event.request.url.includes('supabase.co') ||
-    event.request.url.includes('cdn.jsdelivr') ||
-    event.request.url.includes('cdnjs.') ||
-    event.request.url.includes('brapi.dev') ||
-    event.request.url.includes('pluggy') ||
-    event.request.url.includes('fonts.googleapis') ||
-    event.request.url.includes('fonts.gstatic')
+    url.includes('supabase.co') ||
+    url.includes('cdn.jsdelivr') ||
+    url.includes('cdnjs.') ||
+    url.includes('brapi.dev') ||
+    url.includes('pluggy') ||
+    url.includes('fonts.googleapis') ||
+    url.includes('fonts.gstatic')
   ) {
     return;
   }
 
-  // Network-first: sempre busca versão mais recente, usa cache só se offline
+  // HTML: sempre busca na rede (nunca cacheia)
+  if (event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Outros assets: network-first com fallback pro cache
   event.respondWith(
     fetch(event.request)
       .then((response) => {
