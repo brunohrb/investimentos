@@ -398,14 +398,6 @@
     padding-bottom: 10px;
     border-bottom: 1px solid #222;
     cursor: pointer;
-}
-
-.news-item {
-    font-size: 13px;
-    margin-bottom: 12px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #222;
-    cursor: pointer;
     text-decoration: none;   /* remove sublinhado */
     color: #ffffff;          /* força branco */
     display: block;
@@ -414,11 +406,6 @@
 .news-item:visited {
     color: #ffffff;
 }
-
-.news-item:hover {
-    color: #00bfff;
-}
-
 
 .news-item:hover {
     color: #00bfff;
@@ -503,32 +490,6 @@
         /* ===========================
    💻 AÇÕES – PADRÃO (DESKTOP)
    =========================== */
-/* COMPUTADOR – AÇÕES UMA ABAIXO DA OUTRA */
-.actions-cell {
-    display: flex;
-    flex-direction: column;   /* 👈 ISSO resolve */
-    gap: 6px;
-}
-
-    max-height: 90px;         /* 👈 limite de altura */
-    overflow-y: auto;         /* 👈 scroll vertical */
-
-    align-content: flex-start;
-}
-
-.actions-cell > div {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-
-    background: rgba(0,0,0,0.04);
-    padding: 4px 6px;
-    border-radius: 6px;
-
-    font-size: 11px;
-    white-space: nowrap;
-}
-
 
         .btn-edit, .btn-delete { padding: 8px; font-size: 11px; border: none; color: white; cursor: pointer; border-radius: 4px; width: auto; flex: 1; }
         .btn-edit { background-color: #007bff; }
@@ -818,15 +779,6 @@
    =========================== */
 @media (max-width: 768px) {
 
-    /* Modal ocupa quase tela inteira */
-    #patrimonioModal .modal-content {
-        width: 100% !important;
-        height: 100vh !important;
-        max-width: 100% !important;
-        border-radius: 0 !important;
-        padding: 20px !important;
-    }
-
     /* Cards viram coluna */
     #patrimonioModal .total-card {
         text-align: center;
@@ -847,19 +799,6 @@
     #patrimonioModal button {
         width: 100% !important;
         font-size: 16px !important;
-    }
-
-    #patrimonioModal div[style*="grid-template-columns: 1fr 1fr 1fr auto"] {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 12px !important;
-    }
-
-    /* Imóveis ficam organizados */
-    #secaoImoveis > div {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 10px;
     }
 
     #secaoImoveis button {
@@ -1007,14 +946,6 @@
     gap: 18px;
     margin-bottom: 22px;
 }
-
-.acoes-chart-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 18px;
-}
-.acoes-chart-card h4 { margin: 0 0 14px 0; font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.3px; }
 
 .acoes-form-card {
     background: var(--card-bg);
@@ -1615,9 +1546,9 @@
 </div>
 
 
-<div id="configModal" class="modal">
+<div id="configModal" class="modal" role="dialog" aria-modal="true" aria-label="Configurações">
     <div class="modal-content">
-        <div class="modal-header"><h3>Configurações</h3><span class="close-modal" onclick="fecharConfig()">&times;</span></div>
+        <div class="modal-header"><h3>Configurações</h3><span class="close-modal" onclick="fecharConfig()" aria-label="Fechar configurações" role="button">&times;</span></div>
         <button onclick="toggleTheme()" id="themeBtn" style="margin-bottom:10px">🌙 Modo Escuro</button>
         <button onclick="mudarSenha()" class="btn-secondary" style="margin-bottom:10px">Alterar Senha</button>
         <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0">
@@ -1662,7 +1593,7 @@
 </div>
 
 <!-- 🔹 MODAL PATRIMÔNIO GRANDE -->
-<div id="patrimonioModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#070b14;z-index:5500;overflow-y:auto;">
+<div id="patrimonioModal" role="dialog" aria-modal="true" aria-label="Patrimônio e Imóveis" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#070b14;z-index:5500;overflow-y:auto;">
     <div style="width:95%;max-width:900px;margin:40px auto;background:#070b14;border:1px solid rgba(255,255,255,0.08);border-radius:20px;overflow:hidden;padding:0;margin-bottom:60px;">
 
         <!-- Header -->
@@ -1721,7 +1652,7 @@
 
 <div id="portabilidadeModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header"><h3>Portabilidade entre Contas</h3><span class="close-modal" onclick="fecharModalPortabilidade()">&times;</span></div>
+        <div class="modal-header"><h3>Portabilidade entre Contas</h3><span class="close-modal" onclick="fecharModalPortabilidade()" aria-label="Fechar" role="button">&times;</span></div>
         <div style="display: grid; gap: 10px;">
             <label style="font-size:12px; color:#888">Banco de Origem</label>
             <select id="portabilidadeBancoOrigem"></select>
@@ -1738,7 +1669,7 @@
 
 <div id="portabilidadeUSDModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header"><h3>Portabilidade USD</h3><span class="close-modal" onclick="fecharModalPortabilidadeUSD()">&times;</span></div>
+        <div class="modal-header"><h3>Portabilidade USD</h3><span class="close-modal" onclick="fecharModalPortabilidadeUSD()" aria-label="Fechar" role="button">&times;</span></div>
         <div style="display: grid; gap: 10px;">
             <label style="font-size:12px; color:#888">Banco Origem (USD)</label>
             <select id="portabilidadeUSDOrigem"></select>
@@ -1757,7 +1688,7 @@
 
 <div id="portabilidadeBrlUsdModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header"><h3>Portabilidade BRL → USD</h3><span class="close-modal" onclick="fecharModalPortabilidadeBrlUsd()">&times;</span></div>
+        <div class="modal-header"><h3>Portabilidade BRL → USD</h3><span class="close-modal" onclick="fecharModalPortabilidadeBrlUsd()" aria-label="Fechar" role="button">&times;</span></div>
         <div style="display: grid; gap: 10px;">
             <label style="font-size:12px; color:#888">Banco Brasil (origem)</label>
             <select id="portabilidadeBrlUsdOrigem"></select>
@@ -1776,7 +1707,7 @@
 
 <div id="portabilidadeUsdBrlModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header"><h3>Portabilidade USD → BRL</h3><span class="close-modal" onclick="fecharModalPortabilidadeUsdBrl()">&times;</span></div>
+        <div class="modal-header"><h3>Portabilidade USD → BRL</h3><span class="close-modal" onclick="fecharModalPortabilidadeUsdBrl()" aria-label="Fechar" role="button">&times;</span></div>
         <div style="display: grid; gap: 10px;">
             <label style="font-size:12px; color:#888">Banco EUA (origem)</label>
             <select id="portabilidadeUsdBrlOrigem"></select>
@@ -1906,11 +1837,11 @@
 
     <input type="hidden" id="registroId">
     <div class="inputs">
-        <input type="date" id="dataInput">
-        <input type="text" id="valorAporteInput" placeholder="Aporte R$ (ou - para retirada)" oninput="mascaraMoeda(this, 'BRL')">
-        <input type="text" id="patrimonioAtualInput" placeholder="Patr. Final do Mês R$" oninput="mascaraMoeda(this, 'BRL')">
-        <input type="text" id="valorAporteInputUSD" placeholder="Aporte $ (ou -)" style="display: none;" oninput="mascaraMoeda(this, 'USD')">
-        <input type="text" id="patrimonioAtualInputUSD" placeholder="Patr. Final $ " style="display: none;" oninput="mascaraMoeda(this, 'USD')">
+        <input type="date" id="dataInput" required aria-label="Data do fechamento">
+        <input type="text" id="valorAporteInput" placeholder="Aporte R$ (ou - para retirada)" oninput="mascaraMoeda(this, 'BRL')" aria-label="Valor do aporte em reais">
+        <input type="text" id="patrimonioAtualInput" placeholder="Patr. Final do Mês R$" oninput="mascaraMoeda(this, 'BRL')" aria-label="Patrimônio final em reais">
+        <input type="text" id="valorAporteInputUSD" placeholder="Aporte $ (ou -)" style="display: none;" oninput="mascaraMoeda(this, 'USD')" aria-label="Valor do aporte em dólares">
+        <input type="text" id="patrimonioAtualInputUSD" placeholder="Patr. Final $ " style="display: none;" oninput="mascaraMoeda(this, 'USD')" aria-label="Patrimônio final em dólares">
         <button onclick="salvarRegistro()" id="btnSalvar">Registrar</button>
         <button onclick="limparCampos()" id="btnCancelar" class="btn-cancel">X</button>
     </div>
@@ -1980,6 +1911,30 @@ let registrosAtuais = [];
 let todosRegistros = [];
 let charts = {};
 let dolarFallbackHoje = null;
+
+// Cache simples para cálculos pesados (invalida quando todosRegistros muda)
+const _calcCache = { _version: 0, _data: {} };
+function _cacheInvalidate() { _calcCache._version++; _calcCache._data = {}; }
+function _cacheGet(key) {
+    const entry = _calcCache._data[key];
+    return (entry && entry.v === _calcCache._version) ? entry.val : undefined;
+}
+function _cacheSet(key, val) {
+    _calcCache._data[key] = { v: _calcCache._version, val };
+    return val;
+}
+
+// Utilitário: atualiza chart existente ou cria novo (evita destroy/recreate)
+function _chartUpdateOrCreate(existingChart, ctx, config) {
+    if (existingChart && existingChart.ctx === ctx) {
+        existingChart.data = config.data;
+        if (config.options) existingChart.options = config.options;
+        existingChart.update();
+        return existingChart;
+    }
+    if (existingChart) { try { existingChart.destroy(); } catch(e) {} }
+    return new Chart(ctx, config);
+}
 
     const SUPABASE_URL = 'https://hisbbtddpoxufvghxqtm.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhpc2JidGRkcG94dWZ2Z2h4cXRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyMDM0OTgsImV4cCI6MjA4Nzc3OTQ5OH0.r3VkLkBxeorkCYjB-y6WOchePdfRKsm5lWE1iSSYlrw';
@@ -2227,6 +2182,7 @@ if (selector.value) carregarDadosBanco();
     async function carregarTodosRegistros() {
         const { data, error } = await sb.from('registros').select('*').order('data_fechamento', { ascending: true });
         if (error) return; todosRegistros = data;
+        _cacheInvalidate();
         atualizarFiltroAnos();
      if (document.getElementById('bancoSelector').value.startsWith('consolidado'))
     carregarDadosBanco();
@@ -2904,7 +2860,6 @@ if (bancoSelecionadoId === 'consolidado_total') {
 function atualizarGrafico() {
     const isDark = document.body.getAttribute('data-theme') === 'dark';
     const textColor = isDark ? '#e0e0e0' : '#666';
-    if (charts.patrimonio) charts.patrimonio.destroy();
     const ctx = document.getElementById('patrimonioChart').getContext('2d');
 
     const bancoId = document.getElementById('bancoSelector').value;
@@ -2961,7 +2916,7 @@ function atualizarGrafico() {
         valores.push(ultimoValor);
     });
 
-    charts.patrimonio = new Chart(ctx, {
+    charts.patrimonio = _chartUpdateOrCreate(charts.patrimonio, ctx, {
         type: 'line',
         data: {
             labels,
@@ -2989,7 +2944,6 @@ function atualizarGrafico() {
 }
 
 function atualizarGraficoPizza() {
-    if (charts.pizza) charts.pizza.destroy();
     const bancoId = document.getElementById('bancoSelector').value;
 
     const ultimos = {};
@@ -3003,7 +2957,6 @@ function atualizarGraficoPizza() {
     const entradas = Object.values(ultimos).map(r => {
         const banco = todosBancos.find(b => b.id === r.banco_id);
         if (!banco) return null;
-        // Filtra por tipo no consolidado
         if (bancoId === 'consolidado_br'  &&  banco.is_usd) return null;
         if (bancoId === 'consolidado_usd' && !banco.is_usd) return null;
         const valor = banco.is_usd
@@ -3012,7 +2965,7 @@ function atualizarGraficoPizza() {
         return { nome: banco.nome + (banco.is_usd ? ' 🇺🇸' : ' 🇧🇷'), valor };
     }).filter(e => e && e.valor > 0);
 
-    charts.pizza = new Chart(ctx, {
+    charts.pizza = _chartUpdateOrCreate(charts.pizza, ctx, {
         type: 'doughnut',
         data: {
             labels: entradas.map(e => e.nome),
@@ -5008,6 +4961,7 @@ async function carregarAcoes() {
     }
 
     acoesTransacoes = data || [];
+    _cacheInvalidate();
     popularFiltroTicker();
 
     // Carrega opções em paralelo para que calcularLucroOpcoesTicker
@@ -5026,6 +4980,59 @@ async function carregarAcoes() {
     renderizarGraficoLinha();
 }
 
+// ── Busca cotação individual com cadeia de fallbacks ──────
+// Retorna { price, change, changePct, nome } ou null
+async function _fetchCotacaoTicker(ticker) {
+    const brapiToken = localStorage.getItem('brapi_token') || '';
+    const symbol = ticker + (/^[A-Z]{4}\d/.test(ticker) ? '.SA' : '');
+
+    // 1. brapi individual com token
+    if (brapiToken) {
+        try {
+            const res = await fetch(`https://brapi.dev/api/quote/${ticker}?fundamental=false&token=${brapiToken}`);
+            const data = await res.json();
+            const s = data.results?.[0];
+            if (s?.regularMarketPrice) return { price: s.regularMarketPrice, change: s.regularMarketChange||0, changePct: s.regularMarketChangePercent||0, nome: s.longName||s.shortName||ticker };
+        } catch(e) {}
+    }
+
+    // 2. Yahoo Finance v7 direto
+    try {
+        const res = await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,longName`, { mode: 'cors' });
+        const data = await res.json();
+        const q = data?.quoteResponse?.result?.[0];
+        if (q?.regularMarketPrice) return { price: q.regularMarketPrice, change: q.regularMarketChange||0, changePct: q.regularMarketChangePercent||0, nome: q.longName||q.shortName||ticker };
+    } catch(e) {}
+
+    // 3. Yahoo v8 via corsproxy.io
+    try {
+        const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`;
+        const res  = await fetch(`https://corsproxy.io/?${encodeURIComponent(yUrl)}`);
+        const data = await res.json();
+        const meta = data?.chart?.result?.[0]?.meta;
+        if (meta?.regularMarketPrice) return { price: meta.regularMarketPrice, change: 0, changePct: meta.regularMarketChangePercent||0, nome: meta.longName||meta.shortName||ticker };
+    } catch(e) {}
+
+    // 4. Yahoo v8 via allorigins
+    try {
+        const yUrl = `https://query2.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`;
+        const res  = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(yUrl)}`);
+        const data = await res.json();
+        const meta = data?.chart?.result?.[0]?.meta;
+        if (meta?.regularMarketPrice) return { price: meta.regularMarketPrice, change: 0, changePct: meta.regularMarketChangePercent||0, nome: meta.longName||meta.shortName||ticker };
+    } catch(e) {}
+
+    // 5. HG Brasil Finance (API BR gratuita)
+    try {
+        const res  = await fetch(`https://api.hgbrasil.com/finance/stock_price?symbol=${ticker}&key=demo`);
+        const data = await res.json();
+        const s    = data?.results?.[ticker];
+        if (s?.price) return { price: s.price, change: s.change_amount||0, changePct: s.change_percent||0, nome: s.name||ticker };
+    } catch(e) {}
+
+    return null;
+}
+
 // ── Cotações de Ações Brasileiras ───────────────────────
 async function atualizarCotacoesAcoes() {
     const tickers = [...new Set(
@@ -5040,8 +5047,9 @@ async function atualizarCotacoesAcoes() {
 
     const brapiToken = localStorage.getItem('brapi_token') || '';
 
-    // ── 1. brapi em lote (com token se disponível, sem token se não) ──
+    // 1. brapi em lote (com token, depois sem)
     async function tentarBrapiLote(lista, token) {
+        if (!lista.length) return;
         const tokenParam = token ? `&token=${token}` : '';
         try {
             const res = await fetch(`https://brapi.dev/api/quote/${lista.join(',')}?fundamental=false${tokenParam}`);
@@ -5050,96 +5058,20 @@ async function atualizarCotacoesAcoes() {
             (data.results || []).forEach(s => {
                 if (s.regularMarketPrice) {
                     const sym = s.symbol.replace('.SA','');
-                    acoesCotacoes[sym] = {
-                        price:     s.regularMarketPrice,
-                        change:    s.regularMarketChange || 0,
-                        changePct: s.regularMarketChangePercent || 0,
-                        nome:      s.longName || s.shortName || sym
-                    };
+                    acoesCotacoes[sym] = { price: s.regularMarketPrice, change: s.regularMarketChange||0, changePct: s.regularMarketChangePercent||0, nome: s.longName||s.shortName||sym };
                 }
             });
         } catch(e) { console.warn('brapi lote falhou:', e.message); }
     }
 
-    // Tenta com token primeiro, depois sem token
     if (brapiToken) await tentarBrapiLote(tickers, brapiToken);
     await tentarBrapiLote(tickers.filter(t => !acoesCotacoes[t]?.price), '');
 
-    // ── 2. Para cada ticker ainda sem cotação — busca individual ──
-    const semCotacao = () => tickers.filter(t => !acoesCotacoes[t]?.price);
-
-    for (const ticker of semCotacao()) {
-        const symbol = ticker + (/^[A-Z]{4}\d/.test(ticker) ? '.SA' : '');
-        let got = false;
-
-        // 2a. brapi individual com token
-        if (brapiToken && !got) {
-            try {
-                const res = await fetch(`https://brapi.dev/api/quote/${ticker}?fundamental=false&token=${brapiToken}`);
-                const data = await res.json();
-                const s = data.results?.[0];
-                if (s?.regularMarketPrice) {
-                    acoesCotacoes[ticker] = { price: s.regularMarketPrice, change: s.regularMarketChange||0, changePct: s.regularMarketChangePercent||0, nome: s.longName||s.shortName||ticker };
-                    got = true;
-                }
-            } catch(e) {}
-        }
-
-        // 2b. Yahoo Finance v7 direto (sem proxy — funciona de alguns navegadores)
-        if (!got) {
-            try {
-                const res = await fetch(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,longName`, { mode: 'cors' });
-                const data = await res.json();
-                const q = data?.quoteResponse?.result?.[0];
-                if (q?.regularMarketPrice) {
-                    acoesCotacoes[ticker] = { price: q.regularMarketPrice, change: q.regularMarketChange||0, changePct: q.regularMarketChangePercent||0, nome: q.longName||q.shortName||ticker };
-                    got = true;
-                }
-            } catch(e) {}
-        }
-
-        // 2c. Yahoo v8 via corsproxy.io
-        if (!got) {
-            try {
-                const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`;
-                const res  = await fetch(`https://corsproxy.io/?${encodeURIComponent(yUrl)}`);
-                const data = await res.json();
-                const meta = data?.chart?.result?.[0]?.meta;
-                if (meta?.regularMarketPrice) {
-                    acoesCotacoes[ticker] = { price: meta.regularMarketPrice, change: 0, changePct: meta.regularMarketChangePercent||0, nome: meta.longName||meta.shortName||ticker };
-                    got = true;
-                }
-            } catch(e) {}
-        }
-
-        // 2d. Yahoo v8 via allorigins
-        if (!got) {
-            try {
-                const yUrl = `https://query2.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`;
-                const res  = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(yUrl)}`);
-                const data = await res.json();
-                const meta = data?.chart?.result?.[0]?.meta;
-                if (meta?.regularMarketPrice) {
-                    acoesCotacoes[ticker] = { price: meta.regularMarketPrice, change: 0, changePct: meta.regularMarketChangePercent||0, nome: meta.longName||meta.shortName||ticker };
-                    got = true;
-                }
-            } catch(e) {}
-        }
-
-        // 2e. HG Brasil Finance (API BR gratuita)
-        if (!got) {
-            try {
-                const res  = await fetch(`https://api.hgbrasil.com/finance/stock_price?symbol=${ticker}&key=demo`);
-                const data = await res.json();
-                const s    = data?.results?.[ticker];
-                if (s?.price) {
-                    acoesCotacoes[ticker] = { price: s.price, change: s.change_amount||0, changePct: s.change_percent||0, nome: s.name||ticker };
-                    got = true;
-                }
-            } catch(e) {}
-        }
-
-        if (!got) console.warn(`❌ Sem cotação: ${ticker}`);
+    // 2. Fallback individual para tickers sem cotação
+    for (const ticker of tickers.filter(t => !acoesCotacoes[t]?.price)) {
+        const result = await _fetchCotacaoTicker(ticker);
+        if (result) acoesCotacoes[ticker] = result;
+        else console.warn(`Sem cotação: ${ticker}`);
         await new Promise(r => setTimeout(r, 150));
     }
 
@@ -5147,14 +5079,18 @@ async function atualizarCotacoesAcoes() {
     const comCot  = tickers.filter(t => acoesCotacoes[t]?.price).length;
     const semCot  = tickers.length - comCot;
     document.getElementById('acoes-status').textContent = comCot > 0
-        ? `🟢 ${comCot}/${tickers.length} cotações às ${hora}${semCot > 0 ? ` · ⚠️ ${semCot} sem cotação` : ''}`
-        : `🟡 API offline — cotações manuais`;
+        ? `${comCot}/${tickers.length} cotações às ${hora}${semCot > 0 ? ' · ' + semCot + ' sem cotação' : ''}`
+        : 'API offline — cotações manuais';
 
     renderizarCarteira();
     atualizarDashboardAcoes();
 }
-// ── Calcular Posições (FIFO/PM) ──────────────────
+// ── Calcular Posições (FIFO/PM) com cache ──────────────────
 function calcularPosicoes() {
+    const cacheKey = 'posicoes_' + acoesTransacoes.length;
+    const cached = _cacheGet(cacheKey);
+    if (cached) return cached;
+
     const pos = {};
     [...acoesTransacoes]
         .filter(t => !t.nome?.startsWith('CALL') && !t.nome?.startsWith('PUT'))
@@ -5173,7 +5109,7 @@ function calcularPosicoes() {
                 p.qtd         -= t.quantidade;
             }
         });
-    return Object.values(pos).filter(p => p.qtd > 0.0001);
+    return _cacheSet(cacheKey, Object.values(pos).filter(p => p.qtd > 0.0001));
 }
 
 // ── Call coberta manual (localStorage) ─────────────
@@ -5509,65 +5445,33 @@ function selecionarTipoAcao(tipo) {
     document.getElementById('btnTipoVenda').className  = 'acoes-tipo-btn' + (tipo==='venda'  ? ' venda-ativo'  : '');
 }
 
-// ── Buscar Cotação Manual ────────────────────────
+// ── Buscar Cotação Manual (usa fetcher unificado) ────────
 async function buscarCotacaoManual() {
     const ticker = document.getElementById('acaoTicker').value.trim().toUpperCase();
     if (!ticker) { alert('Digite o ticker primeiro!'); return; }
 
-    // 1️⃣ Cache local
+    // Cache local
     if (acoesCotacoes[ticker]?.price) {
         const pre = document.getElementById('acaoPreco');
         pre.value = acoesCotacoes[ticker].price.toFixed(2);
         mascaraMoeda(pre, 'BRL');
         document.getElementById('acaoNome').value = acoesCotacoes[ticker].nome || ticker;
         calcularTotalAcao();
-        alert(`✅ ${ticker}: ${formatarMoeda(acoesCotacoes[ticker].price)}`);
+        alert(`${ticker}: ${formatarMoeda(acoesCotacoes[ticker].price)}`);
         return;
     }
 
-    let preco = null, nome = null;
-
-    // 2️⃣ Tenta brapi.dev
-    try {
-        const res = await fetch(`https://brapi.dev/api/quote/${ticker}?fundamental=false&dividends=false`);
-        if (res.ok) {
-            const data = await res.json();
-            if (data.results?.[0]?.regularMarketPrice) {
-                preco = data.results[0].regularMarketPrice;
-                nome  = data.results[0].longName || data.results[0].shortName || ticker;
-            }
-        }
-    } catch(e) { console.warn('brapi falhou:', e.message); }
-
-    // 3️⃣ Fallback: Yahoo Finance (.SA para ações BR, sem sufixo para EUA)
-    if (!preco) {
-        try {
-            const sufixo  = /^[A-Z]{4}\d/.test(ticker) ? '.SA' : ''; // BBAS3 → .SA, AAPL → sem sufixo
-            const symbol  = ticker + sufixo;
-           const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1d`;
-            const res     = await fetch(`https://corsproxy.io/?` + encodeURIComponent(yahooUrl));
-            if (res.ok) {
-                const data = await res.json();
-                const meta = data?.chart?.result?.[0]?.meta;
-                if (meta?.regularMarketPrice) {
-                    preco = meta.regularMarketPrice;
-                    nome  = meta.longName || meta.shortName || ticker;
-                }
-            }
-        } catch(e) { console.warn('Yahoo Finance falhou:', e.message); }
-    }
-
-    // 4️⃣ Resultado
-    if (preco) {
+    const result = await _fetchCotacaoTicker(ticker);
+    if (result) {
         const pre = document.getElementById('acaoPreco');
-        pre.value = preco.toFixed(2);
+        pre.value = result.price.toFixed(2);
         mascaraMoeda(pre, 'BRL');
-        document.getElementById('acaoNome').value = nome || ticker;
-        acoesCotacoes[ticker] = { price: preco, change: 0, changePct: 0, nome: nome || ticker };
+        document.getElementById('acaoNome').value = result.nome || ticker;
+        acoesCotacoes[ticker] = result;
         calcularTotalAcao();
-        alert(`✅ ${ticker}: ${formatarMoeda(preco)}`);
+        alert(`${ticker}: ${formatarMoeda(result.price)}`);
     } else {
-        alert(`⚠️ Não foi possível buscar ${ticker} automaticamente.\nPreencha o preço manualmente.`);
+        alert(`Não foi possível buscar ${ticker} automaticamente.\nPreencha o preço manualmente.`);
     }
 }
 
@@ -5967,15 +5871,6 @@ async function carregarOpcoes() {
 }
 
 function preencherFiltrosOpcoes() {
-    const ATIVO_MAP_PF = {
-        PETR:'PETR4', VALE:'VALE3', BBAS:'BBAS3', ITUB:'ITUB4', BBDC:'BBDC4',
-        WEGE:'WEGE3', MGLU:'MGLU3', ABEV:'ABEV3', BRAP:'BRAP4', GGBR:'GGBR4',
-        B3SA:'B3SA3', RENT:'RENT3', JBSS:'JBSS3', SUZB:'SUZB3', RADL:'RADL3',
-        BBSE:'BBSE3', CPLE:'CPLE6', TIMS:'TIMS3', TAEE:'TAEE11', CSNA:'CSNA3',
-        ITSA:'ITSA4', GOLL:'GOLL4', KLBN:'KLBN11', CMIG:'CMIG4', ELET:'ELET3',
-        GOAU:'GOAU4', IGTI:'IGTI11', ONCO:'ONCO3', STBP:'STBP3', VAMO:'VAMO3',
-        VIVA:'VIVA3', TOTS:'TOTS3', RRRP:'RRRP3'
-    };
     const supaAtivos = listaOpcoes.map(o => (o.nome?.split(' ')||[])[1] || '').filter(Boolean);
     const histAtivos = (typeof HIST_OPC_DATA !== 'undefined' ? HIST_OPC_DATA : []).map(r => r[4]);
     const ativos = [...new Set([...supaAtivos, ...histAtivos])].filter(Boolean).sort();
@@ -6149,21 +6044,8 @@ function renderizarOpcoes() {
     const filtDe       = document.getElementById('opc-tabela-filtro-de')?.value       || '';
     const filtAte      = document.getElementById('opc-tabela-filtro-ate')?.value      || '';
 
-    const ATIVO_MAP = {
-        PETR:'PETR4', VALE:'VALE3', BBAS:'BBAS3', ITUB:'ITUB4', BBDC:'BBDC4',
-        WEGE:'WEGE3', MGLU:'MGLU3', ABEV:'ABEV3', BRAP:'BRAP4', GGBR:'GGBR4',
-        B3SA:'B3SA3', RENT:'RENT3', JBSS:'JBSS3', SUZB:'SUZB3', RADL:'RADL3',
-        BBSE:'BBSE3', CPLE:'CPLE6', TIMS:'TIMS3', TAEE:'TAEE11', CSNA:'CSNA3',
-        ITSA:'ITSA4', GOLL:'GOLL4', KLBN:'KLBN11', CMIG:'CMIG4', ELET:'ELET3',
-        GOAU:'GOAU4', IGTI:'IGTI11', ONCO:'ONCO3', STBP:'STBP3', VAMO:'VAMO3',
-        VIVA:'VIVA3', TOTE:'TOTS3', TOTS:'TOTS3', RRRP:'RRRP3'
-    };
-    function detectModalHist(cod) {
-        const l = (cod||'').charAt(4).toUpperCase();
-        return 'ABCDEFGHIJKL'.includes(l) ? 'call' : 'put';
-    }
     function detectAtivo(cod) {
-        return ATIVO_MAP[(cod||'').slice(0,4).toUpperCase()] || (cod||'').slice(0,4).toUpperCase();
+        return ATIVO_MAP_TICKER[(cod||'').slice(0,4).toUpperCase()] || (cod||'').slice(0,4).toUpperCase();
     }
     function getEstrategiaLabel(val) {
         const map = { 'STRANGLE':'🔀 Strangle', 'venda_coberta_call':'📊 Venda Coberta CALL',
@@ -6272,18 +6154,19 @@ function renderizarOpcoes() {
 
 let pastePendentes = [];
 
-const ATIVO_MAP_PASTE = {
+// Mapa centralizado: código B3 (4 letras) → ticker do ativo
+const ATIVO_MAP_TICKER = {
     PETR:'PETR4', VALE:'VALE3', BBAS:'BBAS3', ITUB:'ITUB4', BBDC:'BBDC4',
     WEGE:'WEGE3', MGLU:'MGLU3', ABEV:'ABEV3', BRAP:'BRAP4', GGBR:'GGBR4',
     B3SA:'B3SA3', RENT:'RENT3', JBSS:'JBSS3', SUZB:'SUZB3', RADL:'RADL3',
     BBSE:'BBSE3', CPLE:'CPLE6', TIMS:'TIMS3', TAEE:'TAEE11', CSNA:'CSNA3',
     ITSA:'ITSA4', GOLL:'GOLL4', KLBN:'KLBN11', CMIG:'CMIG4', ELET:'ELET3',
     GOAU:'GOAU4', IGTI:'IGTI11', ONCO:'ONCO3', STBP:'STBP3', VAMO:'VAMO3',
-    VIVA:'VIVA3', TOTS:'TOTS3', RRRP:'RRRP3'
+    VIVA:'VIVA3', TOTE:'TOTS3', TOTS:'TOTS3', RRRP:'RRRP3'
 };
 
-function detectModalPaste(cod) {
-    // B3 padrão: A-L = CALL, M-X = PUT (5ª letra do código)
+// Detecta CALL/PUT pela 5a letra do código B3 (A-L = CALL, M-X = PUT)
+function detectModalOpcao(cod) {
     const l = (cod || '').charAt(4).toUpperCase();
     return 'ABCDEFGHIJKL'.includes(l) ? 'call' : 'put';
 }
@@ -6356,9 +6239,9 @@ function parsePasteOpcoes() {
         if (!qtd || !cod) return;
 
         const tipo    = cv === 'C' ? 'compra' : 'venda';
-        const modal   = detectModalPaste(cod);
+        const modal   = detectModalOpcao(cod);
         const base    = cod.slice(0, 4);
-        const ativo   = ATIVO_MAP_PASTE[base] || ativoExtra || base + '3';
+        const ativo   = ATIVO_MAP_TICKER[base] || ativoExtra || base + '3';
         const total   = premio * qtd;
 
         pastePendentes.push({ tipo, ticker: cod, preco_unitario: premio, quantidade: qtd, modal, ativo, data: dataISO, dataBR });
@@ -8155,7 +8038,7 @@ function _dbFmtPeriodo(periodo) {
                     style="background:none;border:none;cursor:pointer;font-size:22px;padding:4px 8px;opacity:0.75;transition:opacity 0.2s,transform 0.15s;"
                     onmouseover="this.style.opacity=1;this.style.transform='scale(1.2)'"
                     onmouseout="this.style.opacity=0.75;this.style.transform='scale(1)'">👁️</button>
-                <button class="acoes-close" onclick="fecharAcoes()">×</button>
+                <button class="acoes-close" onclick="fecharAcoes()" aria-label="Fechar ações">×</button>
             </div>
         </div>
 
@@ -8298,25 +8181,25 @@ function _dbFmtPeriodo(periodo) {
                         <div class="acoes-form-group">
                             <label>Ticker *</label>
                             <div class="ticker-input-row">
-                                <input type="text" id="acaoTicker" placeholder="PETR4, VALE3, AAPL..." oninput="this.value=this.value.toUpperCase()">
-                                <button class="btn-buscar-cot" onclick="buscarCotacaoManual()">🔍 Buscar</button>
+                                <input type="text" id="acaoTicker" placeholder="PETR4, VALE3, AAPL..." oninput="this.value=this.value.toUpperCase()" required aria-label="Ticker da ação">
+                                <button class="btn-buscar-cot" onclick="buscarCotacaoManual()" aria-label="Buscar cotação">🔍 Buscar</button>
                             </div>
                         </div>
                         <div class="acoes-form-group">
                             <label>Nome da Empresa</label>
-                            <input type="text" id="acaoNome" placeholder="Auto ou manual">
+                            <input type="text" id="acaoNome" placeholder="Auto ou manual" aria-label="Nome da empresa">
                         </div>
                         <div class="acoes-form-group">
                             <label>Quantidade *</label>
-                            <input type="number" id="acaoQtd" placeholder="100" min="0.0001" step="1" oninput="calcularTotalAcao()">
+                            <input type="number" id="acaoQtd" placeholder="100" min="0.0001" step="1" oninput="calcularTotalAcao()" required aria-label="Quantidade de ações">
                         </div>
                         <div class="acoes-form-group">
                             <label>Preço Unitário (R$) *</label>
-                            <input type="text" id="acaoPreco" placeholder="R$ 0,00" oninput="mascaraMoeda(this,'BRL'); calcularTotalAcao()">
+                            <input type="text" id="acaoPreco" placeholder="R$ 0,00" oninput="mascaraMoeda(this,'BRL'); calcularTotalAcao()" required aria-label="Preço unitário">
                         </div>
                         <div class="acoes-form-group">
                             <label>Data *</label>
-                            <input type="date" id="acaoData">
+                            <input type="date" id="acaoData" required aria-label="Data da operação">
                         </div>
                         <div class="acoes-form-group">
                             <label>Corretora</label>
@@ -8802,7 +8685,7 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
     <div class="modal-content" style="max-width:380px;">
         <div class="modal-header">
             <h3>💵 Registrar Dividendo / JCP</h3>
-            <span class="close-modal" onclick="fecharDividendoModal()">×</span>
+            <span class="close-modal" onclick="fecharDividendoModal()" aria-label="Fechar" role="button">×</span>
         </div>
         <div style="display:grid; gap:12px;">
             <div>
@@ -8841,7 +8724,7 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
                     Preencha o patrimônio final de cada banco
                 </p>
             </div>
-            <span class="close-modal" onclick="fecharModalFecharMes()">×</span>
+            <span class="close-modal" onclick="fecharModalFecharMes()" aria-label="Fechar" role="button">×</span>
         </div>
         <div id="fecharMesResumo" style="display:flex; gap:15px; margin-bottom:18px; flex-wrap:wrap;"></div>
         <div id="fecharMesCorpo"></div>
@@ -9256,19 +9139,122 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
 </div>
 
 <script>
+// ═══ FUNÇÕES UNIFICADAS BRL/USD ═══
+
+// Toggle menu portabilidade (parametrizado)
+function _moeda_togglePortabilidade(prefix) {
+    const menu = document.getElementById(prefix + '-menuPortabilidade');
+    if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+// Ver mais / toggle detalhes (parametrizado)
+function _moeda_verMais(prefix) {
+    const tbodyH = document.getElementById(prefix + '-tbody-hidden');
+    const btn = document.getElementById(prefix + '-ver-mais');
+    if (tbodyH) tbodyH.style.display = 'table-row-group';
+    if (btn) btn.style.display = 'none';
+}
+
+function _moeda_toggleDet(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+function _moeda_abrirFecharMes(mesAno) {
+    abrirFecharMes(mesAno);
+    const fm = document.getElementById('fecharMesModal');
+    if (fm) fm.style.zIndex = '999999';
+}
+
+// Renderização unificada de gráficos (pizza + evolução) para modais BRL/USD
+function _moeda_renderGraficos(cfg) {
+    const tickColor = 'rgba(255,255,255,0.3)';
+    const gridColor = 'rgba(255,255,255,0.05)';
+
+    const todosFiltrados = todosBancos.filter(cfg.filterBancos);
+    const bancos = cfg.bancoAtual === 'consolidado'
+        ? todosFiltrados : todosFiltrados.filter(b => b.id === cfg.bancoAtual);
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth(), anoAtual = hoje.getFullYear();
+
+    // Pizza: distribuição por banco
+    const dadosPizza = bancos.map(banco => {
+        const regs = todosRegistros.filter(r => r.banco_id === banco.id);
+        const ultimo = [...regs].sort((a,b)=>new Date(b.data_fechamento)-new Date(a.data_fechamento)).find(r=>r[cfg.patField]>0);
+        if (!ultimo) return null;
+        let val = ultimo[cfg.patField];
+        const d = new Date(ultimo.data_fechamento);
+        if (!(d.getMonth()===mesAtual && d.getFullYear()===anoAtual)) {
+            regs.forEach(r => { const dr=new Date(r.data_fechamento); if(dr.getMonth()===mesAtual&&dr.getFullYear()===anoAtual) val+=r[cfg.aporteField]||0; });
+        }
+        return { nome: banco.nome, val };
+    }).filter(Boolean).sort((a,b)=>b.val-a.val);
+
+    let chart1 = cfg.chart1Var;
+    const ctx1 = document.getElementById(cfg.prefix+'-chart-pizza')?.getContext('2d');
+    if (ctx1 && dadosPizza.length) {
+        const pizzaCfg = {
+            type: 'doughnut',
+            data: { labels: dadosPizza.map(d=>d.nome), datasets: [{ data: dadosPizza.map(d=>d.val), backgroundColor: cfg.cores, borderWidth:1, borderColor:'rgba(0,0,0,0.3)' }] },
+            options: { responsive:true, maintainAspectRatio:false, plugins: {
+                legend: { position:'bottom', labels: { color:tickColor, font:{size:10}, padding:8 } },
+                tooltip: { callbacks: { label: c => c.label+': '+cfg.format(c.raw) } }
+            }}
+        };
+        chart1 = _chartUpdateOrCreate(chart1, ctx1, pizzaCfg);
+    }
+
+    // Linha: evolução do patrimônio
+    const ids = bancos.map(b=>b.id);
+    const regsFilt = todosRegistros.filter(r => ids.includes(r.banco_id));
+    const mesesEv = {};
+    regsFilt.forEach(r => {
+        if (!mesesEv[r.periodo]) mesesEv[r.periodo] = {};
+        if (r[cfg.patField] > 0) {
+            if (!mesesEv[r.periodo][r.banco_id] || new Date(r.data_fechamento)>new Date(mesesEv[r.periodo][r.banco_id].data))
+                mesesEv[r.periodo][r.banco_id] = { val:r[cfg.patField], data:r.data_fechamento };
+        }
+    });
+    const ultPat = {};
+    const sortedEv = Object.keys(mesesEv).sort((a,b)=>{
+        const [anoA,mA]=a.split('/').map(Number),[anoB,mB]=b.split('/').map(Number);
+        return anoA!==anoB?anoA-anoB:mA-mB;
+    });
+    const evData = sortedEv.map(periodo => {
+        bancos.forEach(b => { if (mesesEv[periodo][b.id]) ultPat[b.id]=mesesEv[periodo][b.id].val; });
+        return { periodo, tot: Object.values(ultPat).reduce((s,v)=>s+v,0) };
+    }).filter(d=>d.tot>0).slice(-24);
+
+    let chart2 = cfg.chart2Var;
+    const ctx2 = document.getElementById(cfg.prefix+'-chart-evolucao')?.getContext('2d');
+    if (ctx2 && evData.length) {
+        const lineCfg = {
+            type:'line',
+            data: { labels: evData.map(d=>_dbFmtPeriodo(d.periodo)), datasets:[{
+                label: cfg.chartLabel, data: evData.map(d=>d.tot),
+                borderColor: cfg.chartColor, backgroundColor: cfg.chartBg,
+                fill:true, tension:0.35, pointRadius:3, pointBackgroundColor: cfg.chartColor
+            }]},
+            options:{ responsive:true, maintainAspectRatio:false,
+                plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>cfg.format(c.raw)}}},
+                scales:{
+                    x:{ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor}},
+                    y:{ticks:{color:tickColor,callback:cfg.yAxisFmt},grid:{color:gridColor}}
+                }
+            }
+        };
+        chart2 = _chartUpdateOrCreate(chart2, ctx2, lineCfg);
+    }
+
+    return { chart1, chart2 };
+}
+
 // ═══ BRASIL BANCO MODAL ═══
 let _bbChart1 = null, _bbChart2 = null;
-let _bbLinhas = []; // todas as linhas calculadas
+let _bbLinhas = [];
 
-function bb_togglePortabilidade() {
-    const menu = document.getElementById('bb-menuPortabilidade');
-    if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-}
-
-function usd_togglePortabilidade() {
-    const menu = document.getElementById('usd-menuPortabilidade');
-    if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-}
+function bb_togglePortabilidade() { _moeda_togglePortabilidade('bb'); }
+function usd_togglePortabilidade() { _moeda_togglePortabilidade('usd'); }
 
 function bb_togglePrivacy() {
     // Usa a função global existente e sincroniza o ícone
@@ -9278,12 +9264,7 @@ function bb_togglePrivacy() {
     if (btn && mainBtn) btn.innerHTML = mainBtn.innerHTML;
 }
 
-function bb_abrirFecharMes(mesAno) {
-    // Abre o modal de fechar mês com z-index acima da tela Brasil
-    abrirFecharMes(mesAno);
-    const fm = document.getElementById('fecharMesModal');
-    if (fm) fm.style.zIndex = '999999';
-}
+function bb_abrirFecharMes(mesAno) { _moeda_abrirFecharMes(mesAno); }
 
 function abrirBrasilBanco() {
     const modal = document.getElementById('brasilBancoModal');
@@ -9586,110 +9567,23 @@ function bb_renderTabela() {
     }
 }
 
-function bb_verMais() {
-    const tbodyH = document.getElementById('bb-tbody-hidden');
-    const btn = document.getElementById('bb-ver-mais');
-    tbodyH.style.display = 'table-row-group';
-    btn.style.display = 'none';
-}
-
-function bb_toggleDet(id) {
-    const el = document.getElementById(id);
-    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
+function bb_verMais() { _moeda_verMais('bb'); }
+function bb_toggleDet(id) { _moeda_toggleDet(id); }
 
 function bb_renderGraficos() {
-    if (_bbChart1) { try { _bbChart1.destroy(); } catch(e){} }
-    if (_bbChart2) { try { _bbChart2.destroy(); } catch(e){} }
-
-    const tickColor = 'rgba(255,255,255,0.3)';
-    const gridColor = 'rgba(255,255,255,0.05)';
-
-    const todosBancosBRL = todosBancos.filter(b => !b.is_usd);
-    const bancosBRL = _bbBancoAtual === 'consolidado'
-        ? todosBancosBRL
-        : todosBancosBRL.filter(b => b.id === _bbBancoAtual);
-    const hoje = new Date();
-    const mesAtual = hoje.getMonth(), anoAtual = hoje.getFullYear();
-    const dadosPizza = bancosBRL.map(banco => {
-        const regs = todosRegistros.filter(r => r.banco_id === banco.id);
-        const ultimo = [...regs].sort((a,b)=>new Date(b.data_fechamento)-new Date(a.data_fechamento)).find(r=>r.patrimonio>0);
-        if (!ultimo) return null;
-        let val = ultimo.patrimonio;
-        const d = new Date(ultimo.data_fechamento);
-        if (!(d.getMonth()===mesAtual && d.getFullYear()===anoAtual)) {
-            regs.forEach(r => { const dr=new Date(r.data_fechamento); if(dr.getMonth()===mesAtual&&dr.getFullYear()===anoAtual) val+=r.aportes||0; });
-        }
-        return { nome: banco.nome, val };
-    }).filter(Boolean).sort((a,b)=>b.val-a.val);
-
-    const cores = ['#00ff88','#00d4ff','#ffd700','#fd7e14','#a855f7','#ff4d6d','#20c997','#f59e0b','#3b82f6'];
-    const ctx1 = document.getElementById('bb-chart-pizza')?.getContext('2d');
-    if (ctx1 && dadosPizza.length) {
-        _bbChart1 = new Chart(ctx1, {
-            type: 'doughnut',
-            data: {
-                labels: dadosPizza.map(d=>d.nome),
-                datasets: [{ data: dadosPizza.map(d=>d.val), backgroundColor: cores, borderWidth:1, borderColor:'rgba(0,0,0,0.3)' }]
-            },
-            options: {
-                responsive:true, maintainAspectRatio:false,
-                plugins: {
-                    legend: { position:'bottom', labels: { color:tickColor, font:{size:10}, padding:8 } },
-                    tooltip: { callbacks: { label: c => c.label+': '+_dbFmt(c.raw) } }
-                }
-            }
-        });
-    }
-
-    // Linha evolução patrimônio BRL
-    const ids = bancosBRL.map(b=>b.id);
-    const regsBR = todosRegistros.filter(r => ids.includes(r.banco_id));
-    const mesesEv = {};
-    regsBR.forEach(r => {
-        if (!mesesEv[r.periodo]) mesesEv[r.periodo] = {};
-        if (r.patrimonio > 0) {
-            if (!mesesEv[r.periodo][r.banco_id] || new Date(r.data_fechamento)>new Date(mesesEv[r.periodo][r.banco_id].data))
-                mesesEv[r.periodo][r.banco_id] = { val:r.patrimonio, data:r.data_fechamento };
-        }
+    const result = _moeda_renderGraficos({
+        chart1Var: _bbChart1, chart2Var: _bbChart2,
+        prefix: 'bb', bancoAtual: _bbBancoAtual,
+        filterBancos: b => !b.is_usd,
+        patField: 'patrimonio', aporteField: 'aportes',
+        format: v => _dbFmt(v),
+        cores: ['#00ff88','#00d4ff','#ffd700','#fd7e14','#a855f7','#ff4d6d','#20c997','#f59e0b','#3b82f6'],
+        chartColor: '#00ff88', chartBg: 'rgba(0,255,136,0.06)',
+        chartLabel: 'Patrimônio BRL',
+        yAxisFmt: v => 'R$'+(v/1000000).toFixed(1)+'M'
     });
-    const ultPat = {};
-    const sortedEv = Object.keys(mesesEv).sort((a,b)=>{
-        const [anoA,mA]=a.split('/').map(Number),[anoB,mB]=b.split('/').map(Number);
-        return anoA!==anoB?anoA-anoB:mA-mB;
-    });
-    const evData = sortedEv.map(periodo => {
-        bancosBRL.forEach(b => {
-            if (mesesEv[periodo][b.id]) ultPat[b.id] = mesesEv[periodo][b.id].val;
-        });
-        const tot = Object.values(ultPat).reduce((s,v)=>s+v,0);
-        return { periodo, tot };
-    }).filter(d=>d.tot>0).slice(-24);
-
-    const ctx2 = document.getElementById('bb-chart-evolucao')?.getContext('2d');
-    if (ctx2 && evData.length) {
-        _bbChart2 = new Chart(ctx2, {
-            type:'line',
-            data: {
-                labels: evData.map(d=>_dbFmtPeriodo(d.periodo)),
-                datasets:[{
-                    label:'Patrimônio BRL',
-                    data: evData.map(d=>d.tot),
-                    borderColor:'#00ff88',
-                    backgroundColor:'rgba(0,255,136,0.06)',
-                    fill:true, tension:0.35, pointRadius:3, pointBackgroundColor:'#00ff88'
-                }]
-            },
-            options:{
-                responsive:true, maintainAspectRatio:false,
-                plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>_dbFmt(c.raw)}} },
-                scales:{
-                    x:{ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor}},
-                    y:{ticks:{color:tickColor,callback:v=>'R$'+(v/1000000).toFixed(1)+'M'},grid:{color:gridColor}}
-                }
-            }
-        });
-    }
+    _bbChart1 = result.chart1;
+    _bbChart2 = result.chart2;
 }
 
 // popstate para fechar brasilBancoModal
@@ -10091,21 +9985,9 @@ function usd_renderTabela() {
     }
 }
 
-function usd_verMais() {
-    document.getElementById('usd-tbody-hidden').style.display = 'table-row-group';
-    document.getElementById('usd-ver-mais').style.display = 'none';
-}
-
-function usd_toggleDet(id) {
-    const el = document.getElementById(id);
-    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
-
-function usd_abrirFecharMes(mesAno) {
-    abrirFecharMes(mesAno);
-    const fm = document.getElementById('fecharMesModal');
-    if (fm) fm.style.zIndex = '999999';
-}
+function usd_verMais() { _moeda_verMais('usd'); }
+function usd_toggleDet(id) { _moeda_toggleDet(id); }
+function usd_abrirFecharMes(mesAno) { _moeda_abrirFecharMes(mesAno); }
 
 // ── Form de registro USD ─────────────────────────────────────
 function usd_limparForm() {
@@ -10181,87 +10063,21 @@ function usd_editarRegistro(id) {
     document.getElementById('usd-form-registro')?.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
-// ── Gráficos USD ─────────────────────────────────────────────
+// ── Gráficos USD (usa renderizador unificado) ────────────────
 function usd_renderGraficos() {
-    if (_usdChart1) { try { _usdChart1.destroy(); } catch(e){} }
-    if (_usdChart2) { try { _usdChart2.destroy(); } catch(e){} }
-
-    const tickColor = 'rgba(255,255,255,0.3)';
-    const gridColor = 'rgba(255,255,255,0.05)';
-    const fmtUSD = v => (v||0).toLocaleString('en-US',{style:'currency',currency:'USD'});
-
-    const todosUSD = todosBancos.filter(b => b.is_usd);
-    const bancosUSD = _usdBancoAtual === 'consolidado'
-        ? todosUSD : todosUSD.filter(b => b.id === _usdBancoAtual);
-
-    const hoje = new Date();
-    const mesAtual = hoje.getMonth(), anoAtual = hoje.getFullYear();
-
-    const dadosPizza = bancosUSD.map(banco => {
-        const regs = todosRegistros.filter(r => r.banco_id === banco.id);
-        const ultimo = [...regs].sort((a,b)=>new Date(b.data_fechamento)-new Date(a.data_fechamento)).find(r=>r.patrimonio_usd>0);
-        if (!ultimo) return null;
-        let val = ultimo.patrimonio_usd;
-        const d = new Date(ultimo.data_fechamento);
-        if (!(d.getMonth()===mesAtual && d.getFullYear()===anoAtual)) {
-            regs.forEach(r => { const dr=new Date(r.data_fechamento); if(dr.getMonth()===mesAtual&&dr.getFullYear()===anoAtual) val+=r.aportes_usd||0; });
-        }
-        return { nome: banco.nome, val };
-    }).filter(Boolean).sort((a,b)=>b.val-a.val);
-
-    const cores = ['#00d4ff','#a855f7','#ffd700','#00ff88','#fd7e14','#ff4d6d','#20c997','#f59e0b','#3b82f6'];
-    const ctx1 = document.getElementById('usd-chart-pizza')?.getContext('2d');
-    if (ctx1 && dadosPizza.length) {
-        _usdChart1 = new Chart(ctx1, {
-            type:'doughnut',
-            data: { labels:dadosPizza.map(d=>d.nome), datasets:[{data:dadosPizza.map(d=>d.val),backgroundColor:cores,borderWidth:1,borderColor:'rgba(0,0,0,0.3)'}] },
-            options: { responsive:true, maintainAspectRatio:false, plugins:{
-                legend:{position:'bottom',labels:{color:tickColor,font:{size:10},padding:8}},
-                tooltip:{callbacks:{label:c=>c.label+': '+fmtUSD(c.raw)}}
-            }}
-        });
-    }
-
-    // Evolução USD
-    const ids = bancosUSD.map(b=>b.id);
-    const regsUSD = todosRegistros.filter(r => ids.includes(r.banco_id));
-    const mesesEv = {};
-    regsUSD.forEach(r => {
-        if (!mesesEv[r.periodo]) mesesEv[r.periodo] = {};
-        if (r.patrimonio_usd > 0) {
-            if (!mesesEv[r.periodo][r.banco_id] || new Date(r.data_fechamento)>new Date(mesesEv[r.periodo][r.banco_id].data))
-                mesesEv[r.periodo][r.banco_id] = { val:r.patrimonio_usd, data:r.data_fechamento };
-        }
+    const result = _moeda_renderGraficos({
+        chart1Var: _usdChart1, chart2Var: _usdChart2,
+        prefix: 'usd', bancoAtual: _usdBancoAtual,
+        filterBancos: b => b.is_usd,
+        patField: 'patrimonio_usd', aporteField: 'aportes_usd',
+        format: v => (v||0).toLocaleString('en-US',{style:'currency',currency:'USD'}),
+        cores: ['#00d4ff','#a855f7','#ffd700','#00ff88','#fd7e14','#ff4d6d','#20c997','#f59e0b','#3b82f6'],
+        chartColor: '#00d4ff', chartBg: 'rgba(0,212,255,0.06)',
+        chartLabel: 'Patrimônio USD',
+        yAxisFmt: v => 'US$'+(v/1000).toFixed(0)+'k'
     });
-    const ultPat = {};
-    const sortedEv = Object.keys(mesesEv).sort((a,b)=>{
-        const [anoA,mA]=a.split('/').map(Number),[anoB,mB]=b.split('/').map(Number);
-        return anoA!==anoB?anoA-anoB:mA-mB;
-    });
-    const evData = sortedEv.map(periodo => {
-        bancosUSD.forEach(b => { if (mesesEv[periodo][b.id]) ultPat[b.id]=mesesEv[periodo][b.id].val; });
-        const tot = Object.values(ultPat).reduce((s,v)=>s+v,0);
-        return { periodo, tot };
-    }).filter(d=>d.tot>0).slice(-24);
-
-    const ctx2 = document.getElementById('usd-chart-evolucao')?.getContext('2d');
-    if (ctx2 && evData.length) {
-        _usdChart2 = new Chart(ctx2, {
-            type:'line',
-            data:{ labels:evData.map(d=>_dbFmtPeriodo(d.periodo)), datasets:[{
-                label:'Patrimônio USD', data:evData.map(d=>d.tot),
-                borderColor:'#00d4ff', backgroundColor:'rgba(0,212,255,0.06)',
-                fill:true, tension:0.35, pointRadius:3, pointBackgroundColor:'#00d4ff'
-            }]},
-            options:{ responsive:true, maintainAspectRatio:false,
-                plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtUSD(c.raw)}}},
-                scales:{
-                    x:{ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor}},
-                    y:{ticks:{color:tickColor,callback:v=>'US$'+(v/1000).toFixed(0)+'k'},grid:{color:gridColor}}
-                }
-            }
-        });
-    }
+    _usdChart1 = result.chart1;
+    _usdChart2 = result.chart2;
 }
 
 window.addEventListener('popstate', function(e) {
