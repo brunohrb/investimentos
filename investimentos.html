@@ -30,6 +30,79 @@
 
     <style>
 
+/* ═══ iOS SAFE AREA — relógio/notch do iPhone não pode cobrir os headers ═══ */
+:root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+}
+
+/* Empurra o conteúdo da página principal para baixo do relógio/notch */
+body {
+    padding-top: var(--safe-top);
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+    padding-bottom: var(--safe-bottom);
+}
+
+/* Headers sticky dentro dos modais fullscreen precisam compensar o safe-area
+   individualmente, já que position:fixed nos modais ignora o padding do body. */
+.db-header,
+.bb-header,
+.cart-header,
+.acoes-header {
+    padding-top: calc(var(--hdr-base-top, 18px) + var(--safe-top)) !important;
+    padding-left: calc(28px + var(--safe-left)) !important;
+    padding-right: calc(28px + var(--safe-right)) !important;
+}
+.db-header   { --hdr-base-top: 18px; }
+.bb-header   { --hdr-base-top: 16px; }
+.cart-header { --hdr-base-top: 18px; }
+.acoes-header { --hdr-base-top: 20px; }
+
+/* Abas sticky dentro do modal de Ações precisam descer junto com o header */
+.acoes-tabs { top: calc(69px + var(--safe-top)) !important; }
+
+/* Modais com header em inline-style (patrimônio, IA, funcionalidades, mensalidades) */
+#patrimonioModal > div > div:first-child,
+#iaModal > div > div:first-child,
+#funcionalidadesModal > div:first-of-type,
+#mensalidadesModal > div > div:first-child {
+    padding-top: calc(18px + var(--safe-top)) !important;
+}
+
+/* Alguns modais usam container com margin-top que não precisa de extra no mobile */
+@media (max-width: 768px) {
+    .db-header   { --hdr-base-top: 12px; padding-left: calc(16px + var(--safe-left)) !important; padding-right: calc(16px + var(--safe-right)) !important; }
+    .bb-header   { padding-left: calc(14px + var(--safe-left)) !important; padding-right: calc(14px + var(--safe-right)) !important; }
+    .cart-header { padding-left: calc(14px + var(--safe-left)) !important; padding-right: calc(14px + var(--safe-right)) !important; }
+    .acoes-header { --hdr-base-top: 14px; padding-left: calc(16px + var(--safe-left)) !important; padding-right: calc(16px + var(--safe-right)) !important; }
+
+    #patrimonioModal > div > div:first-child,
+    #iaModal > div > div:first-child,
+    #funcionalidadesModal > div:first-of-type,
+    #mensalidadesModal > div > div:first-child {
+        padding-top: calc(14px + var(--safe-top)) !important;
+        padding-left: calc(16px + var(--safe-left)) !important;
+        padding-right: calc(16px + var(--safe-right)) !important;
+    }
+
+    /* Modais fullscreen que começam com margin:40px auto ficam colados no topo no celular
+       para ficar mais natural como app */
+    #patrimonioModal > div:first-child,
+    #iaModal > div:first-child,
+    #mensalidadesModal > div:first-child {
+        margin: 0 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 0 !important;
+        border: none !important;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+}
+
 /* ═══ DASHBOARD COMPLETO ═══ */
 #dashboardCompletoModal {
     display: none;
@@ -490,7 +563,7 @@
 @media (max-width: 480px) {
     .db-hero-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
     .db-body { padding: 10px; }
-    .db-header { padding: 12px 16px; }
+    .db-header { padding: calc(12px + var(--safe-top)) calc(16px + var(--safe-right)) 12px calc(16px + var(--safe-left)) !important; }
     .db-header h1 { font-size: 18px; }
     .db-section-title { font-size: 11px; margin: 20px 0 12px 0; }
 
@@ -577,7 +650,8 @@
     }
 
     body {
-        padding: 0;
+        /* Zera só o padding desktop, mas mantém o safe-area do iPhone */
+        padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
     }
 }
 
@@ -591,7 +665,7 @@
         :root { --primary-color: #007bff; --secondary-color: #6c757d; --bg-color: #f0f2f5; --card-bg: #ffffff; --text-color: #333; --border-color: #ddd; --card-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         [data-theme="dark"] { --bg-color: #121212; --card-bg: #1e1e1e; --text-color: #e0e0e0; --border-color: #333; --card-shadow: 0 4px 20px rgba(0,0,0,0.5); }
         * { box-sizing: border-box; transition: background-color 0.3s, color 0.3s; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); padding: 0; color: var(--text-color); margin: 0; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left); color: var(--text-color); margin: 0; overflow-x: hidden; }
         
         #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0056b3, #00bfff); z-index: 9999; display: flex; justify-content: center; align-items: center; }
         .login-box { background: #ffffff; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; width: 90%; max-width: 350px; }
@@ -1721,7 +1795,7 @@ header .header-actions .btn-carteiras {
     .acoes-tab-btn { padding: 11px 14px; font-size: 12px; }
 
     /* Acoes body */
-    .acoes-header { padding: 14px 16px; }
+    .acoes-header { padding: calc(14px + var(--safe-top)) calc(16px + var(--safe-right)) 14px calc(16px + var(--safe-left)) !important; }
     .acoes-header h2 { font-size: 17px; }
 
     /* Cards grid: 2 colunas */
@@ -1770,7 +1844,7 @@ header .header-actions .btn-carteiras {
     .acoes-body { padding: 10px 12px; }
     .acoes-tab-btn { padding: 10px 11px; font-size: 11px; }
     .acoes-tabs { padding: 0 8px; }
-    .acoes-header { padding: 12px 14px; }
+    .acoes-header { padding: calc(12px + var(--safe-top)) calc(14px + var(--safe-right)) 12px calc(14px + var(--safe-left)) !important; }
     .acoes-header h2 { font-size: 15px; }
     .acoes-expand-inner { grid-template-columns: 1fr 1fr; gap: 6px; padding: 10px; }
     #secao-opcoes > div:first-of-type { flex-direction: column; }
