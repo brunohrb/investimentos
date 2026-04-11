@@ -2,19 +2,31 @@
   "name": "Investimentos BEM",
   "short_name": "Investimentos",
   "description": "Sistema de Fechamento Mensal de Investimentos",
-  "start_url": "/pessoal/investimentos",
-  "scope": "/pessoal/",
+  "start_url": "investimentos.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0056b3",
+  "background_color": "#070b14",
   "theme_color": "#0056b3",
   "lang": "pt-BR",
   "icons": [
     {
       "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "logo.png",
       "sizes": "any",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     }
   ]
 }
