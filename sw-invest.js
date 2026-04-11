@@ -1,8 +1,8 @@
-const CACHE_NAME = 'investimentos-v3';
+const CACHE_NAME = 'investimentos-v5';
 
 // Só cacheia assets estáticos — NUNCA o HTML principal
 const STATIC_ASSETS = [
-  '/pessoal/logo.png'
+  'logo.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -15,13 +15,26 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  // Apaga TODOS os caches antigos
+  // Apaga TODOS os caches antigos e assume controle imediato
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.map((key) => caches.delete(key)))
-    )
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((key) => caches.delete(key)));
+      await self.clients.claim();
+      // Força recarga dos clients ativos para pegar a nova versão do HTML
+      const clients = await self.clients.matchAll({ type: 'window' });
+      clients.forEach((c) => {
+        try { c.navigate(c.url); } catch (e) {}
+      });
+    })()
   );
-  self.clients.claim();
+});
+
+// Permite que o HTML peça SKIP_WAITING via postMessage
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', (event) => {

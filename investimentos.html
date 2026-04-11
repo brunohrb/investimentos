@@ -2306,11 +2306,40 @@ function _chartUpdateOrCreate(existingChart, ctx, config) {
 let modoExcluirBanco = false;
 let _expandAbertos = new Set();
 
-// ═══ PWA: registra o Service Worker ═══
+// ═══ PWA: registra o Service Worker + limpa caches antigos ═══
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw-invest.js')
-            .catch(err => console.warn('SW não registrado:', err));
+    window.addEventListener('load', async () => {
+        try {
+            // 1) Apaga QUALQUER cache legado (força nova versão do HTML a aparecer)
+            if ('caches' in window) {
+                const keys = await caches.keys();
+                await Promise.all(keys.map(k => caches.delete(k)));
+            }
+            // 2) Registra o SW
+            const reg = await navigator.serviceWorker.register('sw-invest.js');
+            // 3) Se houver SW novo aguardando, ativa imediatamente
+            if (reg.waiting) {
+                reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
+            reg.addEventListener('updatefound', () => {
+                const nw = reg.installing;
+                if (!nw) return;
+                nw.addEventListener('statechange', () => {
+                    if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                        nw.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                });
+            });
+            // 4) Se o SW ativo trocar, recarrega para pegar a nova versão
+            let reloaded = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (reloaded) return;
+                reloaded = true;
+                window.location.reload();
+            });
+        } catch (err) {
+            console.warn('SW não registrado:', err);
+        }
     });
 }
 
