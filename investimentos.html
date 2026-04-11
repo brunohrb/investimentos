@@ -53,6 +53,15 @@
     top: 0;
     z-index: 100;
     backdrop-filter: blur(10px);
+    gap: 12px;
+}
+
+.db-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    flex-shrink: 1;
 }
 
 .db-header h1 {
@@ -361,47 +370,59 @@
     .db-2col, .db-3col, .db-4col, .db-5col { grid-template-columns: 1fr !important; gap: 10px !important; }
     .db-body { padding: 14px; }
 
-    /* 📱 HEADER DO DASHBOARD COMPLETO:
-       Logo em cima com as cotações, botões embaixo.
-       Evita que o conteúdo saia da tela. */
+    /* 📱 HEADER DO DASHBOARD COMPLETO — LINHA ÚNICA (grid robusto):
+       logo + cotações empilhados à esquerda, botões à direita. */
     .db-header {
+        display: grid !important;
+        grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+        grid-template-areas: "brand actions";
+        align-items: center !important;
+        gap: 6px !important;
+        padding: 10px 14px !important;
+        flex-direction: unset !important;
+    }
+    .db-header-brand {
+        grid-area: brand;
         flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 10px !important;
-        padding: 12px 14px !important;
+        align-items: flex-start !important;
+        gap: 2px !important;
+        min-width: 0 !important;
     }
     .db-header h1 {
-        font-size: 18px !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        display: flex !important;
-        width: 100%;
+        font-size: 16px !important;
+        width: auto !important;
+        margin: 0 !important;
     }
     .db-header h1 img {
-        height: 26px !important;
+        height: 22px !important;
     }
-    /* Container de botões + cotações ocupa linha inteira */
-    .db-header > div {
-        width: 100% !important;
-        justify-content: space-between !important;
-        flex-wrap: wrap;
-        gap: 6px !important;
+    .db-header-brand .db-cotacoes {
+        font-size: 10px !important;
+        margin-right: 0 !important;
+        line-height: 1.2 !important;
     }
-    /* Cotações pra baixo do logo, centralizadas */
-    .db-header > div > div:first-child {
-        flex: 1 1 auto;
-        text-align: left;
-        font-size: 11px !important;
+    /* Botões compactos alinhados à direita */
+    .db-header-actions {
+        grid-area: actions;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 2px !important;
+        min-width: 0;
+        overflow: hidden;
     }
-    /* Botões do header: tamanho reduzido */
-    .db-header > div > button {
-        font-size: 20px !important;
-        padding: 3px 5px !important;
+    .db-header-actions > button {
+        font-size: 18px !important;
+        padding: 2px 4px !important;
+        flex-shrink: 0 !important;
     }
     /* Botão Carteiras menor */
-    .db-header > div > button[onclick*="abrirCarteirasBanco"] {
-        font-size: 11px !important;
-        padding: 6px 11px !important;
+    .db-header-actions > button[onclick*="abrirCarteirasBanco"] {
+        font-size: 10px !important;
+        padding: 4px 8px !important;
+        border-radius: 12px !important;
+        flex-shrink: 0 !important;
     }
 
     /* 📱 DB-CARDS HORIZONTAIS NO MOBILE — layout em grid:
@@ -9609,16 +9630,18 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
 
     <!-- Header fixo -->
     <div class="db-header">
-      <h1 style="display:flex;align-items:center;gap:10px;">
-  
+      <div class="db-header-brand">
+        <h1 style="display:flex;align-items:center;gap:10px;">
+
   <img src="logo_bem_preview.svg" alt="BEM" style="height:36px;flex-shrink:0;display:block;cursor:pointer;" onclick="carregarDashboardCompleto()">
 </h1>
-        <div style="display:flex; gap:6px; align-items:center;">
-            <!-- Cotações -->
-            <div style="font-size:11px; color:rgba(255,255,255,0.45); margin-right:4px; white-space:nowrap; line-height:1.5;">
-                💵 <span id="db-valorDolar" style="color:#00d4ff; font-weight:700;">--</span>
-                &nbsp;💶 <span id="db-valorEuro" style="color:#00ff88; font-weight:700;">--</span>
-            </div>
+        <!-- Cotações (ficam sob o logo no mobile, ao lado no desktop) -->
+        <div class="db-cotacoes" style="font-size:11px; color:rgba(255,255,255,0.45); white-space:nowrap; line-height:1.5;">
+            💵 <span id="db-valorDolar" style="color:#00d4ff; font-weight:700;">--</span>
+            &nbsp;💶 <span id="db-valorEuro" style="color:#00ff88; font-weight:700;">--</span>
+        </div>
+      </div>
+        <div class="db-header-actions" style="display:flex; gap:6px; align-items:center;">
             <!-- Botões sem borda, só ícone -->
             <button id="db-privacyBtn" onclick="togglePrivacy()" title="Ocultar valores" style="background:none;border:none;cursor:pointer;font-size:22px;padding:4px 6px;opacity:0.7;transition:opacity 0.2s,transform 0.15s" onmouseover="this.style.opacity=1;this.style.transform='scale(1.2)'" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7;this.style.transform='scale(1)'">👁️</button>
             <button onclick="abrirIA()" title="Análise com IA (Claude)" style="background:none;border:none;cursor:pointer;font-size:22px;padding:4px 6px;opacity:0.7;transition:opacity 0.2s,transform 0.15s" onmouseover="this.style.opacity=1;this.style.transform='scale(1.2)'" onmouseout="this.style.opacity=0.7;this.style.transform='scale(1)'">🤖</button>
