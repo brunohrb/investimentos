@@ -7647,6 +7647,8 @@ async function carregarDashboardCompleto() {
 
     // ── Totais gerais ──────────────────────────────────────
     const totalBancosBRL = dadosBancos.totalBRL + dadosBancos.totalUSDbrl;
+    // Patrimônio Total = Total Banco (BRL+USD) + valor JÁ PAGO dos imóveis
+    const patrimonioTotalGeral = totalBancosBRL + (dadosImoveis.totalPago || 0);
     const totalGeral = totalBancosBRL + dadosAcoes.valorMercado + dadosImoveis.total;
 
     // ── Monta HTML ────────────────────────────────────────
@@ -7657,7 +7659,12 @@ async function carregarDashboardCompleto() {
 
         <!-- ═══ HERO ═══ -->
         <div class="db-section-title">💎 VISÃO GERAL DO PATRIMÔNIO</div>
-        <div class="db-hero-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+        <div class="db-hero-grid" style="grid-template-columns: 1.3fr 1fr 1fr 1fr 1fr;">
+<div class="db-card green" onclick="abrirPatrimonio()" style="cursor:pointer;background:linear-gradient(135deg,rgba(0,255,136,0.08),rgba(0,212,255,0.05));border:1px solid rgba(0,255,136,0.22);">
+    <div class="db-card-label" style="color:#00ff88;">🏆 PATRIMÔNIO TOTAL</div>
+    <div class="db-card-value" style="font-size:24px;background:linear-gradient(135deg,#00ff88,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">${_dbFmt(patrimonioTotalGeral)}</div>
+    <div class="db-card-sub">🌍 ${_dbFmt(totalBancosBRL)} + 🏠 ${_dbFmt(dadosImoveis.totalPago || 0)} pago${dadosImoveis.faltaPagar > 0 ? ` · ⏳ ${_dbFmt(dadosImoveis.faltaPagar)} a pagar` : ''}</div>
+</div>
 <div class="db-card cyan" onclick="abrirTotalBanco()" style="cursor:pointer;">
     <div class="db-card-label">🌍 Total Banco (BRL + USD)</div>
     <div class="db-card-value" style="font-size:22px;">${_dbFmt(totalBancosBRL)}</div>
@@ -8054,12 +8061,18 @@ function _db_calcularAcoes() {
 // ── Calcular imóveis ─────────────────────────────────────────
 async function _db_calcularImoveis() {
     try {
-        const { data } = await sb.from('patrimonio').select('*').eq('tipo', 'imovel');
-        const lista = data || [];
+        const [{ data: imov }, { data: mens }] = await Promise.all([
+            sb.from('patrimonio').select('*').eq('tipo', 'imovel'),
+            sb.from('patrimonio').select('*').eq('tipo', 'mensalidade')
+        ]);
+        const lista = imov || [];
         const total = lista.reduce((s, i) => s + Number(i.valor), 0);
-        return { lista, total };
+        // Soma pagamentos (mensalidades) — são o "já pago" dos imóveis
+        const totalPago = (mens || []).reduce((s, m) => s + (Number(m.valor) || 0), 0);
+        const faltaPagar = Math.max(total - totalPago, 0);
+        return { lista, total, totalPago, faltaPagar };
     } catch(e) {
-        return { lista: [], total: 0 };
+        return { lista: [], total: 0, totalPago: 0, faltaPagar: 0 };
     }
 }
 
