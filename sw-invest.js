@@ -1,4 +1,4 @@
-const CACHE_NAME = 'investimentos-v10';
+const CACHE_NAME = 'investimentos-v11';
 
 // Só cacheia assets estáticos — NUNCA o HTML principal
 const STATIC_ASSETS = [
