@@ -834,32 +834,34 @@
         font-weight: 700;
     }
 
-    /* 📱 Header compacto em linha única no mobile */
+    /* 📱 Header compacto em linha única no mobile — usa GRID pra garantir que não quebre */
     header {
-        flex-direction: row;
-        flex-wrap: wrap;
+        display: grid !important;
+        grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+        grid-template-areas: "brand actions";
         align-items: center;
-        justify-content: space-between;
-        gap: 8px;
+        gap: 6px;
         padding-bottom: 8px;
         margin-bottom: 14px;
     }
 
     .header-brand {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 2px;
+        grid-area: brand;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 2px !important;
         min-width: 0;
-        flex: 0 1 auto;
     }
 
     .header-brand h2 {
         font-size: 14px !important;
         margin: 0 !important;
+        gap: 6px !important;
     }
 
     .header-brand h2 img {
-        height: 22px !important;
+        height: 20px !important;
     }
 
     #cotacoesTopo {
@@ -938,29 +940,36 @@
 }
 
 
-/* 🔹 Ações do header compactas no mobile (linha única) */
-.header-actions {
-    width: auto;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 4px;
-    flex: 0 1 auto;
+/* 🔹 Ações do header compactas no mobile (linha única garantida via grid) */
+header .header-actions {
+    grid-area: actions;
+    width: auto !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    gap: 3px !important;
+    min-width: 0;
+    overflow: hidden;
 }
 
-.header-actions .btn-icon {
-    width: 30px !important;
-    height: 30px !important;
-    font-size: 14px !important;
-    padding: 4px !important;
+header .header-actions .btn-icon {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    font-size: 13px !important;
+    padding: 2px !important;
+    flex-shrink: 0;
 }
 
-.header-actions .btn-carteiras {
-    padding: 5px 10px !important;
-    font-size: 11px !important;
-    border-radius: 14px !important;
-    gap: 4px !important;
+header .header-actions .btn-carteiras {
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    border-radius: 12px !important;
+    gap: 3px !important;
+    flex-shrink: 0;
+    white-space: nowrap !important;
 }
 
 
@@ -8055,10 +8064,22 @@ async function carregarDashboardCompleto() {
         <div style="height:40px;"></div>
     `;
 
-    // ── Preenche tabelas e gráficos ──────────────────────
+    // ── Preenche tabelas imediatamente ───────────────────
     _db_renderTabelaBancos(dadosBancos);
     _db_renderTabelaAcoes(dadosAcoes);
-    _db_renderGraficos(dadosBancos, dadosAcoes, dadosEvolucao, dadosAportes, dadosImoveis);
+
+    // 🚀 Adia gráficos para o próximo frame pra não travar a thread principal.
+    // Isso faz o dashboard aparecer imediatamente e os charts renderizam depois,
+    // em vez de bloquear ~5-10s no mobile instanciando 6 Chart.js em sequência.
+    const _renderCharts = () => {
+        try { _db_renderGraficos(dadosBancos, dadosAcoes, dadosEvolucao, dadosAportes, dadosImoveis); }
+        catch (e) { console.warn('Erro ao renderizar gráficos:', e); }
+    };
+    if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(_renderCharts, { timeout: 500 });
+    } else {
+        requestAnimationFrame(() => setTimeout(_renderCharts, 0));
+    }
 }
 
 // ── Helpers de formatação ───────────────────────────────────
@@ -8422,6 +8443,20 @@ function _db_renderTabelaAcoes(dados) {
 // ── Render gráficos ──────────────────────────────────────────
 let _dbCharts = {};
 
+// Executa uma fila de jobs, um por frame, pra não bloquear a UI.
+// Cada job é uma função que cria um Chart. Usa rAF entre eles pra dar
+// chance do browser pintar/responder a input.
+function _db_runChartQueue(jobs) {
+    let i = 0;
+    const runNext = () => {
+        if (i >= jobs.length) return;
+        try { jobs[i](); } catch (e) { console.warn('chart job err:', e); }
+        i++;
+        if (i < jobs.length) requestAnimationFrame(runNext);
+    };
+    requestAnimationFrame(runNext);
+}
+
 function _db_renderGraficos(dadosBancos, dadosAcoes, dadosEvolucao, dadosAportes, dadosImoveis) {
     // Destrói anteriores
     Object.values(_dbCharts).forEach(c => { try { c.destroy(); } catch(e) {} });
@@ -8429,8 +8464,10 @@ function _db_renderGraficos(dadosBancos, dadosAcoes, dadosEvolucao, dadosAportes
 
     const gridColor = 'rgba(255,255,255,0.05)';
     const tickColor = 'rgba(255,255,255,0.3)';
+    const _jobs = [];
 
     // 1. Evolução patrimônio
+    _jobs.push(() => {
     const ctxEv = document.getElementById('db-chart-evolucao')?.getContext('2d');
     if (ctxEv) {
         const ultimos = dadosEvolucao.historico.slice(-24);
@@ -8460,8 +8497,10 @@ function _db_renderGraficos(dadosBancos, dadosAcoes, dadosEvolucao, dadosAportes
             }
         });
     }
+    });
 
     // 2. Pizza bancos
+    _jobs.push(() => {
     const ctxPizBancos = document.getElementById('db-chart-pizza-bancos')?.getContext('2d');
     if (ctxPizBancos && dadosBancos.linhas.length) {
         const cores = ['#00d4ff','#00ff88','#ffd700','#fd7e14','#a855f7','#ff4d6d','#20c997','#f59e0b'];
@@ -8485,10 +8524,12 @@ function _db_renderGraficos(dadosBancos, dadosAcoes, dadosEvolucao, dadosAportes
             }
         });
     }
+    });
 
-// Pizza moeda
-const ctxMoeda = document.getElementById('db-chart-pizza-moeda')?.getContext('2d');
-if (ctxMoeda) {
+    // Pizza moeda
+    _jobs.push(() => {
+    const ctxMoeda = document.getElementById('db-chart-pizza-moeda')?.getContext('2d');
+    if (ctxMoeda) {
     const totalBRL = dadosBancos.totalBRL;
     const totalUSDbrl = dadosBancos.totalUSDbrl;
     _dbCharts.pizzaMoeda = new Chart(ctxMoeda, {
@@ -8515,8 +8556,10 @@ if (ctxMoeda) {
         }
     });
 }
+    });
 
     // 3. Pizza patrimônio total (Banco BRL + Banco USD + Ações + Imóveis)
+    _jobs.push(() => {
     const ctxPatTotal = document.getElementById('db-chart-pizza-patrimonio-total')?.getContext('2d');
     if (ctxPatTotal) {
         const segBancoBRL  = dadosBancos.totalBRL    || 0;
@@ -8557,8 +8600,10 @@ if (ctxMoeda) {
             }
         });
     }
+    });
 
     // 4. Crescimento mensal (barras)
+    _jobs.push(() => {
     const ctxCresc = document.getElementById('db-chart-crescimento')?.getContext('2d');
     if (ctxCresc) {
         const ultCresc = dadosEvolucao.comCrescimento.slice(-18);
@@ -8586,8 +8631,10 @@ if (ctxMoeda) {
             }
         });
     }
+    });
 
     // 4. Pizza ações
+    _jobs.push(() => {
     const ctxPizAcoes = document.getElementById('db-chart-pizza-acoes')?.getContext('2d');
     if (ctxPizAcoes && dadosAcoes.posicoes.length) {
         const coresAcoes = ['#fd7e14','#ff9f43','#ffd700','#00d4ff','#00ff88','#a855f7','#ff4d6d','#20c997'];
@@ -8613,8 +8660,10 @@ if (ctxMoeda) {
             }
         });
     }
+    });
 
     // 5. Aportes acumulados
+    _jobs.push(() => {
     const ctxAp = document.getElementById('db-chart-aportes')?.getContext('2d');
     if (ctxAp && dadosAportes.acumulado.length) {
         const ultAp = dadosAportes.acumulado.slice(-24);
@@ -8644,6 +8693,10 @@ if (ctxMoeda) {
             }
         });
     }
+    });
+
+    // 🚀 Executa os jobs um por frame pra não travar a UI
+    _db_runChartQueue(_jobs);
 }
 
 function _dbFmtPeriodo(periodo) {
