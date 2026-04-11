@@ -361,6 +361,49 @@
     .db-2col, .db-3col, .db-4col, .db-5col { grid-template-columns: 1fr !important; gap: 10px !important; }
     .db-body { padding: 14px; }
 
+    /* 📱 HEADER DO DASHBOARD COMPLETO:
+       Logo em cima com as cotações, botões embaixo.
+       Evita que o conteúdo saia da tela. */
+    .db-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+        padding: 12px 14px !important;
+    }
+    .db-header h1 {
+        font-size: 18px !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        display: flex !important;
+        width: 100%;
+    }
+    .db-header h1 img {
+        height: 26px !important;
+    }
+    /* Container de botões + cotações ocupa linha inteira */
+    .db-header > div {
+        width: 100% !important;
+        justify-content: space-between !important;
+        flex-wrap: wrap;
+        gap: 6px !important;
+    }
+    /* Cotações pra baixo do logo, centralizadas */
+    .db-header > div > div:first-child {
+        flex: 1 1 auto;
+        text-align: left;
+        font-size: 11px !important;
+    }
+    /* Botões do header: tamanho reduzido */
+    .db-header > div > button {
+        font-size: 20px !important;
+        padding: 3px 5px !important;
+    }
+    /* Botão Carteiras menor */
+    .db-header > div > button[onclick*="abrirCarteirasBanco"] {
+        font-size: 11px !important;
+        padding: 6px 11px !important;
+    }
+
     /* 📱 DB-CARDS HORIZONTAIS NO MOBILE — layout em grid:
        label fixo à esquerda, valor+sub empilhados à direita.
        Isso faz valores grandes caberem sem cortar. */
@@ -2322,6 +2365,19 @@ function _chartUpdateOrCreate(existingChart, ctx, config) {
 let modoExcluirBanco = false;
 let _expandAbertos = new Set();
 
+// 🚀 PERFORMANCE MOBILE: desabilita animações de Chart.js em telas pequenas
+// (animações são caríssimas de renderizar e não agregam valor em dashboard de dados)
+const _ehMobile = window.matchMedia('(max-width: 900px)').matches;
+if (typeof Chart !== 'undefined' && Chart.defaults) {
+    if (_ehMobile) {
+        Chart.defaults.animation = false;
+        Chart.defaults.animations = { colors: false, x: false, y: false };
+        Chart.defaults.transitions = { active: { animation: { duration: 0 } } };
+    }
+    // Reduz pontos responsivos para não recalcular a cada resize
+    Chart.defaults.responsiveAnimationDuration = 0;
+}
+
 // ═══ PWA: registra o Service Worker + limpa caches antigos ═══
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
@@ -2440,17 +2496,18 @@ async function inicializarSistema() {
 }
 
 function aplicarPrivacy() {
-    document.querySelectorAll('[data-privacy="true"]').forEach(el => {
-        if (privacidadeAtiva) el.classList.add('hidden-value');
-        else el.classList.remove('hidden-value');
-    });
+    // 🚀 Otimização: coleta TODOS os alvos uma vez só e aplica em batch
+    const alvos = new Set();
+    document.querySelectorAll('[data-privacy="true"], .db-card-value, .db-card-sub').forEach(el => alvos.add(el));
     document.querySelectorAll('.hidden-value').forEach(el => {
         el.setAttribute('data-privacy', 'true');
+        alvos.add(el);
     });
-    document.querySelectorAll('.db-card-value, .db-card-sub').forEach(el => {
-        if (privacidadeAtiva) el.classList.add('hidden-value');
-        else el.classList.remove('hidden-value');
-    });
+    if (privacidadeAtiva) {
+        alvos.forEach(el => el.classList.add('hidden-value'));
+    } else {
+        alvos.forEach(el => el.classList.remove('hidden-value'));
+    }
     const icon = privacidadeAtiva ? '👁️' : '🙈';
     ['privacyBtn','db-privacyBtn','bb-privacy-btn','usd-privacy-btn','acoes-privacyBtn','acoes-card-privacyBtn'].forEach(id => {
         const el = document.getElementById(id);
@@ -15287,8 +15344,14 @@ async function cartRenderFGC() {
     }
 }
 
-// Carteiras salvas carregam no mobile também
-window.addEventListener('resize', cartRenderBanksList);
+// Carteiras salvas carregam no mobile também — COM DEBOUNCE pra não travar
+let _resizeDebounce;
+window.addEventListener('resize', () => {
+    clearTimeout(_resizeDebounce);
+    _resizeDebounce = setTimeout(() => {
+        try { cartRenderBanksList(); } catch(e) {}
+    }, 200);
+});
 
 // ═══════════════════════════════════════════════
 //  🤖 ANÁLISE COM IA (Claude API)
