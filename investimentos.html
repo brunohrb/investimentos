@@ -2,8 +2,26 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Investimento - Fechamento Mensal</title>
+
+    <!-- ═══ PWA (Safari/iOS + Android) ═══ -->
+    <link rel="manifest" href="manifest-invest.json">
+    <meta name="theme-color" content="#0056b3">
+    <meta name="description" content="Sistema de Fechamento Mensal de Investimentos">
+
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Investimentos">
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="logo.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="logo.png">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="shortcut icon" href="logo.png">
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -339,22 +357,85 @@
 
 /* MOBILE */
 @media (max-width: 900px) {
-    .db-hero-grid { grid-template-columns: 1fr 1fr; }
-    .db-2col, .db-3col, .db-4col, .db-5col { grid-template-columns: 1fr; }
+    .db-hero-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+    .db-2col, .db-3col, .db-4col, .db-5col { grid-template-columns: 1fr !important; gap: 10px !important; }
     .db-body { padding: 14px; }
-    .db-card.hero .db-card-value { font-size: 26px; }
+
+    /* 📱 DB-CARDS HORIZONTAIS NO MOBILE — layout em grid:
+       label fixo à esquerda, valor+sub empilhados à direita.
+       Isso faz valores grandes caberem sem cortar. */
+    .db-card {
+        padding: 13px 16px !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        column-gap: 14px;
+        row-gap: 2px;
+        align-items: center;
+    }
+    .db-card-label {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+        margin-bottom: 0 !important;
+        align-self: center;
+        font-size: 10px !important;
+        line-height: 1.3 !important;
+        max-width: 115px;
+        white-space: normal;
+    }
+    .db-card-value {
+        grid-column: 2;
+        grid-row: 1;
+        text-align: right;
+        justify-self: end;
+        font-size: 20px !important;
+        line-height: 1.15 !important;
+        max-width: 100%;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    /* Cards que forçam font-size inline também caem para 20px */
+    .db-card .db-card-value[style*="font-size"] {
+        font-size: 20px !important;
+    }
+    .db-card-sub {
+        grid-column: 2;
+        grid-row: 2;
+        text-align: right;
+        justify-self: end;
+        max-width: 100%;
+        font-size: 10px !important;
+        margin-top: 2px !important;
+        line-height: 1.35 !important;
+        white-space: normal;
+        word-break: break-word;
+    }
+    /* Hero mantém destaque mas cabe */
+    .db-card.hero .db-card-value {
+        font-size: 22px !important;
+        background: linear-gradient(135deg, #00d4ff, #00ff88);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
 }
 
 /* MOBILE EXTRA PEQUENO - CELULAR */
 @media (max-width: 480px) {
-    .db-hero-grid { grid-template-columns: 1fr; gap: 10px; }
+    .db-hero-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
     .db-body { padding: 10px; }
     .db-header { padding: 12px 16px; }
     .db-header h1 { font-size: 18px; }
-    .db-card { padding: 14px 16px; }
-    .db-card-value { font-size: 22px; }
-    .db-card.hero .db-card-value { font-size: 20px; }
     .db-section-title { font-size: 11px; margin: 20px 0 12px 0; }
+
+    .db-card { padding: 12px 14px !important; column-gap: 10px; }
+    .db-card-label { max-width: 95px; font-size: 9px !important; }
+    .db-card-value { font-size: 18px !important; }
+    .db-card .db-card-value[style*="font-size"] { font-size: 18px !important; }
+    .db-card.hero .db-card-value { font-size: 20px !important; }
+    .db-card-sub { font-size: 9px !important; }
 }
 
 
@@ -509,6 +590,44 @@
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* 🕒 Spinner inline para botões (usado ao salvar) */
+        .btn-spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.35);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        /* 🤖 Botões de ação da IA */
+        .ia-action-btn {
+            background: rgba(168,85,247,0.08);
+            border: 1px solid rgba(168,85,247,0.25);
+            color: #fff;
+            padding: 14px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s;
+            width: 100%;
+        }
+        .ia-action-btn:hover {
+            background: rgba(168,85,247,0.18);
+            border-color: rgba(168,85,247,0.5);
+            transform: translateY(-1px);
+        }
+        .ia-action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .hidden-value { filter: blur(10px); pointer-events: none; user-select: none; }
 
         @media (min-width: 768px) {
@@ -559,30 +678,99 @@
    =========================== */
 @media (max-width: 768px) {
 
-    /* Grid do dashboard vira 1 coluna */
+    /* Grid do dashboard vira 1 coluna — cards horizontais */
     .dashboard-grid {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: 10px;
     }
 
-    /* Card azul ocupa largura total */
-    .total-card {
+    /* 📱 CARDS HORIZONTAIS NO MOBILE
+       Label à esquerda, valor à direita — cabe valores grandes sem cortar.
+       Escopo restrito ao .dashboard-grid para não afetar cards dos modais. */
+    .dashboard-grid .total-card {
         min-height: auto;
-        padding: 22px;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        text-align: left;
+        position: relative;
     }
 
-    /* Tamanho do valor principal */
-    .total-card p {
-        font-size: 26px;
+    .dashboard-grid .total-card h3 {
+        font-size: 13px !important;
+        margin: 0 !important;
+        flex-shrink: 0;
+        opacity: 0.95;
+        max-width: 42%;
+        line-height: 1.25;
     }
 
-    /* Cards brancos */
-    .stats-card {
-        padding: 18px;
+    .dashboard-grid .total-card > p {
+        font-size: 19px !important;
+        margin: 0 !important;
+        text-align: right;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 800;
     }
 
-    .stats-card p {
-        font-size: 18px;
+    /* Wrapper direito quando há dois valores (ex: USD + equivalente BRL) */
+    .dashboard-grid .total-card .card-vals {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        flex: 1;
+        min-width: 0;
+    }
+    .dashboard-grid .total-card .card-vals > p {
+        font-size: 18px !important;
+        margin: 0 !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        font-weight: 800;
+    }
+    .dashboard-grid .total-card .card-vals > p + p {
+        font-size: 12px !important;
+        font-weight: 600;
+        opacity: 0.85;
+        margin-top: 2px !important;
+    }
+
+    /* Cards brancos (stats) também horizontais */
+    .dashboard-grid .stats-card {
+        padding: 13px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        text-align: left;
+    }
+
+    .dashboard-grid .stats-card h4 {
+        font-size: 11px !important;
+        margin: 0 !important;
+        flex-shrink: 0;
+        max-width: 45%;
+        line-height: 1.25;
+    }
+
+    .dashboard-grid .stats-card p {
+        font-size: 16px !important;
+        margin: 0 !important;
+        text-align: right;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-weight: 700;
     }
 
     /* Header não quebra */
@@ -822,6 +1010,31 @@
 @media (max-width: 768px) {
     .gridPatrimonioCards {
         grid-template-columns: 1fr;
+    }
+    /* Grid de indicadores de imóveis → 2 colunas no celular */
+    .imov-cards-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+    }
+    /* Form do imóvel empilha no celular */
+    #imovelFormGrid {
+        grid-template-columns: 1fr !important;
+    }
+    #imovelFormGrid button { width: 100% !important; }
+    /* Form de mensalidade empilha no celular */
+    #mensFormGrid {
+        grid-template-columns: 1fr !important;
+    }
+    #mensFormGrid button { width: 100% !important; }
+    /* Resumo de mensalidades — 1 coluna */
+    #mensalidadesModal > div > div:nth-child(2) > div:first-child {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .imov-cards-grid {
+        grid-template-columns: 1fr !important;
     }
 }
 
@@ -1087,9 +1300,6 @@
     .acoes-form-grid    { grid-template-columns: 1fr; }
     .acoes-body         { padding: 12px 14px; }
     .acoes-dash-grid    { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
-    .total-card         { padding: 14px 16px !important; }
-    .total-card p       { font-size: 18px !important; }
-    .total-card h3      { font-size: 12px !important; }
     .acoes-section-header { flex-direction: column; align-items: flex-start; }
     #acoesModal .modal-content { width: 100% !important; max-width: 100% !important; height: 100vh !important; border-radius: 0 !important; }
 }
@@ -1388,9 +1598,6 @@
 
     /* Cards grid: 2 colunas */
     .acoes-dash-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px; }
-    .total-card { padding: 14px 15px; }
-    .total-card p { font-size: 17px !important; }
-    .total-card h3 { font-size: 12px !important; }
 
     /* Botões de registrar opção */
     #secao-opcoes > div > button { min-width: 140px; font-size: 13px; padding: 11px 14px; }
@@ -1432,8 +1639,6 @@
 
 @media (max-width: 480px) {
     .acoes-dash-grid { grid-template-columns: 1fr 1fr !important; }
-    .total-card p { font-size: 15px !important; }
-    .total-card h3 { font-size: 11px !important; }
     .acoes-body { padding: 10px 12px; }
     .acoes-tab-btn { padding: 10px 11px; font-size: 11px; }
     .acoes-tabs { padding: 0 8px; }
@@ -1610,12 +1815,29 @@
         </div>
 
         <div style="padding:28px;">
-            <!-- Card único: Total Imóveis -->
-            <div style="background:linear-gradient(135deg,#0a2a18,#0a1f18);border:1px solid rgba(0,255,136,0.2);border-radius:16px;padding:24px 28px;margin-bottom:28px;display:flex;align-items:center;gap:16px;">
-                <span style="font-size:36px;">🏠</span>
-                <div>
-                    <div style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Total Imóveis</div>
-                    <div id="cardTotalImoveis" style="font-size:32px;font-weight:900;color:#00ff88;letter-spacing:-1px;">R$ 0,00</div>
+            <!-- 📊 INDICADORES DE IMÓVEIS -->
+            <div class="imov-cards-grid" style="display:grid;grid-template-columns:repeat(4, 1fr);gap:12px;margin-bottom:24px;">
+                <!-- Card 1: Patrimônio de Imóveis -->
+                <div style="background:linear-gradient(135deg,#0a2a18,#0a1f18);border:1px solid rgba(0,255,136,0.2);border-radius:14px;padding:16px 18px;">
+                    <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">🏠 Patrimônio Imóveis</div>
+                    <div id="cardTotalImoveis" style="font-size:22px;font-weight:900;color:#00ff88;letter-spacing:-0.5px;">R$ 0,00</div>
+                </div>
+                <!-- Card 2: Já Pago (mensalidades) -->
+                <div style="background:linear-gradient(135deg,#0a1a2e,#0d1526);border:1px solid rgba(0,212,255,0.2);border-radius:14px;padding:16px 18px;">
+                    <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">💳 Já Pago</div>
+                    <div id="cardImovJaPago" style="font-size:22px;font-weight:900;color:#00d4ff;letter-spacing:-0.5px;">R$ 0,00</div>
+                    <div id="cardImovPctPago" style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:3px;">0% do total</div>
+                </div>
+                <!-- Card 3: A Pagar (saldo devedor) -->
+                <div style="background:linear-gradient(135deg,#2a0a1a,#1f0d18);border:1px solid rgba(255,77,109,0.25);border-radius:14px;padding:16px 18px;">
+                    <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">⏳ Falta Pagar</div>
+                    <div id="cardImovFaltaPagar" style="font-size:22px;font-weight:900;color:#ff4d6d;letter-spacing:-0.5px;">R$ 0,00</div>
+                </div>
+                <!-- Card 4: % do patrimônio total -->
+                <div style="background:linear-gradient(135deg,#1a0a2e,#1a0d26);border:1px solid rgba(168,85,247,0.25);border-radius:14px;padding:16px 18px;">
+                    <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">📊 % Patr. Total</div>
+                    <div id="cardImovPctTotal" style="font-size:22px;font-weight:900;color:#a855f7;letter-spacing:-0.5px;">0%</div>
+                    <div id="cardImovPatTotal" style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:3px;">Total: R$ 0,00</div>
                 </div>
             </div>
 
@@ -1623,13 +1845,13 @@
             <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:20px;margin-bottom:28px;">
                 <div style="font-size:12px;color:rgba(255,255,255,0.4);font-weight:700;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:14px;">✏️ Adicionar Imóvel</div>
                 <input type="hidden" id="patTipo" value="imovel">
-                <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;">
+                <div id="imovelFormGrid" style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;">
                     <div>
                         <label style="font-size:10px;color:rgba(255,255,255,0.35);font-weight:700;letter-spacing:0.8px;text-transform:uppercase;display:block;margin-bottom:4px;">Descrição</label>
                         <input type="text" id="patDesc" placeholder="Ex: Apartamento Aldeota" style="width:100%;background:#0d1a2e;border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
                     </div>
                     <div>
-                        <label style="font-size:10px;color:rgba(255,255,255,0.35);font-weight:700;letter-spacing:0.8px;text-transform:uppercase;display:block;margin-bottom:4px;">Valor R$</label>
+                        <label style="font-size:10px;color:rgba(255,255,255,0.35);font-weight:700;letter-spacing:0.8px;text-transform:uppercase;display:block;margin-bottom:4px;">Valor Total R$</label>
                         <input type="text" id="patValor" placeholder="R$ 0,00" oninput="mascaraMoeda(this,'BRL')" style="width:100%;background:#0d1a2e;border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
                     </div>
                     <button onclick="salvarPatrimonio()" style="background:linear-gradient(135deg,#00ff88,#00d4ff);border:none;color:#070b14;padding:10px 22px;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;">Adicionar</button>
@@ -1644,6 +1866,140 @@
                 <span id="cardTotalDinheiro"></span>
                 <span id="cardTotalHolding"></span>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🤖 MODAL ANÁLISE IA (Claude) -->
+<div id="iaModal" role="dialog" aria-modal="true" aria-label="Análise com IA" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#070b14;z-index:5700;overflow-y:auto;">
+    <div style="width:95%;max-width:900px;margin:40px auto;background:#070b14;border:1px solid rgba(168,85,247,0.15);border-radius:20px;overflow:hidden;margin-bottom:60px;">
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#0a0a1a 0%,#1a0d26 60%,#2a0d3a 100%);border-bottom:1px solid rgba(168,85,247,0.25);padding:18px 28px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;">
+            <h2 style="margin:0;color:#fff;font-size:20px;font-weight:800;display:flex;align-items:center;gap:10px;">
+                <span style="font-size:28px;">🤖</span>
+                Análise com <span style="background:linear-gradient(90deg,#a855f7,#e83e8c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Claude IA</span>
+            </h2>
+            <button onclick="fecharIA()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);width:36px;height:36px;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">&times;</button>
+        </div>
+
+        <div style="padding:24px 28px;">
+            <!-- Seção: API Key -->
+            <div id="iaApiKeySection" style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2);border-radius:14px;padding:18px 20px;margin-bottom:20px;">
+                <div style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:700;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:10px;">🔑 Chave da API Anthropic</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <input type="password" id="iaApiKeyInput" placeholder="sk-ant-api03-..." style="flex:1;min-width:200px;background:#0d1a2e;border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;outline:none;">
+                    <button onclick="salvarIAApiKey()" style="background:linear-gradient(135deg,#a855f7,#e83e8c);border:none;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;">Salvar Chave</button>
+                </div>
+                <div id="iaApiKeyStatus" style="font-size:12px;margin-top:8px;color:rgba(255,255,255,0.5);"></div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:12px;line-height:1.6;">
+                    💡 <strong>Como obter:</strong><br>
+                    1. Acesse <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:#a855f7;">console.anthropic.com/settings/keys</a> e crie uma API key<br>
+                    2. Para comprar créditos: <a href="https://console.anthropic.com/settings/billing" target="_blank" rel="noopener" style="color:#a855f7;">console.anthropic.com/settings/billing</a><br>
+                    3. A chave fica salva no seu navegador (localStorage) — nunca é enviada a outros servidores.
+                </div>
+            </div>
+
+            <!-- Seleção de análise -->
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:700;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:12px;">🎯 O que você quer analisar?</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:10px;margin-bottom:18px;">
+                <button onclick="executarAnaliseIA('carteira')" class="ia-action-btn">
+                    📊 Analisar Carteira
+                </button>
+                <button onclick="executarAnaliseIA('fechamento')" class="ia-action-btn">
+                    📅 Fechamento do Mês
+                </button>
+                <button onclick="executarAnaliseIA('riscos')" class="ia-action-btn">
+                    ⚠️ Riscos & Diversificação
+                </button>
+                <button onclick="executarAnaliseIA('patrimonio')" class="ia-action-btn">
+                    🏠 Patrimônio Total
+                </button>
+            </div>
+
+            <!-- Campo livre para pergunta -->
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px 18px;margin-bottom:18px;">
+                <div style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:700;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:10px;">✍️ Ou pergunte livremente</div>
+                <textarea id="iaPerguntaLivre" placeholder="Ex: Qual setor devo reforçar na carteira? Estou com muita concentração em FIIs?" rows="3" style="width:100%;background:#0d1a2e;border:1px solid rgba(255,255,255,0.15);color:#fff;padding:12px 14px;border-radius:8px;font-size:14px;outline:none;box-sizing:border-box;resize:vertical;font-family:inherit;"></textarea>
+                <button onclick="executarAnaliseIA('livre')" style="margin-top:10px;background:linear-gradient(135deg,#a855f7,#e83e8c);border:none;color:#fff;padding:12px 22px;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;width:100%;">
+                    🤖 Enviar para Claude
+                </button>
+            </div>
+
+            <!-- Resultado -->
+            <div id="iaResultado" style="display:none;background:rgba(168,85,247,0.04);border:1px solid rgba(168,85,247,0.2);border-radius:12px;padding:20px 22px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <div style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:700;letter-spacing:0.8px;text-transform:uppercase;">💬 Resposta do Claude</div>
+                    <button onclick="copiarRespostaIA()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:11px;width:auto;">📋 Copiar</button>
+                </div>
+                <div id="iaResultadoTexto" style="color:rgba(255,255,255,0.9);font-size:14px;line-height:1.65;white-space:pre-wrap;"></div>
+                <div id="iaResultadoMeta" style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);"></div>
+            </div>
+
+            <div id="iaCarregando" style="display:none;text-align:center;padding:30px;color:rgba(255,255,255,0.5);">
+                <div class="spinner" style="margin:0 auto 12px;border-top-color:#a855f7;"></div>
+                <div style="font-size:13px;">Analisando seus dados com Claude...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🏠 MODAL MENSALIDADES DO IMÓVEL -->
+<div id="mensalidadesModal" role="dialog" aria-modal="true" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:6000;overflow-y:auto;">
+    <div style="width:95%;max-width:700px;margin:40px auto;background:#0a1526;border:1px solid rgba(0,212,255,0.15);border-radius:18px;overflow:hidden;margin-bottom:60px;">
+        <!-- Header -->
+        <div style="background:linear-gradient(135deg,#0a1526,#0d1f3a);border-bottom:1px solid rgba(0,212,255,0.15);padding:18px 24px;display:flex;justify-content:space-between;align-items:center;">
+            <h2 style="margin:0;color:#fff;font-size:17px;font-weight:800;display:flex;align-items:center;gap:10px;">
+                <span style="font-size:24px;">💳</span>
+                <span id="mensModalTitulo">Mensalidades</span>
+            </h2>
+            <button onclick="fecharMensalidades()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);width:34px;height:34px;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">&times;</button>
+        </div>
+        <div style="padding:22px 24px;">
+            <!-- Resumo -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;">
+                <div style="background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.18);border-radius:10px;padding:12px;">
+                    <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;letter-spacing:0.6px;text-transform:uppercase;margin-bottom:4px;">Valor Imóvel</div>
+                    <div id="mensResImovel" style="font-size:16px;font-weight:800;color:#00ff88;">R$ 0,00</div>
+                </div>
+                <div style="background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.18);border-radius:10px;padding:12px;">
+                    <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;letter-spacing:0.6px;text-transform:uppercase;margin-bottom:4px;">Total Pago</div>
+                    <div id="mensResPago" style="font-size:16px;font-weight:800;color:#00d4ff;">R$ 0,00</div>
+                </div>
+                <div style="background:rgba(255,77,109,0.06);border:1px solid rgba(255,77,109,0.2);border-radius:10px;padding:12px;">
+                    <div style="font-size:10px;color:rgba(255,255,255,0.45);font-weight:700;letter-spacing:0.6px;text-transform:uppercase;margin-bottom:4px;">Saldo</div>
+                    <div id="mensResFalta" style="font-size:16px;font-weight:800;color:#ff4d6d;">R$ 0,00</div>
+                </div>
+            </div>
+
+            <!-- Barra de progresso -->
+            <div style="background:rgba(255,255,255,0.05);border-radius:10px;height:12px;overflow:hidden;margin-bottom:5px;">
+                <div id="mensBarraProgresso" style="height:100%;background:linear-gradient(90deg,#00ff88,#00d4ff);width:0%;transition:width 0.3s;"></div>
+            </div>
+            <div id="mensBarraLabel" style="font-size:11px;color:rgba(255,255,255,0.5);text-align:right;margin-bottom:20px;">0% pago</div>
+
+            <!-- Formulário de novo pagamento -->
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px;margin-bottom:20px;">
+                <div style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:700;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:12px;">➕ Registrar Pagamento</div>
+                <div id="mensFormGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;">
+                    <div>
+                        <label style="font-size:10px;color:rgba(255,255,255,0.35);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;display:block;margin-bottom:4px;">Data</label>
+                        <input type="date" id="mensData" style="width:100%;background:#0d1a2e;border:1px solid rgba(255,255,255,0.15);color:#fff;padding:9px 11px;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="font-size:10px;color:rgba(255,255,255,0.35);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;display:block;margin-bottom:4px;">Valor R$</label>
+                        <input type="text" id="mensValor" placeholder="R$ 0,00" oninput="mascaraMoeda(this,'BRL')" style="width:100%;background:#0d1a2e;border:1px solid rgba(255,255,255,0.15);color:#fff;padding:9px 11px;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="font-size:10px;color:rgba(255,255,255,0.35);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;display:block;margin-bottom:4px;">Obs (opc.)</label>
+                        <input type="text" id="mensObs" placeholder="Parcela 5/60" style="width:100%;background:#0d1a2e;border:1px solid rgba(255,255,255,0.15);color:#fff;padding:9px 11px;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+                    </div>
+                    <button id="mensBtnSalvar" onclick="salvarMensalidade()" style="background:linear-gradient(135deg,#00ff88,#00d4ff);border:none;color:#070b14;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;">Pagar</button>
+                </div>
+            </div>
+
+            <!-- Lista de pagamentos -->
+            <div style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:700;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:10px;">📅 Histórico de Pagamentos</div>
+            <div id="mensLista"></div>
         </div>
     </div>
 </div>
@@ -1744,6 +2100,7 @@
     <button class="btn-icon" onclick="togglePrivacy()" id="privacyBtn">👁️</button>
 
 <button class="btn-icon" onclick="abrirPatrimonio()">🏠</button>
+<button class="btn-icon" onclick="abrirIA()" title="Análise com IA (Claude)">🤖</button>
 <button class="btn-icon" onclick="abrirDashboardCompleto()" title="Dashboard Completo">📊</button>
 <button onclick="abrirCarteirasBanco()" title="Análise de Carteiras" style="background:linear-gradient(135deg,#0056b3,#00bfff);border:none;color:white;padding:8px 14px;cursor:pointer;border-radius:20px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap;">📂 Carteiras</button>
 <button class="btn-icon" onclick="abrirConfig()">⚙️</button>
@@ -1767,7 +2124,7 @@
     
 <!-- Dashboard NORMAL -->
 <div class="dashboard-grid" id="dashboardNormal">
-    <div class="total-card"><h3>Patrimônio do Banco</h3><p id="patrimonioTotalGeral" class="hidden-value" data-privacy="true">R$ 0,00</p><p id="patrimonioTotalGeralUSD" class="hidden-value" style="display:none; font-size:0.85em; margin-top:5px; color:#666;" data-privacy="true">US$ 0,00 / R$ 0,00</p></div>
+    <div class="total-card"><h3>Patrimônio do Banco</h3><div class="card-vals"><p id="patrimonioTotalGeral" class="hidden-value" data-privacy="true">R$ 0,00</p><p id="patrimonioTotalGeralUSD" class="hidden-value" style="display:none; font-size:0.85em; margin-top:5px; color:#666;" data-privacy="true">US$ 0,00 / R$ 0,00</p></div></div>
     <div class="stats-card"><h4>Ganho sobre Aportado</h4><p id="rendimentoMedio" class="hidden-value" data-privacy="true">0,00%</p></div>
     <div class="stats-card"><h4>Total Aportado (Banco)</h4><p id="totalAportado" class="hidden-value" data-privacy="true">R$ 0,00</p></div>
     <div class="stats-card" id="indicadorDolarComprado" style="display:none;"><h4>Dolar Comprado</h4><p id="valorDolarComprado" style="color:#28a745; font-size:20px; font-weight:bold;">R$ 0,00</p></div>
@@ -1781,9 +2138,11 @@
     
 <div class="total-card" style="background: linear-gradient(135deg, #007bff, #00bfff);">
     <h3>💵 USD</h3>
-    <p id="patrimonioUSD" class="hidden-value" data-privacy="true">$0,00</p>
-    <p id="patrimonioUSDBRL" class="hidden-value" style="font-size:0.85em; margin-top:6px; opacity:0.8;" data-privacy="true">R$ 0,00</p>
-</div>    
+    <div class="card-vals">
+        <p id="patrimonioUSD" class="hidden-value" data-privacy="true">$0,00</p>
+        <p id="patrimonioUSDBRL" class="hidden-value" style="font-size:0.85em; margin-top:6px; opacity:0.8;" data-privacy="true">R$ 0,00</p>
+    </div>
+</div>
     <!-- patrimonioTotal mantido oculto para cálculos internos -->
     <span id="patrimonioTotal" style="display:none;" data-privacy="true"></span>
     <span id="patrimonioTotalUSD" style="display:none;" data-privacy="true"></span>
@@ -1794,9 +2153,11 @@
         onmouseover="this.style.opacity=1;this.style.transform='scale(1.2)'"
         onmouseout="this.style.opacity=0.85;this.style.transform='scale(1)'">👁️</button>
     <h3>📈 Ações</h3>
-    <p id="patrimonioAcoes" class="hidden-value" data-privacy="true">R$ 0,00</p>
-    <p style="font-size:11px; opacity:0.75; margin:4px 0 0;">clique para abrir ↗</p>
-</div>    
+    <div class="card-vals">
+        <p id="patrimonioAcoes" class="hidden-value" data-privacy="true">R$ 0,00</p>
+        <p style="font-size:11px; opacity:0.75; margin:4px 0 0;">clique para abrir ↗</p>
+    </div>
+</div>
     <!-- Linha 2: 5 cards de informações (um vai quebrar para linha 3 ou podemos ajustar depois) -->
     <div class="stats-card"><h4>Aportado BRL</h4><p id="totalAportadoBRL" class="hidden-value" data-privacy="true">R$ 0,00</p></div>
     
@@ -1944,6 +2305,15 @@ function _chartUpdateOrCreate(existingChart, ctx, config) {
     let privacidadeAtiva = true;
 let modoExcluirBanco = false;
 let _expandAbertos = new Set();
+
+// ═══ PWA: registra o Service Worker ═══
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw-invest.js')
+            .catch(err => console.warn('SW não registrado:', err));
+    });
+}
+
 // 🔐 AUTO-LOGIN: verifica se já tem sessão salva
 document.addEventListener('DOMContentLoaded', async () => {
     const sessaoSalva = localStorage.getItem('invest_sessao');
@@ -2307,10 +2677,17 @@ if (bancoId === 'consolidado_total') {
         document.getElementById('patrimonioAtualInputUSD').style.display = display;
     }
 
+    // 🛡️ Flag anti-double-click
+    let _salvandoRegistro = false;
+
     async function salvarRegistro() {
-    const bancoId = document.getElementById('bancoSelector').value; 
+    // 🛡️ Previne double-click: se já está salvando, ignora
+    if (_salvandoRegistro) return;
+
+    const btnSalvar = document.getElementById('btnSalvar');
+    const bancoId = document.getElementById('bancoSelector').value;
     if (bancoId.startsWith('consolidado')) return;
-    
+
     const registroId = document.getElementById('registroId').value;
     const dataInput = document.getElementById('dataInput').value;
     let aporte = desformatarMoeda(document.getElementById('valorAporteInput').value);
@@ -2319,41 +2696,64 @@ if (bancoId === 'consolidado_total') {
     const isUSD = banco?.is_usd || banco?.nome.toLowerCase().includes('tasty');
     let aporteUSD = desformatarMoeda(document.getElementById('valorAporteInputUSD').value);
     let patrimonioUSD = desformatarMoeda(document.getElementById('patrimonioAtualInputUSD').value);
-    
-// 🔹 Aportes e patrimônio são digitados manualmente (sem conversão automática)    
-    if (!bancoId || !dataInput) { 
-        alert("Preencha os campos!"); 
-        return; 
+
+// 🔹 Aportes e patrimônio são digitados manualmente (sem conversão automática)
+    if (!bancoId || !dataInput) {
+        alert("Preencha os campos!");
+        return;
     }
-    
+
     const [ano, mes] = dataInput.split('-');
-    const payload = { 
-        banco_id: bancoId, 
-        periodo: `${ano}/${mes}`, 
-        data_fechamento: dataInput, 
-        aportes: aporte, 
-        patrimonio: patrimonio, 
-        aportes_usd: aporteUSD, 
-        patrimonio_usd: patrimonioUSD, 
-        is_usd: isUSD 
+    const payload = {
+        banco_id: bancoId,
+        periodo: `${ano}/${mes}`,
+        data_fechamento: dataInput,
+        aportes: aporte,
+        patrimonio: patrimonio,
+        aportes_usd: aporteUSD,
+        patrimonio_usd: patrimonioUSD,
+        is_usd: isUSD
     };
-    
-    showLoading(true); 
-    let error;
-    if (registroId) { 
-        const { error: err } = await sb.from('registros').update(payload).eq('id', registroId); 
-        error = err; 
-    } else { 
-        const { error: err } = await sb.from('registros').insert([payload]); 
-        error = err; 
+
+    // 🕒 Ativa indicador no próprio botão + trava
+    _salvandoRegistro = true;
+    const btnTextoOriginal = btnSalvar ? btnSalvar.innerHTML : 'Registrar';
+    if (btnSalvar) {
+        btnSalvar.disabled = true;
+        btnSalvar.style.opacity = '0.7';
+        btnSalvar.style.cursor = 'not-allowed';
+        btnSalvar.innerHTML = '<span class="btn-spinner"></span> Salvando...';
     }
+    showLoading(true);
+
+    let error;
+    try {
+        if (registroId) {
+            const { error: err } = await sb.from('registros').update(payload).eq('id', registroId);
+            error = err;
+        } else {
+            const { error: err } = await sb.from('registros').insert([payload]);
+            error = err;
+        }
+    } catch (e) {
+        error = e;
+    }
+
     showLoading(false);
-    
-    if (error) alert('Erro ao salvar'); 
-    else { 
-        limparCampos(); 
-        await carregarTodosRegistros(); 
-        await carregarDadosBanco(); 
+    // Restaura botão
+    if (btnSalvar) {
+        btnSalvar.disabled = false;
+        btnSalvar.style.opacity = '';
+        btnSalvar.style.cursor = '';
+        btnSalvar.innerHTML = btnTextoOriginal;
+    }
+    _salvandoRegistro = false;
+
+    if (error) alert('Erro ao salvar');
+    else {
+        limparCampos();
+        await carregarTodosRegistros();
+        await carregarDadosBanco();
     }
 }
 
@@ -4560,7 +4960,10 @@ function fecharPatrimonio() {
     abrirDashboardCompleto();
 }
 
+let _salvandoPatrimonio = false;
 async function salvarPatrimonio() {
+    if (_salvandoPatrimonio) return;
+
     const descricao = document.getElementById('patDesc').value;
     const valor = desformatarMoeda(document.getElementById('patValor').value);
     const editId = document.getElementById('patDesc').dataset.editId;
@@ -4570,24 +4973,40 @@ async function salvarPatrimonio() {
         return;
     }
 
+    // 🕒 Encontra o botão (primeiro botão do formulário de imóveis)
+    const btn = document.querySelector('button[onclick*="salvarPatrimonio"]');
+    const textoOriginal = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
+        btn.innerHTML = '<span class="btn-spinner"></span> Salvando...';
+    }
+    _salvandoPatrimonio = true;
     showLoading(true);
 
     let error;
-
-    if (editId) {
-        const { error: err } = await sb
-            .from('patrimonio')
-            .update({ descricao, valor })
-            .eq('id', editId);
-        error = err;
-    } else {
-        const { error: err } = await sb
-            .from('patrimonio')
-            .insert([{ descricao, valor, tipo: 'imovel' }]);
-        error = err;
-    }
+    try {
+        if (editId) {
+            const { error: err } = await sb
+                .from('patrimonio')
+                .update({ descricao, valor })
+                .eq('id', editId);
+            error = err;
+        } else {
+            const { error: err } = await sb
+                .from('patrimonio')
+                .insert([{ descricao, valor, tipo: 'imovel' }]);
+            error = err;
+        }
+    } catch (e) { error = e; }
 
     showLoading(false);
+    if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '';
+        btn.innerHTML = textoOriginal;
+    }
+    _salvandoPatrimonio = false;
 
     if (error) {
         alert("Erro ao salvar");
@@ -4602,44 +5021,218 @@ async function salvarPatrimonio() {
 }
 
 
+// 💾 Armazena mensalidades carregadas (por imovel_id) para cálculos rápidos
+let _mensalidadesPorImovel = {};
+
 async function carregarPatrimonio() {
     showLoading(true);
 
+    // 1️⃣ Carrega imóveis
     const { data, error } = await sb
         .from('patrimonio')
         .select('*')
         .eq('tipo', 'imovel')
         .order('criado_em', { ascending: false });
 
+    // 2️⃣ Carrega mensalidades (tipo='mensalidade', descricao começa com IMV:<id>||)
+    const { data: mensData } = await sb
+        .from('patrimonio')
+        .select('*')
+        .eq('tipo', 'mensalidade')
+        .order('criado_em', { ascending: false });
+
     showLoading(false);
     if (error) return;
 
+    // Indexar mensalidades por imovel_id
+    _mensalidadesPorImovel = {};
+    (mensData || []).forEach(m => {
+        // Formato: IMV:<imovel_id>||<data_iso>||<obs>
+        const match = (m.descricao || '').match(/^IMV:([^|]+)\|\|([^|]*)\|\|(.*)$/);
+        if (!match) return;
+        const [, imovelId, dataPag, obs] = match;
+        if (!_mensalidadesPorImovel[imovelId]) _mensalidadesPorImovel[imovelId] = [];
+        _mensalidadesPorImovel[imovelId].push({
+            id: m.id,
+            imovel_id: imovelId,
+            data: dataPag,
+            obs: obs,
+            valor: Number(m.valor) || 0,
+            criado_em: m.criado_em
+        });
+    });
+
     let totalImoveis = 0;
+    let totalPago = 0;
 
     const imoveisDiv = document.getElementById('secaoImoveis');
     imoveisDiv.innerHTML = '';
 
     data.forEach(item => {
-        totalImoveis += Number(item.valor);
-        imoveisDiv.innerHTML += montarItemImovel(item);
+        const valor = Number(item.valor);
+        totalImoveis += valor;
+        const pagoDoImovel = (_mensalidadesPorImovel[item.id] || [])
+            .reduce((s, p) => s + p.valor, 0);
+        totalPago += pagoDoImovel;
+        imoveisDiv.innerHTML += montarItemImovel(item, pagoDoImovel);
     });
 
-    // 🔥 PEGA O TOTAL DA TELA PRINCIPAL
+    // 🔥 PEGA O TOTAL DA TELA PRINCIPAL (dinheiro em bancos + ações)
     const totalPrincipalTexto =
         document.getElementById('patrimonioTotal')?.textContent ||
         document.getElementById('patrimonioTotalGeral')?.textContent ||
         "R$ 0,00";
 
     const totalPrincipalNumero = desformatarMoeda(totalPrincipalTexto);
+    const patTotal = totalPrincipalNumero + totalImoveis;
+    const pctPago = totalImoveis > 0 ? (totalPago / totalImoveis) * 100 : 0;
+    const pctTotalImov = patTotal > 0 ? (totalImoveis / patTotal) * 100 : 0;
+    const faltaPagar = Math.max(totalImoveis - totalPago, 0);
 
+    // Cards legados (mantidos para compatibilidade)
     document.getElementById('cardTotalDinheiro').textContent =
         formatarMoeda(totalPrincipalNumero);
-
     document.getElementById('cardTotalImoveis').textContent =
         formatarMoeda(totalImoveis);
-
     document.getElementById('cardTotalHolding').textContent =
-        formatarMoeda(totalPrincipalNumero + totalImoveis);
+        formatarMoeda(patTotal);
+
+    // Novos cards
+    const elJaPago = document.getElementById('cardImovJaPago');
+    if (elJaPago) elJaPago.textContent = formatarMoeda(totalPago);
+    const elPctPago = document.getElementById('cardImovPctPago');
+    if (elPctPago) elPctPago.textContent = `${pctPago.toFixed(1)}% do total`;
+    const elFalta = document.getElementById('cardImovFaltaPagar');
+    if (elFalta) elFalta.textContent = formatarMoeda(faltaPagar);
+    const elPctTotal = document.getElementById('cardImovPctTotal');
+    if (elPctTotal) elPctTotal.textContent = `${pctTotalImov.toFixed(1)}%`;
+    const elPatTotal = document.getElementById('cardImovPatTotal');
+    if (elPatTotal) elPatTotal.textContent = `Total: ${formatarMoeda(patTotal)}`;
+}
+
+// ============================
+// 💳 MENSALIDADES DE IMÓVEIS
+// ============================
+
+let _mensImovelAtual = null; // {id, descricao, valor}
+
+function abrirMensalidades(imovelId, descricao, valorTotal) {
+    _mensImovelAtual = { id: imovelId, descricao, valor: Number(valorTotal) };
+    document.getElementById('mensModalTitulo').textContent = `💳 ${descricao}`;
+    // Data atual como default
+    const hoje = new Date();
+    document.getElementById('mensData').value = hoje.toISOString().slice(0, 10);
+    document.getElementById('mensValor').value = '';
+    document.getElementById('mensObs').value = '';
+    document.getElementById('mensalidadesModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    history.pushState({ modal: 'mensalidades' }, '');
+    renderizarMensalidades();
+}
+
+function fecharMensalidades() {
+    document.getElementById('mensalidadesModal').style.display = 'none';
+    document.body.style.overflow = '';
+    _mensImovelAtual = null;
+}
+
+function renderizarMensalidades() {
+    if (!_mensImovelAtual) return;
+    const pagamentos = (_mensalidadesPorImovel[_mensImovelAtual.id] || [])
+        .slice()
+        .sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+
+    const totalPago = pagamentos.reduce((s, p) => s + p.valor, 0);
+    const valorImovel = _mensImovelAtual.valor;
+    const falta = Math.max(valorImovel - totalPago, 0);
+    const pct = valorImovel > 0 ? Math.min((totalPago / valorImovel) * 100, 100) : 0;
+
+    document.getElementById('mensResImovel').textContent = formatarMoeda(valorImovel);
+    document.getElementById('mensResPago').textContent = formatarMoeda(totalPago);
+    document.getElementById('mensResFalta').textContent = formatarMoeda(falta);
+    document.getElementById('mensBarraProgresso').style.width = pct + '%';
+    document.getElementById('mensBarraLabel').textContent = `${pct.toFixed(1)}% pago`;
+
+    const lista = document.getElementById('mensLista');
+    if (!pagamentos.length) {
+        lista.innerHTML = `
+            <div style="text-align:center;padding:24px;color:rgba(255,255,255,0.3);font-size:13px;">
+                Nenhum pagamento registrado ainda.
+            </div>`;
+        return;
+    }
+
+    lista.innerHTML = pagamentos.map(p => {
+        const dataFmt = p.data
+            ? new Date(p.data + 'T00:00:00').toLocaleDateString('pt-BR')
+            : '—';
+        return `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;margin-bottom:8px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);">
+                <div style="flex:1;min-width:0;">
+                    <div style="color:#fff;font-weight:700;font-size:13px;">${dataFmt}${p.obs ? ' · <span style="opacity:0.6;font-weight:500;">' + p.obs + '</span>' : ''}</div>
+                    <div style="color:#00ff88;font-weight:700;font-size:14px;margin-top:2px;">${formatarMoeda(p.valor)}</div>
+                </div>
+                <button onclick="excluirMensalidade('${p.id}')"
+                    style="background:rgba(255,77,109,0.15);border:1px solid rgba(255,77,109,0.3);color:#ff4d6d;padding:6px 11px;border-radius:8px;cursor:pointer;font-size:13px;">🗑</button>
+            </div>
+        `;
+    }).join('');
+}
+
+let _salvandoMensalidade = false;
+async function salvarMensalidade() {
+    if (_salvandoMensalidade || !_mensImovelAtual) return;
+
+    const data = document.getElementById('mensData').value;
+    const valor = desformatarMoeda(document.getElementById('mensValor').value);
+    const obs = document.getElementById('mensObs').value.trim();
+
+    if (!data || !valor) {
+        alert('Preencha data e valor do pagamento');
+        return;
+    }
+
+    const btn = document.getElementById('mensBtnSalvar');
+    const textoOriginal = btn.innerHTML;
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+    btn.innerHTML = '<span class="btn-spinner"></span> Salvando...';
+    _salvandoMensalidade = true;
+    showLoading(true);
+
+    // Armazena no formato: IMV:<imovel_id>||<data>||<obs>
+    const descricaoCodificada = `IMV:${_mensImovelAtual.id}||${data}||${obs}`;
+    const { error } = await sb
+        .from('patrimonio')
+        .insert([{ descricao: descricaoCodificada, valor, tipo: 'mensalidade' }]);
+
+    showLoading(false);
+    btn.disabled = false;
+    btn.style.opacity = '';
+    btn.innerHTML = textoOriginal;
+    _salvandoMensalidade = false;
+
+    if (error) {
+        alert('Erro ao salvar pagamento');
+        return;
+    }
+
+    // Limpa campos
+    document.getElementById('mensValor').value = '';
+    document.getElementById('mensObs').value = '';
+
+    // Recarrega patrimônio (atualiza cards da tela de imóveis também)
+    await carregarPatrimonio();
+    renderizarMensalidades();
+}
+
+async function excluirMensalidade(id) {
+    if (!confirm('Excluir este pagamento?')) return;
+    showLoading(true);
+    await sb.from('patrimonio').delete().eq('id', id);
+    showLoading(false);
+    await carregarPatrimonio();
+    renderizarMensalidades();
 }
 
 // ==============================
@@ -4839,18 +5432,44 @@ function editarImovel(id, descricao, valor) {
 
 
 
-function montarItemImovel(item) {
+function montarItemImovel(item, pagoDoImovel = 0) {
+    const valorTotal = Number(item.valor) || 0;
+    const pct = valorTotal > 0 ? Math.min((pagoDoImovel / valorTotal) * 100, 100) : 0;
+    const quitado = pct >= 100;
+    const descEscapada = (item.descricao || '').replace(/'/g, "\\'");
     return `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;margin-bottom:10px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);transition:background 0.15s;" onmouseover="this.style.background='rgba(0,255,136,0.05)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
-            <div>
-                <div style="color:#fff;font-weight:700;font-size:15px;margin-bottom:3px;">${item.descricao}</div>
-                <div style="font-size:14px;color:#00ff88;font-weight:600;">${formatarMoeda(Number(item.valor))}</div>
+        <div style="padding:14px 18px;margin-bottom:10px;border-radius:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);transition:background 0.15s;" onmouseover="this.style.background='rgba(0,255,136,0.04)'" onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:0;">
+                    <div style="color:#fff;font-weight:700;font-size:15px;margin-bottom:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        ${item.descricao}
+                        ${quitado ? '<span style="font-size:10px;background:rgba(0,255,136,0.15);color:#00ff88;padding:2px 8px;border-radius:10px;font-weight:800;letter-spacing:0.3px;">QUITADO</span>' : ''}
+                    </div>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.55);font-weight:500;">
+                        Valor: <span style="color:#00ff88;font-weight:700;">${formatarMoeda(valorTotal)}</span>
+                    </div>
+                </div>
+                <div style="display:flex;gap:6px;flex-shrink:0;">
+                    <button onclick="abrirMensalidades('${item.id}','${descEscapada}',${valorTotal})"
+                        title="Gerenciar mensalidades"
+                        style="background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.3);color:#00d4ff;padding:7px 12px;border-radius:8px;cursor:pointer;font-size:14px;">💳</button>
+                    <button onclick="editarImovel('${item.id}','${descEscapada}',${valorTotal})"
+                        title="Editar"
+                        style="background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.3);color:#00d4ff;padding:7px 12px;border-radius:8px;cursor:pointer;font-size:14px;">✏️</button>
+                    <button onclick="excluirPatrimonio('${item.id}')"
+                        title="Excluir"
+                        style="background:rgba(255,77,109,0.15);border:1px solid rgba(255,77,109,0.3);color:#ff4d6d;padding:7px 12px;border-radius:8px;cursor:pointer;font-size:14px;">🗑</button>
+                </div>
             </div>
-            <div style="display:flex;gap:8px;">
-                <button onclick="editarImovel('${item.id}','${item.descricao.replace(/'/g,"\\'")}',${item.valor})"
-                    style="background:rgba(0,212,255,0.15);border:1px solid rgba(0,212,255,0.3);color:#00d4ff;padding:7px 12px;border-radius:8px;cursor:pointer;font-size:15px;">✏️</button>
-                <button onclick="excluirPatrimonio('${item.id}')"
-                    style="background:rgba(255,77,109,0.15);border:1px solid rgba(255,77,109,0.3);color:#ff4d6d;padding:7px 12px;border-radius:8px;cursor:pointer;font-size:15px;">🗑</button>
+            <!-- Barra de progresso pago -->
+            <div style="margin-top:12px;">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;">
+                    <span>Pago: <strong style="color:#00d4ff;">${formatarMoeda(pagoDoImovel)}</strong></span>
+                    <span>${pct.toFixed(1)}%</span>
+                </div>
+                <div style="background:rgba(255,255,255,0.05);height:6px;border-radius:10px;overflow:hidden;">
+                    <div style="height:100%;background:linear-gradient(90deg,#00ff88,#00d4ff);width:${pct}%;transition:width 0.3s;"></div>
+                </div>
             </div>
         </div>
     `;
@@ -4864,10 +5483,26 @@ function toggleSecao(id) {
 
 
 async function excluirPatrimonio(id) {
-    if (!confirm("Excluir item?")) return;
+    // Verifica se há mensalidades associadas — avisa antes de excluir
+    const temMens = (_mensalidadesPorImovel[id] || []).length > 0;
+    const msg = temMens
+        ? "Excluir este imóvel também irá apagar todos os pagamentos/mensalidades cadastrados nele. Continuar?"
+        : "Excluir item?";
+    if (!confirm(msg)) return;
 
     showLoading(true);
 
+    // 1) Deleta mensalidades deste imóvel (descricao começa com IMV:<id>||)
+    if (temMens) {
+        try {
+            await sb
+                .from('patrimonio')
+                .delete()
+                .eq('tipo', 'mensalidade')
+                .like('descricao', `IMV:${id}||%`);
+        } catch (e) {}
+    }
+    // 2) Deleta o imóvel
     await sb.from('patrimonio').delete().eq('id', id);
 
     showLoading(false);
@@ -4889,6 +5524,14 @@ function fecharFuncionalidades() {
 
 // popstate principal - todos os sub-modais voltam pro dashboard
 window.addEventListener('popstate', function(e) {
+    // 💳 Mensalidades (fica por cima do patrimonio) — fecha primeiro
+    if (document.getElementById('mensalidadesModal')?.style.display === 'block') {
+        fecharMensalidades(); return;
+    }
+    // 🤖 IA — se aberta, apenas fecha, sem reabrir dashboard
+    if (document.getElementById('iaModal')?.style.display === 'block') {
+        fecharIA(); return;
+    }
     if (document.getElementById('patrimonioModal')?.style.display === 'block') {
         fecharPatrimonio(); return;
     }
@@ -14541,6 +15184,268 @@ async function cartRenderFGC() {
 
 // Carteiras salvas carregam no mobile também
 window.addEventListener('resize', cartRenderBanksList);
+
+// ═══════════════════════════════════════════════
+//  🤖 ANÁLISE COM IA (Claude API)
+// ═══════════════════════════════════════════════
+
+const IA_STORAGE_KEY = 'claude_api_key';
+const IA_MODEL = 'claude-sonnet-4-6'; // modelo Sonnet 4.6 — equilíbrio entre qualidade, velocidade e custo
+let _iaUltimaResposta = '';
+
+function abrirIA() {
+    const modal = document.getElementById('iaModal');
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    history.pushState({ modal: 'ia' }, '');
+
+    // Preenche API key salva (mascarada)
+    const chaveSalva = localStorage.getItem(IA_STORAGE_KEY) || '';
+    const input = document.getElementById('iaApiKeyInput');
+    const status = document.getElementById('iaApiKeyStatus');
+    if (chaveSalva) {
+        input.value = chaveSalva;
+        status.textContent = '✅ Chave salva no navegador';
+        status.style.color = '#00ff88';
+    } else {
+        status.textContent = '⚠️ Nenhuma chave cadastrada ainda';
+        status.style.color = '#ffc107';
+    }
+
+    // Esconde resultado anterior
+    document.getElementById('iaResultado').style.display = 'none';
+    document.getElementById('iaCarregando').style.display = 'none';
+}
+
+function fecharIA() {
+    document.getElementById('iaModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function salvarIAApiKey() {
+    const chave = document.getElementById('iaApiKeyInput').value.trim();
+    const status = document.getElementById('iaApiKeyStatus');
+    if (!chave) {
+        localStorage.removeItem(IA_STORAGE_KEY);
+        status.textContent = '🗑️ Chave removida';
+        status.style.color = '#ffc107';
+        return;
+    }
+    if (!chave.startsWith('sk-ant-')) {
+        status.textContent = '⚠️ A chave parece inválida. Deve começar com "sk-ant-"';
+        status.style.color = '#ff4d6d';
+        return;
+    }
+    localStorage.setItem(IA_STORAGE_KEY, chave);
+    status.textContent = '✅ Chave salva com sucesso';
+    status.style.color = '#00ff88';
+}
+
+// ── Coleta um snapshot da carteira para enviar ao Claude ──
+async function _iaColetarDados() {
+    // Bancos e totais
+    const bancosData = (typeof todosBancos !== 'undefined' ? todosBancos : []) || bancos || [];
+    const registros = (typeof todosRegistros !== 'undefined' ? todosRegistros : []) || [];
+
+    // Patrimônio total (BRL + USD convertido)
+    const patBRL = desformatarMoeda(document.getElementById('patrimonioBRL')?.textContent || '0');
+    const patUSDBRL = desformatarMoeda(document.getElementById('patrimonioUSDBRL')?.textContent || '0');
+    const patUSD = desformatarMoeda(document.getElementById('patrimonioUSD')?.textContent || '0');
+    const patAcoes = desformatarMoeda(document.getElementById('patrimonioAcoes')?.textContent || '0');
+    const totalAportadoBRL = desformatarMoeda(document.getElementById('totalAportadoBRL')?.textContent || '0');
+    const totalAportadoUSD = desformatarMoeda(document.getElementById('totalAportadoUSD')?.textContent || '0');
+    const rentMedio = document.getElementById('rendimentoMedioTotal')?.textContent
+        || document.getElementById('rendimentoMedio')?.textContent
+        || '0%';
+
+    // Por banco: último patrimônio
+    const bancosResumo = bancosData.map(b => {
+        const regs = registros.filter(r => r.banco_id === b.id);
+        const ultimo = [...regs].sort((a, c) => new Date(c.data_fechamento) - new Date(a.data_fechamento))
+            .find(r => b.is_usd ? r.patrimonio_usd > 0 : r.patrimonio > 0);
+        return {
+            nome: b.nome,
+            moeda: b.is_usd ? 'USD' : 'BRL',
+            patrimonio: ultimo ? (b.is_usd ? ultimo.patrimonio_usd : ultimo.patrimonio) : 0,
+            ultimo_fechamento: ultimo ? ultimo.data_fechamento : null
+        };
+    }).filter(b => b.patrimonio > 0);
+
+    // Ações (posições)
+    let acoes = [];
+    try {
+        if (typeof calcularPosicoes === 'function') {
+            acoes = calcularPosicoes().map(p => ({
+                ticker: p.ticker,
+                quantidade: p.qtd,
+                preco_medio: p.qtd > 0 ? p.custoTotal / p.qtd : 0,
+                custo_total: p.custoTotal,
+                cotacao_atual: (acoesCotacoes?.[p.ticker]?.price) || null
+            }));
+        }
+    } catch (e) {}
+
+    // Imóveis
+    let imoveis = [];
+    let totalImoveis = 0;
+    let totalPagoImoveis = 0;
+    try {
+        const { data: imovData } = await sb.from('patrimonio').select('*').eq('tipo', 'imovel');
+        const { data: mensData } = await sb.from('patrimonio').select('*').eq('tipo', 'mensalidade');
+        const mensPorImovel = {};
+        (mensData || []).forEach(m => {
+            const mt = (m.descricao || '').match(/^IMV:([^|]+)\|\|/);
+            if (!mt) return;
+            const id = mt[1];
+            if (!mensPorImovel[id]) mensPorImovel[id] = 0;
+            mensPorImovel[id] += Number(m.valor) || 0;
+        });
+        imoveis = (imovData || []).map(i => {
+            const pago = mensPorImovel[i.id] || 0;
+            totalImoveis += Number(i.valor);
+            totalPagoImoveis += pago;
+            return {
+                descricao: i.descricao,
+                valor_total: Number(i.valor),
+                total_pago: pago,
+                saldo_devedor: Math.max(Number(i.valor) - pago, 0)
+            };
+        });
+    } catch (e) {}
+
+    // Últimos 6 meses consolidados
+    const ultimosMeses = {};
+    registros.forEach(r => {
+        if (!ultimosMeses[r.periodo]) ultimosMeses[r.periodo] = { aportes: 0, patrimonio: 0 };
+        ultimosMeses[r.periodo].aportes += (r.aportes || 0);
+        if (r.patrimonio > 0) ultimosMeses[r.periodo].patrimonio += r.patrimonio;
+    });
+    const mesesOrdenados = Object.keys(ultimosMeses).sort().slice(-6)
+        .map(k => ({ mes: k, ...ultimosMeses[k] }));
+
+    return {
+        data_relatorio: new Date().toISOString().slice(0, 10),
+        patrimonio: {
+            brl: patBRL,
+            usd: patUSD,
+            usd_em_brl: patUSDBRL,
+            acoes: patAcoes,
+            total_aportado_brl: totalAportadoBRL,
+            total_aportado_usd: totalAportadoUSD,
+            rendimento_medio: rentMedio
+        },
+        bancos: bancosResumo,
+        acoes: acoes,
+        imoveis: {
+            lista: imoveis,
+            total: totalImoveis,
+            total_pago: totalPagoImoveis,
+            saldo_devedor: Math.max(totalImoveis - totalPagoImoveis, 0)
+        },
+        ultimos_meses: mesesOrdenados
+    };
+}
+
+function _iaPromptParaTipo(tipo, perguntaLivre) {
+    const prompts = {
+        carteira: 'Analise minha carteira de investimentos com base nos dados em anexo. Me dê: (1) visão geral do patrimônio, (2) diversificação por classe/moeda/banco, (3) pontos fortes, (4) pontos de atenção, (5) sugestões práticas. Seja direto, objetivo e use números. Responda em português do Brasil.',
+        fechamento: 'Faça um relatório de fechamento do mês da minha carteira. Compare com meses anteriores se possível. Comente sobre evolução do patrimônio, aportes, rentabilidade e se estou no caminho. Seja breve e objetivo, em português do Brasil.',
+        riscos: 'Avalie os riscos e a diversificação da minha carteira. Identifique concentrações perigosas (banco, moeda, classe, ativo). Sugira ajustes concretos para reduzir risco. Responda em português do Brasil, com clareza.',
+        patrimonio: 'Avalie meu patrimônio total (dinheiro + ações + imóveis). Analise: (1) proporção entre líquido e ilíquido, (2) % em imóveis ainda não quitados, (3) saúde geral do patrimônio, (4) recomendações. Use números. Responda em português do Brasil.',
+        livre: perguntaLivre || 'Analise minha carteira e me dê insights úteis.'
+    };
+    return prompts[tipo] || prompts.carteira;
+}
+
+async function executarAnaliseIA(tipo) {
+    const chave = localStorage.getItem(IA_STORAGE_KEY);
+    if (!chave) {
+        alert('⚠️ Salve sua API key da Anthropic antes de fazer uma análise.\n\nVeja as instruções na parte superior do modal.');
+        document.getElementById('iaApiKeyInput').focus();
+        return;
+    }
+
+    let perguntaLivre = '';
+    if (tipo === 'livre') {
+        perguntaLivre = document.getElementById('iaPerguntaLivre').value.trim();
+        if (!perguntaLivre) {
+            alert('Digite sua pergunta antes de enviar.');
+            return;
+        }
+    }
+
+    // Esconde botões, mostra loading
+    const loading = document.getElementById('iaCarregando');
+    const resultado = document.getElementById('iaResultado');
+    loading.style.display = 'block';
+    resultado.style.display = 'none';
+    document.querySelectorAll('.ia-action-btn').forEach(b => b.disabled = true);
+
+    try {
+        const dados = await _iaColetarDados();
+        const prompt = _iaPromptParaTipo(tipo, perguntaLivre);
+        const systemMsg = 'Você é um consultor financeiro analisando a carteira de um investidor brasileiro. Use os dados JSON fornecidos. Responda de forma estruturada, direta, em português do Brasil, com valores em R$ formatados, parágrafos curtos e bullets quando útil. Não invente dados que não estejam no JSON.';
+        const userMsg = `${prompt}\n\nDados atuais da minha carteira (JSON):\n\`\`\`json\n${JSON.stringify(dados, null, 2)}\n\`\`\``;
+
+        const resp = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': chave,
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            body: JSON.stringify({
+                model: IA_MODEL,
+                max_tokens: 2000,
+                system: systemMsg,
+                messages: [{ role: 'user', content: userMsg }]
+            })
+        });
+
+        const json = await resp.json();
+
+        if (!resp.ok) {
+            const errMsg = json?.error?.message || `Erro HTTP ${resp.status}`;
+            throw new Error(errMsg);
+        }
+
+        const texto = (json.content || [])
+            .filter(c => c.type === 'text')
+            .map(c => c.text)
+            .join('\n') || '(sem resposta)';
+
+        _iaUltimaResposta = texto;
+        document.getElementById('iaResultadoTexto').textContent = texto;
+
+        // Meta info
+        const usage = json.usage || {};
+        const metaTexto = `Modelo: ${IA_MODEL} · Tokens: ${usage.input_tokens || 0} in / ${usage.output_tokens || 0} out`;
+        document.getElementById('iaResultadoMeta').textContent = metaTexto;
+
+        resultado.style.display = 'block';
+    } catch (err) {
+        document.getElementById('iaResultadoTexto').textContent = `❌ Erro ao consultar o Claude:\n\n${err.message}\n\nVerifique:\n• A API key está correta?\n• Você tem créditos em console.anthropic.com?\n• A conexão está OK?`;
+        document.getElementById('iaResultadoMeta').textContent = '';
+        resultado.style.display = 'block';
+    } finally {
+        loading.style.display = 'none';
+        document.querySelectorAll('.ia-action-btn').forEach(b => b.disabled = false);
+    }
+}
+
+function copiarRespostaIA() {
+    if (!_iaUltimaResposta) return;
+    navigator.clipboard.writeText(_iaUltimaResposta)
+        .then(() => {
+            const btn = event.target;
+            const orig = btn.textContent;
+            btn.textContent = '✅ Copiado!';
+            setTimeout(() => { btn.textContent = orig; }, 1500);
+        })
+        .catch(() => alert('Não foi possível copiar. Selecione o texto manualmente.'));
+}
+
 </script>
 
 </body>
