@@ -580,8 +580,10 @@
         .login-box button { background: #0056b3; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
         
         .container { max-width: 100%; margin: auto; background: var(--card-bg); padding: 15px; border-radius: 12px; box-shadow: var(--card-shadow); display: none; margin-top: 10px; margin-bottom: 10px; }
-        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 20px; }
-        
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 20px; gap: 12px; }
+
+        .header-brand { display: flex; align-items: center; gap: 14px; min-width: 0; flex-shrink: 1; }
+
         .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; overflow: visible; }
         .btn-icon { background: none; border: 1px solid var(--border-color); color: var(--text-color); padding: 8px; cursor: pointer; border-radius: 50%; font-size: 18px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
         
@@ -832,11 +834,42 @@
         font-weight: 700;
     }
 
-    /* Header não quebra */
+    /* 📱 Header compacto em linha única no mobile */
     header {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding-bottom: 8px;
+        margin-bottom: 14px;
+    }
+
+    .header-brand {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
+        gap: 2px;
+        min-width: 0;
+        flex: 0 1 auto;
+    }
+
+    .header-brand h2 {
+        font-size: 14px !important;
+        margin: 0 !important;
+    }
+
+    .header-brand h2 img {
+        height: 22px !important;
+    }
+
+    #cotacoesTopo {
+        font-size: 10px !important;
+        margin-right: 0 !important;
+        line-height: 1.2 !important;
+    }
+
+    #cotacoesTopo .cot-label {
+        display: none;
     }
 
     /* Controles */
@@ -905,23 +938,29 @@
 }
 
 
-/* 🔹 Corrige alinhamento dos ícones no mobile */
+/* 🔹 Ações do header compactas no mobile (linha única) */
 .header-actions {
-    width: 100%;
+    width: auto;
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 8px;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 4px;
+    flex: 0 1 auto;
 }
 
-.header-actions > div {
-    white-space: normal !important;
+.header-actions .btn-icon {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 14px !important;
+    padding: 4px !important;
 }
 
-.btn-icon {
-    width: 38px;
-    height: 38px;
-    font-size: 16px;
+.header-actions .btn-carteiras {
+    padding: 5px 10px !important;
+    font-size: 11px !important;
+    border-radius: 14px !important;
+    gap: 4px !important;
 }
 
 
@@ -2141,15 +2180,16 @@
 
 <div class="container" id="mainContainer" style="display:none;">
     <header>
-        <h2 id="tituloSistema" style="display:flex;align-items:center;gap:10px;">
-          <img src="logo_bem_preview.svg" alt="BEM" style="height:28px;flex-shrink:0;display:block;"> </h2>
+        <div class="header-brand">
+            <h2 id="tituloSistema" style="display:flex;align-items:center;gap:10px;margin:0;">
+              <img src="logo_bem_preview.svg" alt="BEM" style="height:28px;flex-shrink:0;display:block;"> </h2>
+            <div id="cotacoesTopo" style="font-size:12px; color:#666; white-space:nowrap;">
+                💵 <span class="cot-label">USD:</span> <span id="valorDolar">--</span>
+                &nbsp;&nbsp;
+                💶 <span class="cot-label">EUR:</span> <span id="valorEuro">--</span>
+            </div>
+        </div>
         <div class="header-actions">
-    <div id="cotacoesTopo" style="font-size:12px; color:#666; margin-right:10px; white-space:nowrap;">
-        💵 USD: <span id="valorDolar">--</span>
-        &nbsp;&nbsp;
-        💶 EUR: <span id="valorEuro">--</span>
-    </div>
-
 <button id="btnVoltarBrasil"
         class="btn-icon"
         style="display:none;"
@@ -2161,7 +2201,7 @@
 <button class="btn-icon" onclick="abrirPatrimonio()">🏠</button>
 <button class="btn-icon" onclick="abrirIA()" title="Análise com IA (Claude)">🤖</button>
 <button class="btn-icon" onclick="abrirDashboardCompleto()" title="Dashboard Completo">📊</button>
-<button onclick="abrirCarteirasBanco()" title="Análise de Carteiras" style="background:linear-gradient(135deg,#0056b3,#00bfff);border:none;color:white;padding:8px 14px;cursor:pointer;border-radius:20px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap;">📂 Carteiras</button>
+<button onclick="abrirCarteirasBanco()" title="Análise de Carteiras" class="btn-carteiras" style="background:linear-gradient(135deg,#0056b3,#00bfff);border:none;color:white;padding:8px 14px;cursor:pointer;border-radius:20px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap;">📂 Carteiras</button>
 <button class="btn-icon" onclick="abrirConfig()">⚙️</button>
 </div>
 
