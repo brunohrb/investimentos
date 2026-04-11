@@ -586,8 +586,24 @@
         .chart-container { padding: 15px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); height: 300px; }
         .chart-container h3 { margin: 0 0 10px 0; font-size: 14px; text-align: center; }
 
-        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 9000; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); display: none; justify-content: center; align-items: center; z-index: 9999; backdrop-filter: blur(2px); }
+        .loading-overlay .loading-box {
+            background: linear-gradient(135deg, #0a1526, #0d1f3a);
+            border: 1px solid rgba(0,212,255,0.25);
+            border-radius: 14px;
+            padding: 26px 38px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .loading-overlay .loading-text {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .spinner { width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.15); border-top: 3px solid #00d4ff; border-radius: 50%; animation: spin 0.9s linear infinite; flex-shrink: 0; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* 🕒 Spinner inline para botões (usado ao salvar) */
@@ -1725,7 +1741,7 @@
 
 
 
-<div id="loading" class="loading-overlay"><div class="spinner"></div></div>
+<div id="loading" class="loading-overlay"><div class="loading-box"><div class="spinner"></div><div class="loading-text" id="loadingText">Salvando...</div></div></div>
 
 <div id="loginScreen">
     <div class="login-box">
@@ -2558,7 +2574,15 @@ async function mudarSenha() {
         if (charts.patrimonio) { atualizarGrafico(); atualizarGraficoPizza(); consolidarPatrimonioHistorico(); }
     }
 
-    function showLoading(show) { document.getElementById('loading').style.display = show ? 'flex' : 'none'; }
+    function showLoading(show, texto) {
+        const el = document.getElementById('loading');
+        if (!el) return;
+        el.style.display = show ? 'flex' : 'none';
+        if (show) {
+            const t = document.getElementById('loadingText');
+            if (t) t.textContent = texto || 'Processando...';
+        }
+    }
 
     async function carregarBancos() {
         showLoading(true); const { data, error } = await sb.from('bancos').select('*').order('nome'); showLoading(false);
@@ -2758,7 +2782,7 @@ if (bancoId === 'consolidado_total') {
         btnSalvar.style.cursor = 'not-allowed';
         btnSalvar.innerHTML = '<span class="btn-spinner"></span> Salvando...';
     }
-    showLoading(true);
+    showLoading(true, 'Salvando registro...');
 
     let error;
     try {
@@ -5016,7 +5040,7 @@ async function salvarPatrimonio() {
         btn.innerHTML = '<span class="btn-spinner"></span> Salvando...';
     }
     _salvandoPatrimonio = true;
-    showLoading(true);
+    showLoading(true, 'Salvando imóvel...');
 
     let error;
     try {
@@ -5232,7 +5256,7 @@ async function salvarMensalidade() {
     btn.style.opacity = '0.7';
     btn.innerHTML = '<span class="btn-spinner"></span> Salvando...';
     _salvandoMensalidade = true;
-    showLoading(true);
+    showLoading(true, 'Salvando pagamento...');
 
     // Armazena no formato: IMV:<imovel_id>||<data>||<obs>
     const descricaoCodificada = `IMV:${_mensImovelAtual.id}||${data}||${obs}`;
@@ -10032,7 +10056,10 @@ function bb_limparForm() {
     if (btnC) btnC.style.display = 'none';
 }
 
+let _bbSalvando = false;
 async function bb_salvarRegistro() {
+    if (_bbSalvando) return; // 🛡️ trava double-click
+
     const bancoId = _bbBancoAtual;
     if (!bancoId || bancoId === 'consolidado') return;
     const dataVal = document.getElementById('bb-dataInput').value;
@@ -10054,18 +10081,39 @@ async function bb_salvarRegistro() {
         is_usd: false
     };
 
-    showLoading(true);
-    let error;
-    if (registroId) {
-        const { error: err } = await window._sb.from('registros').update(payload).eq('id', registroId);
-        error = err;
-    } else {
-        const { error: err } = await window._sb.from('registros').insert([payload]);
-        error = err;
+    // 🕒 Feedback visual no botão
+    const btn = document.getElementById('bb-btnSalvar');
+    const textoOriginal = btn ? btn.innerHTML : 'Registrar';
+    if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
+        btn.style.cursor = 'not-allowed';
+        btn.innerHTML = '<span class="btn-spinner"></span> Salvando...';
     }
-    showLoading(false);
+    _bbSalvando = true;
+    showLoading(true, 'Salvando lançamento...');
 
-    if (error) { alert('Erro ao salvar: ' + error.message); return; }
+    let error;
+    try {
+        if (registroId) {
+            const { error: err } = await window._sb.from('registros').update(payload).eq('id', registroId);
+            error = err;
+        } else {
+            const { error: err } = await window._sb.from('registros').insert([payload]);
+            error = err;
+        }
+    } catch (e) { error = e; }
+
+    showLoading(false);
+    if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '';
+        btn.style.cursor = '';
+        btn.innerHTML = textoOriginal;
+    }
+    _bbSalvando = false;
+
+    if (error) { alert('Erro ao salvar: ' + (error.message || error)); return; }
 
     bb_limparForm();
     await carregarTodosRegistros();
@@ -10691,7 +10739,10 @@ function usd_limparForm() {
     if (btnC) btnC.style.display = 'none';
 }
 
+let _usdSalvando = false;
 async function usd_salvarRegistro() {
+    if (_usdSalvando) return; // 🛡️ trava double-click
+
     const bancoId = _usdBancoAtual;
     if (!bancoId || bancoId === 'consolidado') return;
     const dataVal = document.getElementById('usd-dataInput').value;
@@ -10718,18 +10769,39 @@ async function usd_salvarRegistro() {
         is_usd: isUSD
     };
 
-    showLoading(true);
-    let error;
-    if (registroId) {
-        const { error: err } = await window._sb.from('registros').update(payload).eq('id', registroId);
-        error = err;
-    } else {
-        const { error: err } = await window._sb.from('registros').insert([payload]);
-        error = err;
+    // 🕒 Feedback visual no botão
+    const btn = document.getElementById('usd-btnSalvar');
+    const textoOriginal = btn ? btn.innerHTML : 'Registrar';
+    if (btn) {
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
+        btn.style.cursor = 'not-allowed';
+        btn.innerHTML = '<span class="btn-spinner"></span> Salvando...';
     }
-    showLoading(false);
+    _usdSalvando = true;
+    showLoading(true, 'Salvando lançamento...');
 
-    if (error) { alert('Erro ao salvar: ' + error.message); return; }
+    let error;
+    try {
+        if (registroId) {
+            const { error: err } = await window._sb.from('registros').update(payload).eq('id', registroId);
+            error = err;
+        } else {
+            const { error: err } = await window._sb.from('registros').insert([payload]);
+            error = err;
+        }
+    } catch (e) { error = e; }
+
+    showLoading(false);
+    if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '';
+        btn.style.cursor = '';
+        btn.innerHTML = textoOriginal;
+    }
+    _usdSalvando = false;
+
+    if (error) { alert('Erro ao salvar: ' + (error.message || error)); return; }
 
     usd_limparForm();
     await carregarTodosRegistros();
