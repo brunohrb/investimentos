@@ -1922,11 +1922,12 @@ header .header-actions .btn-carteiras {
 }
 
 /* ═══════════════════════════════════════════════════
-   🔒 OVERRIDE FINAL — header em LINHA ÚNICA no mobile,
-   com brand à esquerda e ícones à direita.
-   O botão 📂 Carteiras vira só ícone (sem a palavra)
-   pra economizar espaço e deixar tudo caber.
-   Alta especificidade (ID) pra derrotar regras antigas.
+   🔒 OVERRIDE FINAL — header em LINHA ÚNICA no mobile.
+   Uso CSS GRID com minmax(0,auto) + auto — o brand
+   pode encolher até zero, mas os ícones NUNCA perdem
+   espaço. É a forma mais confiável de garantir que
+   todos os botões (👁️ 🤖 📂 ⚙️) fiquem visíveis.
+   Também esconde a palavra "Carteiras" (só 📂).
    ═══════════════════════════════════════════════════ */
 @media (max-width: 900px) {
     /* Esconde a palavra "Carteiras" — deixa só o 📂 */
@@ -1934,27 +1935,34 @@ header .header-actions .btn-carteiras {
 
     /* ── Dashboard Completo (tela inicial) ── */
     #dashboardCompletoModal .db-header {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        grid-template-areas: "brand actions" !important;
+        grid-template-rows: auto !important;
         align-items: center !important;
-        justify-content: space-between !important;
         gap: 8px !important;
         padding: calc(10px + var(--safe-top)) calc(12px + var(--safe-right)) 10px calc(12px + var(--safe-left)) !important;
         width: 100% !important;
         box-sizing: border-box !important;
+        flex-direction: unset !important;
+        flex-wrap: unset !important;
     }
     #dashboardCompletoModal .db-header-brand {
+        grid-area: brand !important;
         display: flex !important;
         flex-direction: column !important;
         align-items: flex-start !important;
         min-width: 0 !important;
-        flex: 0 1 auto !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
         gap: 2px !important;
     }
     #dashboardCompletoModal .db-header-brand h1 {
         font-size: 14px !important;
         margin: 0 !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
     }
     #dashboardCompletoModal .db-header-brand h1 img {
         height: 22px !important;
@@ -1962,16 +1970,20 @@ header .header-actions .btn-carteiras {
     #dashboardCompletoModal .db-header-brand .db-cotacoes {
         font-size: 9px !important;
         line-height: 1.2 !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
     }
     #dashboardCompletoModal .db-header-actions {
+        grid-area: actions !important;
         display: flex !important;
         flex-wrap: nowrap !important;
         flex-direction: row !important;
         justify-content: flex-end !important;
         align-items: center !important;
         gap: 2px !important;
-        min-width: 0 !important;
-        flex-shrink: 0 !important;
+        width: auto !important;
         overflow: visible !important;
     }
     #dashboardCompletoModal .db-header-actions > button {
@@ -1981,6 +1993,9 @@ header .header-actions .btn-carteiras {
         background: none !important;
         border: none !important;
         color: white !important;
+        width: auto !important;
+        height: auto !important;
+        min-width: auto !important;
     }
     /* Botão Carteiras fica só com o 📂, sem gradiente/padding extra */
     #dashboardCompletoModal .db-header-actions > .btn-carteiras-db,
@@ -1995,24 +2010,28 @@ header .header-actions .btn-carteiras {
 
     /* ── Main Container header (caso apareça antes do dashboard) ── */
     #mainContainer > header {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        grid-template-areas: "brand actions" !important;
+        grid-template-rows: auto !important;
         align-items: center !important;
-        justify-content: space-between !important;
         gap: 8px !important;
         width: 100% !important;
+        flex-direction: unset !important;
+        flex-wrap: unset !important;
     }
     #mainContainer > header > .header-brand {
-        flex: 0 1 auto !important;
+        grid-area: brand !important;
         min-width: 0 !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
     }
     #mainContainer > header > .header-actions {
+        grid-area: actions !important;
         display: flex !important;
         flex-wrap: nowrap !important;
         flex-direction: row !important;
         justify-content: flex-end !important;
-        flex-shrink: 0 !important;
         overflow: visible !important;
         gap: 2px !important;
         width: auto !important;
@@ -2024,6 +2043,7 @@ header .header-actions .btn-carteiras {
         font-size: 15px !important;
         padding: 2px !important;
         border: none !important;
+        flex-shrink: 0 !important;
     }
     /* Botão Carteiras do main container: só ícone 📂 */
     #mainContainer > header > .header-actions > .btn-carteiras {
@@ -2037,6 +2057,7 @@ header .header-actions .btn-carteiras {
         font-weight: normal !important;
         justify-content: center !important;
         color: var(--text-color) !important;
+        flex-shrink: 0 !important;
     }
 }
     </style>
