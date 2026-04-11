@@ -443,23 +443,25 @@ body {
     .db-2col, .db-3col, .db-4col, .db-5col { grid-template-columns: 1fr !important; gap: 10px !important; }
     .db-body { padding: 14px; }
 
-    /* 📱 HEADER DO DASHBOARD COMPLETO — LINHA ÚNICA (grid robusto):
-       logo + cotações empilhados à esquerda, botões à direita. */
+    /* 📱 HEADER DO DASHBOARD COMPLETO — 2 LINHAS no mobile:
+       linha 1 = brand (logo + cotações), linha 2 = botões de ação ocupando toda a largura.
+       Isso garante que TODOS os ícones caibam (antes eram clipados pelo overflow:hidden). */
     .db-header {
-        display: grid !important;
-        grid-template-columns: minmax(0, auto) minmax(0, 1fr);
-        grid-template-areas: "brand actions";
-        align-items: center !important;
-        gap: 6px !important;
-        padding: 10px 14px !important;
-        flex-direction: unset !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        justify-content: flex-start !important;
+        gap: 10px !important;
+        padding: calc(12px + var(--safe-top)) calc(14px + var(--safe-right)) 12px calc(14px + var(--safe-left)) !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
     .db-header-brand {
-        grid-area: brand;
         flex-direction: column !important;
         align-items: flex-start !important;
         gap: 2px !important;
         min-width: 0 !important;
+        width: 100% !important;
     }
     .db-header h1 {
         font-size: 16px !important;
@@ -474,27 +476,27 @@ body {
         margin-right: 0 !important;
         line-height: 1.2 !important;
     }
-    /* Botões compactos alinhados à direita */
+    /* Botões ocupando linha inteira, com wrap permitido */
     .db-header-actions {
-        grid-area: actions;
         display: flex !important;
-        flex-wrap: nowrap !important;
+        flex-wrap: wrap !important;
         justify-content: flex-end !important;
         align-items: center !important;
-        gap: 2px !important;
-        min-width: 0;
-        overflow: hidden;
+        gap: 6px !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        overflow: visible !important;
     }
     .db-header-actions > button {
-        font-size: 18px !important;
-        padding: 2px 4px !important;
+        font-size: 22px !important;
+        padding: 4px 8px !important;
         flex-shrink: 0 !important;
     }
-    /* Botão Carteiras menor */
+    /* Botão Carteiras compacto mas legível */
     .db-header-actions > button[onclick*="abrirCarteirasBanco"] {
-        font-size: 10px !important;
-        padding: 4px 8px !important;
-        border-radius: 12px !important;
+        font-size: 11px !important;
+        padding: 6px 12px !important;
+        border-radius: 14px !important;
         flex-shrink: 0 !important;
     }
 
@@ -929,24 +931,27 @@ body {
         font-weight: 700;
     }
 
-    /* 📱 Header compacto em linha única no mobile — usa GRID pra garantir que não quebre */
+    /* 📱 Header compacto em duas linhas no mobile:
+       linha 1 = brand (logo + cotações), linha 2 = botões de ação.
+       Usamos flex column (mais compatível com iOS antigo do que grid named-areas). */
     header {
-        display: grid !important;
-        grid-template-columns: minmax(0, auto) minmax(0, 1fr);
-        grid-template-areas: "brand actions";
-        align-items: center;
-        gap: 6px;
-        padding-bottom: 8px;
-        margin-bottom: 14px;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        justify-content: flex-start !important;
+        gap: 10px !important;
+        padding-bottom: 10px !important;
+        margin-bottom: 14px !important;
+        width: 100% !important;
     }
 
     .header-brand {
-        grid-area: brand;
         display: flex !important;
         flex-direction: column !important;
         align-items: flex-start !important;
         gap: 2px !important;
-        min-width: 0;
+        min-width: 0 !important;
+        width: 100% !important;
     }
 
     .header-brand h2 {
@@ -1035,34 +1040,33 @@ body {
 }
 
 
-/* 🔹 Ações do header compactas no mobile (linha única garantida via grid) */
+/* 🔹 Ações do header no mobile — linha cheia, sem overflow, TODOS os ícones visíveis */
 header .header-actions {
-    grid-area: actions;
-    width: auto !important;
+    width: 100% !important;
     display: flex !important;
-    flex-wrap: nowrap !important;
+    flex-wrap: wrap !important;
     justify-content: flex-end !important;
     align-items: center !important;
-    gap: 3px !important;
-    min-width: 0;
-    overflow: hidden;
+    gap: 6px !important;
+    min-width: 0 !important;
+    overflow: visible !important;
 }
 
 header .header-actions .btn-icon {
-    width: 28px !important;
-    height: 28px !important;
-    min-width: 28px !important;
-    font-size: 13px !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    font-size: 15px !important;
     padding: 2px !important;
     flex-shrink: 0;
 }
 
 header .header-actions .btn-carteiras {
-    padding: 4px 8px !important;
-    font-size: 10px !important;
+    padding: 6px 12px !important;
+    font-size: 11px !important;
     font-weight: 700 !important;
-    border-radius: 12px !important;
-    gap: 3px !important;
+    border-radius: 14px !important;
+    gap: 4px !important;
     flex-shrink: 0;
     white-space: nowrap !important;
 }
@@ -1915,6 +1919,82 @@ header .header-actions .btn-carteiras {
 .status-aberto {
     background: rgba(255,193,7,0.15);
     color: #c8900a;
+}
+
+/* ═══════════════════════════════════════════════════
+   🔒 OVERRIDE FINAL — garante que no mobile o header
+   do dashboard fique em 2 linhas e TODOS os ícones
+   (👁️ 🤖 📂 Carteiras ⚙️) fiquem visíveis.
+   Colocado no final com alta especificidade para
+   derrotar qualquer regra anterior.
+   ═══════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+    #dashboardCompletoModal .db-header {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        justify-content: flex-start !important;
+        gap: 10px !important;
+        padding: calc(12px + var(--safe-top)) calc(14px + var(--safe-right)) 12px calc(14px + var(--safe-left)) !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    #dashboardCompletoModal .db-header-brand {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        gap: 2px !important;
+    }
+    #dashboardCompletoModal .db-header-actions {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        gap: 6px !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        overflow: visible !important;
+    }
+    #dashboardCompletoModal .db-header-actions > button {
+        font-size: 22px !important;
+        padding: 4px 8px !important;
+        flex-shrink: 0 !important;
+    }
+    #dashboardCompletoModal .db-header-actions > button[onclick*="abrirCarteirasBanco"] {
+        font-size: 11px !important;
+        padding: 6px 12px !important;
+        border-radius: 14px !important;
+    }
+}
+
+/* Também no main container header (caso o usuário veja antes do dashboard carregar) */
+@media (max-width: 900px) {
+    #mainContainer > header {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+        width: 100% !important;
+    }
+    #mainContainer > header > .header-brand {
+        width: 100% !important;
+    }
+    #mainContainer > header > .header-actions {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-end !important;
+        width: 100% !important;
+        overflow: visible !important;
+        gap: 6px !important;
+    }
+    #mainContainer > header > .header-actions > .btn-icon {
+        width: 34px !important;
+        height: 34px !important;
+        min-width: 34px !important;
+        font-size: 15px !important;
+    }
 }
     </style>
 </head>
