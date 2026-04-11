@@ -929,13 +929,17 @@ body {
         font-weight: 700;
     }
 
-    /* 📱 Header compacto em linha única no mobile — usa GRID pra garantir que não quebre */
+    /* 📱 Header compacto em duas linhas no mobile:
+       linha 1 = brand (logo + cotações), linha 2 = botões de ação.
+       Isso garante que TODOS os ícones caibam sem serem clipados. */
     header {
         display: grid !important;
-        grid-template-columns: minmax(0, auto) minmax(0, 1fr);
-        grid-template-areas: "brand actions";
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "brand"
+            "actions";
         align-items: center;
-        gap: 6px;
+        gap: 8px;
         padding-bottom: 8px;
         margin-bottom: 14px;
     }
@@ -1035,34 +1039,34 @@ body {
 }
 
 
-/* 🔹 Ações do header compactas no mobile (linha única garantida via grid) */
+/* 🔹 Ações do header no mobile — linha cheia, sem overflow, TODOS os ícones visíveis */
 header .header-actions {
     grid-area: actions;
-    width: auto !important;
+    width: 100% !important;
     display: flex !important;
-    flex-wrap: nowrap !important;
+    flex-wrap: wrap !important;
     justify-content: flex-end !important;
     align-items: center !important;
-    gap: 3px !important;
+    gap: 6px !important;
     min-width: 0;
-    overflow: hidden;
+    overflow: visible;
 }
 
 header .header-actions .btn-icon {
-    width: 28px !important;
-    height: 28px !important;
-    min-width: 28px !important;
-    font-size: 13px !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    font-size: 15px !important;
     padding: 2px !important;
     flex-shrink: 0;
 }
 
 header .header-actions .btn-carteiras {
-    padding: 4px 8px !important;
-    font-size: 10px !important;
+    padding: 6px 12px !important;
+    font-size: 11px !important;
     font-weight: 700 !important;
-    border-radius: 12px !important;
-    gap: 3px !important;
+    border-radius: 14px !important;
+    gap: 4px !important;
     flex-shrink: 0;
     white-space: nowrap !important;
 }
