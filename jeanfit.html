@@ -887,8 +887,7 @@ let USER_ID = null, currentUser = null, sbClient = null;
 
 function initSupabase() {
     if (typeof window.supabase === 'undefined') { setTimeout(initSupabase, 100); return; }
-    try { sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) {}
-}
+try { sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { db: { schema: 'jeanfit' } }); } catch(e) {}}
 initSupabase();
 
 // =====================================================
