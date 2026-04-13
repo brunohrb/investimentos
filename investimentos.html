@@ -7194,6 +7194,7 @@ function renderizarOpcoes() {
 // ══════════════════════════════
 
 let pastePendentes = [];
+let _pasteAtivoAutoFilled = false;
 
 // Mapa centralizado: código B3 (4 letras) → ticker do ativo
 const ATIVO_MAP_TICKER = {
@@ -7228,7 +7229,14 @@ function parsePremio(s) {
 function parsePasteOpcoes() {
     const raw = document.getElementById('pasteOpctextarea')?.value || '';
     const ativoInput = document.getElementById('pasteAtivo');
-    const ativoExtra = ativoInput?.value.trim().toUpperCase() || '';
+
+    // Limpa valor auto-preenchido para re-detectar do zero
+    if (_pasteAtivoAutoFilled && ativoInput) {
+        ativoInput.value = '';
+        _pasteAtivoAutoFilled = false;
+    }
+    const ativoManual = ativoInput?.value.trim().toUpperCase() || '';
+
     const tbody = document.getElementById('pastePreviewBody');
     const previewArea = document.getElementById('pastePreviewArea');
     if (!tbody || !previewArea) return;
@@ -7284,7 +7292,7 @@ function parsePasteOpcoes() {
         const tipo    = cv === 'C' ? 'compra' : 'venda';
         const modal   = detectModalOpcao(cod);
         const base    = cod.slice(0, 4);
-        const ativo   = ATIVO_MAP_TICKER[base] || ativoExtra || base + '3';
+        const ativo   = ativoManual || ATIVO_MAP_TICKER[base] || base + '3';
         const total   = premio * qtd;
 
         ativosDetectados.add(ativo);
@@ -7305,10 +7313,11 @@ function parsePasteOpcoes() {
         tbody.appendChild(tr);
     });
 
-    // Auto-preenche o campo "Ativo Objeto" se detectou ativo(s) e o campo está vazio
-    if (ativoInput && !ativoExtra && ativosDetectados.size > 0) {
+    // Auto-preenche o campo "Ativo Objeto" se detectou ativo(s) e nenhum valor manual
+    if (ativoInput && !ativoManual && ativosDetectados.size > 0) {
         const ativos = [...ativosDetectados];
         ativoInput.value = ativos.length === 1 ? ativos[0] : ativos.join(', ');
+        _pasteAtivoAutoFilled = true;
     }
 
     previewArea.style.display = pastePendentes.length > 0 ? 'block' : 'none';
@@ -9673,7 +9682,7 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
             </div>
             <div class="acoes-form-group">
                 <label>Ativo Objeto (opcional, auto-detecta)</label>
-                <input type="text" id="pasteAtivo" placeholder="ex: PETR4 (auto se vazio)" oninput="this.value=this.value.toUpperCase()" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;box-sizing:border-box;">
+                <input type="text" id="pasteAtivo" placeholder="ex: PETR4 (auto se vazio)" oninput="this.value=this.value.toUpperCase();_pasteAtivoAutoFilled=false;parsePasteOpcoes();" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;box-sizing:border-box;">
             </div>
         </div>
 
