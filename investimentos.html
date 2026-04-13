@@ -7227,7 +7227,8 @@ function parsePremio(s) {
 
 function parsePasteOpcoes() {
     const raw = document.getElementById('pasteOpctextarea')?.value || '';
-    const ativoExtra = document.getElementById('pasteAtivo')?.value.trim().toUpperCase() || '';
+    const ativoInput = document.getElementById('pasteAtivo');
+    const ativoExtra = ativoInput?.value.trim().toUpperCase() || '';
     const tbody = document.getElementById('pastePreviewBody');
     const previewArea = document.getElementById('pastePreviewArea');
     if (!tbody || !previewArea) return;
@@ -7236,6 +7237,7 @@ function parsePasteOpcoes() {
     tbody.innerHTML = '';
 
     const linhas = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const ativosDetectados = new Set();
 
     linhas.forEach((linha, idx) => {
         // Separa por tab ou múltiplos espaços
@@ -7285,6 +7287,7 @@ function parsePasteOpcoes() {
         const ativo   = ATIVO_MAP_TICKER[base] || ativoExtra || base + '3';
         const total   = premio * qtd;
 
+        ativosDetectados.add(ativo);
         pastePendentes.push({ tipo, ticker: cod, preco_unitario: premio, quantidade: qtd, modal, ativo, data: dataISO, dataBR });
 
         const tr = document.createElement('tr');
@@ -7294,6 +7297,7 @@ function parsePasteOpcoes() {
             <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);"><span class="${tipo==='compra'?'badge-compra':'badge-venda'}">${tipo==='compra'?'▲ C':'▼ V'}</span></td>
             <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);"><span class="${modal==='call'?'hist-badge-call':'hist-badge-put'}">${modal.toUpperCase()}</span></td>
             <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);font-family:monospace;font-size:11px;font-weight:bold;">${cod}</td>
+            <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);font-size:11px;font-weight:600;color:#17a2b8;">${ativo}</td>
             <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);">${formatarMoeda(premio)}</td>
             <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);">${qtd.toLocaleString('pt-BR')}</td>
             <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);font-weight:bold;color:${total>=0?'#28a745':'#dc3545'}">${formatarMoeda(total)}</td>
@@ -7301,9 +7305,18 @@ function parsePasteOpcoes() {
         tbody.appendChild(tr);
     });
 
+    // Auto-preenche o campo "Ativo Objeto" se detectou ativo(s) e o campo está vazio
+    if (ativoInput && !ativoExtra && ativosDetectados.size > 0) {
+        const ativos = [...ativosDetectados];
+        ativoInput.value = ativos.length === 1 ? ativos[0] : ativos.join(', ');
+    }
+
     previewArea.style.display = pastePendentes.length > 0 ? 'block' : 'none';
     const lbl = document.getElementById('pastePreviewLabel');
-    if (lbl) lbl.textContent = `${pastePendentes.length} operação(ões) encontrada(s)`;
+    if (lbl) {
+        const ativosTxt = ativosDetectados.size > 0 ? ` — Ativo(s): ${[...ativosDetectados].join(', ')}` : '';
+        lbl.textContent = `${pastePendentes.length} operação(ões) encontrada(s)${ativosTxt}`;
+    }
 }
 
 async function confirmarPasteOpcoes() {
@@ -9683,6 +9696,7 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
                         <th style="padding:7px 10px;text-align:left;border-bottom:1px solid var(--border-color);">C/V</th>
                         <th style="padding:7px 10px;text-align:left;border-bottom:1px solid var(--border-color);">Modal.</th>
                         <th style="padding:7px 10px;text-align:left;border-bottom:1px solid var(--border-color);">Código</th>
+                        <th style="padding:7px 10px;text-align:left;border-bottom:1px solid var(--border-color);">Ativo</th>
                         <th style="padding:7px 10px;text-align:left;border-bottom:1px solid var(--border-color);">Prêmio</th>
                         <th style="padding:7px 10px;text-align:left;border-bottom:1px solid var(--border-color);">Qtd</th>
                         <th style="padding:7px 10px;text-align:left;border-bottom:1px solid var(--border-color);">Total</th>
