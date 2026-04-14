@@ -517,9 +517,9 @@ body {
         grid-row: 1 / span 2;
         margin-bottom: 0 !important;
         align-self: center;
-        font-size: 10px !important;
+        font-size: 12px !important;
         line-height: 1.3 !important;
-        max-width: 115px;
+        max-width: 130px;
         white-space: normal;
     }
     .db-card-value {
@@ -527,7 +527,7 @@ body {
         grid-row: 1;
         text-align: right;
         justify-self: end;
-        font-size: 20px !important;
+        font-size: 24px !important;
         line-height: 1.15 !important;
         max-width: 100%;
         min-width: 0;
@@ -535,9 +535,9 @@ body {
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    /* Cards que forçam font-size inline também caem para 20px */
+    /* Cards que forçam font-size inline também caem para 24px */
     .db-card .db-card-value[style*="font-size"] {
-        font-size: 20px !important;
+        font-size: 24px !important;
     }
     .db-card-sub {
         grid-column: 2;
@@ -545,7 +545,7 @@ body {
         text-align: right;
         justify-self: end;
         max-width: 100%;
-        font-size: 10px !important;
+        font-size: 12px !important;
         margin-top: 2px !important;
         line-height: 1.35 !important;
         white-space: normal;
@@ -553,7 +553,7 @@ body {
     }
     /* Hero mantém destaque mas cabe */
     .db-card.hero .db-card-value {
-        font-size: 22px !important;
+        font-size: 26px !important;
         background: linear-gradient(135deg, #00d4ff, #00ff88);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -569,12 +569,12 @@ body {
     .db-header h1 { font-size: 18px; }
     .db-section-title { font-size: 11px; margin: 20px 0 12px 0; }
 
-    .db-card { padding: 12px 14px !important; column-gap: 10px; }
-    .db-card-label { max-width: 95px; font-size: 9px !important; }
-    .db-card-value { font-size: 18px !important; }
-    .db-card .db-card-value[style*="font-size"] { font-size: 18px !important; }
-    .db-card.hero .db-card-value { font-size: 20px !important; }
-    .db-card-sub { font-size: 9px !important; }
+    .db-card { padding: 13px 15px !important; column-gap: 10px; }
+    .db-card-label { max-width: 110px; font-size: 11px !important; }
+    .db-card-value { font-size: 22px !important; }
+    .db-card .db-card-value[style*="font-size"] { font-size: 22px !important; }
+    .db-card.hero .db-card-value { font-size: 24px !important; }
+    .db-card-sub { font-size: 11px !important; }
 }
 
 
@@ -857,7 +857,7 @@ body {
     }
 
     .dashboard-grid .total-card h3 {
-        font-size: 13px !important;
+        font-size: 15px !important;
         margin: 0 !important;
         flex-shrink: 0;
         opacity: 0.95;
@@ -866,7 +866,7 @@ body {
     }
 
     .dashboard-grid .total-card > p {
-        font-size: 19px !important;
+        font-size: 24px !important;
         margin: 0 !important;
         text-align: right;
         flex: 1;
@@ -886,7 +886,7 @@ body {
         min-width: 0;
     }
     .dashboard-grid .total-card .card-vals > p {
-        font-size: 18px !important;
+        font-size: 22px !important;
         margin: 0 !important;
         white-space: nowrap;
         overflow: hidden;
@@ -895,7 +895,7 @@ body {
         font-weight: 800;
     }
     .dashboard-grid .total-card .card-vals > p + p {
-        font-size: 12px !important;
+        font-size: 14px !important;
         font-weight: 600;
         opacity: 0.85;
         margin-top: 2px !important;
@@ -903,7 +903,7 @@ body {
 
     /* Cards brancos (stats) também horizontais */
     .dashboard-grid .stats-card {
-        padding: 13px 18px;
+        padding: 14px 18px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -912,7 +912,7 @@ body {
     }
 
     .dashboard-grid .stats-card h4 {
-        font-size: 11px !important;
+        font-size: 13px !important;
         margin: 0 !important;
         flex-shrink: 0;
         max-width: 45%;
@@ -920,7 +920,7 @@ body {
     }
 
     .dashboard-grid .stats-card p {
-        font-size: 16px !important;
+        font-size: 20px !important;
         margin: 0 !important;
         text-align: right;
         flex: 1;
@@ -1134,8 +1134,9 @@ header .header-actions .btn-carteiras {
 /* TABELAS MOBILE */
 @media (max-width: 768px) {
     .bb-table-wrap, .table-wrapper { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
-    .bb-table, table { font-size: 12px !important; }
-    .bb-table th, .bb-table td, table th, table td { padding: 8px 10px !important; }
+    .bb-table, table { font-size: 14px !important; }
+    .bb-table th, .bb-table td, table th, table td { padding: 10px 12px !important; }
+    .bb-table th, table th { font-size: 12px !important; }
 }
 
 /* BOTÕES DE BANCO MOBILE */
@@ -1147,10 +1148,11 @@ header .header-actions .btn-carteiras {
 /* CARDS DE ESTATISTICAS MOBILE */
 @media (max-width: 768px) {
     .bb-stats { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
-    .bb-stat { padding: 12px 14px !important; }
-    .bb-stat-label { font-size: 10px !important; }
-    .bb-stat-value { font-size: 18px !important; }
-    .bb-stat-sub { font-size: 11px !important; }
+    .bb-stat { padding: 14px 16px !important; }
+    .bb-stat-label { font-size: 12px !important; }
+    .bb-stat-value { font-size: 22px !important; }
+    .bb-stat-value.hero { font-size: 26px !important; }
+    .bb-stat-sub { font-size: 13px !important; }
 }
         @media (max-width: 768px) {
 
@@ -1180,7 +1182,16 @@ header .header-actions .btn-carteiras {
     }
 
     #patrimonioModal .total-card p {
+        font-size: 26px !important;
+    }
+    #patrimonioModal .total-card h3 {
+        font-size: 15px !important;
+    }
+    #patrimonioModal .stats-card p {
         font-size: 22px !important;
+    }
+    #patrimonioModal .stats-card h4 {
+        font-size: 13px !important;
     }
 
     #patrimonioModal > div > div:first-child {
