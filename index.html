@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plataforma Pessoal - Bruno Bandeira</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="apple-touch-icon" href="logo.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="BHR">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
@@ -243,6 +252,16 @@
             background: #e9d5ff;
         }
 
+        .btn-card.casa {
+            background: #f0f9ff;
+            border-color: #0ea5e9;
+        }
+
+        .btn-card.casa:hover {
+            border-color: #0284c7;
+            background: #e0f2fe;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .dashboard-header h1 {
@@ -378,7 +397,7 @@
                     <p>Acompanhe sua saúde e bem-estar</p>
                 </a>
 
-                <a href="https://github.com/brunobandeira/viagem" class="btn-card viagem">
+                <a href="https://brunohrb.github.io/viagens" class="btn-card viagem">
                     <div class="btn-icon">✈️</div>
                     <h2>Viagem</h2>
                     <p>Planeje suas próximas aventuras</p>
@@ -389,8 +408,20 @@
                     <h2>Segurança</h2>
                     <p>Acesse seu Cofre Digital Seguro</p>
                 </a>
+
+                <a href="https://brunohrb.github.io/casabem/" class="btn-card casa">
+                    <div class="btn-icon">🏠</div>
+                    <h2>Casa Inteligente</h2>
+                    <p>Controle e automação da sua casa</p>
+                </a>
             </div>
         </div>
     </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
 </body>
 </html>
