@@ -6631,49 +6631,6 @@ async function excluirOpcao(id) {
     carregarOpcoes();
 }
 
-// ── Seleção múltipla na tabela de Opções Registradas ──
-function opcToggleSelAll(checked) {
-    document.querySelectorAll('.opc-row-check').forEach(c => { c.checked = checked; });
-    opcAtualizarContadorSel();
-}
-
-function opcAtualizarContadorSel() {
-    const checks = document.querySelectorAll('.opc-row-check');
-    const sel    = document.querySelectorAll('.opc-row-check:checked');
-    const count  = sel.length;
-    const lbl    = document.getElementById('opc-sel-count');
-    const btn    = document.getElementById('opc-btn-excluir-sel');
-    if (lbl) {
-        lbl.textContent = `${count} selecionada(s)`;
-        lbl.style.display = count > 0 ? 'inline' : 'none';
-    }
-    if (btn) btn.style.display = count > 0 ? 'inline-block' : 'none';
-
-    // Sincroniza o checkbox do cabeçalho
-    const all = document.getElementById('opc-sel-all');
-    if (all) {
-        if (checks.length && count === checks.length)      { all.checked = true;  all.indeterminate = false; }
-        else if (count === 0)                              { all.checked = false; all.indeterminate = false; }
-        else                                               { all.checked = false; all.indeterminate = true;  }
-    }
-}
-
-async function excluirOpcoesSelecionadas() {
-    const ids = Array.from(document.querySelectorAll('.opc-row-check:checked'))
-        .map(c => c.dataset.id).filter(Boolean);
-    if (!ids.length) return;
-    if (!confirm(`Excluir ${ids.length} opção(ões) selecionada(s)?\n\nEsta ação não pode ser desfeita.`)) return;
-
-    showLoading(true);
-    const { error } = await sb.from('acoes_transacoes').delete().in('id', ids);
-    showLoading(false);
-
-    if (error) { alert('Erro ao excluir: ' + error.message); return; }
-    await carregarAcoes();
-    carregarOpcoes();
-    alert(`✅ ${ids.length} opção(ões) excluída(s)!`);
-}
-
 function abrirEditarOpcao(id) {
     const op = listaOpcoes.find(o => o.id === id);
     if (!op) return;
@@ -6685,8 +6642,6 @@ function abrirEditarOpcao(id) {
     const ativo      = nomeBase.split(' ')[1] || '';
     const strikeStr  = nomeBase.includes('Strike') ? nomeBase.split('Strike R$ ')[1] : '0,00';
 
-    const parsedEst = opcParseEstLabel(estVal);
-
     document.getElementById('editOpcId').value        = id;
     document.getElementById('editOpcTipo').value       = op.tipo;
     document.getElementById('editOpcModalidade').value = isCall ? 'call' : 'put';
@@ -6696,13 +6651,7 @@ function abrirEditarOpcao(id) {
     document.getElementById('editOpcPremio').value     = formatarMoeda(op.preco_unitario);
     document.getElementById('editOpcQtd').value        = op.quantidade;
     document.getElementById('editOpcData').value       = op.data;
-    const editSelEst = document.getElementById('editOpcEstrategia');
-    // Garante que o value salvo exista no select; caso contrário cai em ''
-    const opcoesSelect = Array.from(editSelEst.options).map(o => o.value);
-    editSelEst.value = opcoesSelect.includes(parsedEst.estVal) ? parsedEst.estVal : '';
-    const inpPersEdit = document.getElementById('editOpcPersonalizadoNome');
-    if (inpPersEdit) inpPersEdit.value = parsedEst.nomeCustom || '';
-    toggleOpcPersonalizadoInput('editOpcEstrategia', 'editOpcPersonalizadoNome');
+    document.getElementById('editOpcEstrategia').value = estVal;
 
     // Labels de tipo/modal
     ['compra','venda'].forEach(t => {
@@ -6728,9 +6677,10 @@ async function salvarEdicaoOpcao() {
     const qtd        = parseFloat(document.getElementById('editOpcQtd').value);
     const data       = document.getElementById('editOpcData').value;
     const estVal     = document.getElementById('editOpcEstrategia').value;
-    const nomeCustom = document.getElementById('editOpcPersonalizadoNome')?.value || '';
 
-    const estLabel = opcMontarEstLabel(estVal, nomeCustom);
+    const ESTS = { 'STRANGLE':'🔀 Strangle', 'venda_coberta_call':'📊 Venda Coberta CALL',
+        'compra_call':'📈 Compra CALL', 'bear_put_spread':'📉 Bear Put Spread', 'personalizado':'⚙️ Personalizado' };
+    const estLabel = ESTS[estVal] || '';
     const nomeBase = `${modalidade.toUpperCase()} ${ativo||ticker} Strike ${formatarMoeda(strike)}`;
     const nome     = estLabel ? `${nomeBase} | ${estLabel}` : nomeBase;
 
@@ -6826,54 +6776,8 @@ const ESTRATEGIAS_CONFIG = {
     straddle_compra:    { label:'Straddle (Compra)',     tipo:'compra', modal:'call', cor:'#20c997' },
     bull_call_spread:   { label:'Bull Call Spread',      tipo:'compra', modal:'call', cor:'#28a745' },
     bear_put_spread:    { label:'Bear Put Spread',       tipo:'compra', modal:'put',  cor:'#dc3545' },
-    day_trade:          { label:'Day Trade',             tipo:'compra', modal:'call', cor:'#17a2b8' },
     personalizado:      { label:'Personalizado',         tipo:'compra', modal:'call', cor:'#888'    },
 };
-
-// Helper: monta a label da estratégia para persistir no campo `nome`
-// Suporta nome customizado quando estVal === 'personalizado'.
-function opcMontarEstLabel(estVal, nomeCustom) {
-    const ESTS = {
-        'STRANGLE':           '🔀 Strangle',
-        'venda_coberta_call': '📊 Venda Coberta CALL',
-        'compra_call':        '📈 Compra CALL',
-        'bear_put_spread':    '📉 Bear Put Spread',
-        'day_trade':          '⚡ Day Trade',
-        'personalizado':      '⚙️ Personalizado',
-    };
-    if (estVal === 'personalizado') {
-        const custom = (nomeCustom || '').trim();
-        return custom ? `⚙️ ${custom}` : '⚙️ Personalizado';
-    }
-    return ESTS[estVal] || '';
-}
-
-// Helper: a partir do label salvo, descobre (estVal, nomeCustom) para popular o form de edição
-function opcParseEstLabel(label) {
-    const raw = (label || '').trim();
-    if (!raw) return { estVal: '', nomeCustom: '' };
-    if (raw.toLowerCase().includes('strangle')) return { estVal: 'STRANGLE', nomeCustom: '' };
-    if (raw === '📊 Venda Coberta CALL' || raw === 'Venda Coberta de CALL') return { estVal: 'venda_coberta_call', nomeCustom: '' };
-    if (raw === '📈 Compra CALL' || raw === 'Compra de CALL')               return { estVal: 'compra_call', nomeCustom: '' };
-    if (raw === '📉 Bear Put Spread' || raw === 'Bear Put Spread')          return { estVal: 'bear_put_spread', nomeCustom: '' };
-    if (raw === '⚡ Day Trade' || raw === 'Day Trade')                      return { estVal: 'day_trade', nomeCustom: '' };
-    if (raw.startsWith('⚙️')) {
-        const custom = raw.replace(/^⚙️\s*/, '').trim();
-        return { estVal: 'personalizado', nomeCustom: custom === 'Personalizado' ? '' : custom };
-    }
-    return { estVal: raw, nomeCustom: '' };
-}
-
-// Alterna visibilidade do input de nome customizado baseado no select
-function toggleOpcPersonalizadoInput(selectId, inputId) {
-    const sel = document.getElementById(selectId);
-    const inp = document.getElementById(inputId);
-    if (!sel || !inp) return;
-    const wrap = inp.closest('.opc-personalizado-wrap') || inp;
-    const ativo = sel.value === 'personalizado';
-    wrap.style.display = ativo ? 'block' : 'none';
-    if (ativo) setTimeout(() => inp.focus(), 50);
-}
 
 function acoesTab(aba) {
     ['carteira','transacoes','adicionar','opcoes'].forEach(a => {
@@ -6969,8 +6873,7 @@ async function salvarOpcao() {
         return;
     }
 
-    const nomeCustom  = document.getElementById('opcPersonalizadoNome')?.value || '';
-    const estratLabel = opcMontarEstLabel(estrategia, nomeCustom);
+    const estratLabel = ESTRATEGIAS_CONFIG[estrategia]?.label || '';
     const nomeBase    = `${modalidade.toUpperCase()} ${ativo||ticker} Strike ${formatarMoeda(strike)}`;
     const nomeEst     = estratLabel ? `${nomeBase} | ${estratLabel}` : nomeBase;
     const nomeFinal   = vencimento  ? `${nomeEst} | venc:${vencimento}` : nomeEst;
@@ -6997,9 +6900,6 @@ async function salvarOpcao() {
     const selEst = document.getElementById('opcEstrategiaSelect');
     if (selEst) selEst.value = '';
     document.getElementById('opcEstrategia').value = '';
-    const inpPers = document.getElementById('opcPersonalizadoNome');
-    if (inpPers) inpPers.value = '';
-    toggleOpcPersonalizadoInput('opcEstrategiaSelect', 'opcPersonalizadoNome');
 
     document.getElementById('modalRegistrarOpcao').style.display = 'none';
     await carregarAcoes();
@@ -7047,7 +6947,6 @@ function preencherFiltrosOpcoes() {
         'Straddle (Compra)':    '🔁 Straddle Compra',
         'Bull Call Spread':     '📈 Bull Call Spread',
         'Bear Put Spread':      '📉 Bear Put Spread',
-        'Day Trade':            '⚡ Day Trade',
         'Personalizado':        '⚙️ Personalizado',
     };
     const supaEsts = listaOpcoes.map(o => {
@@ -7202,8 +7101,7 @@ function renderizarOpcoes() {
     }
     function getEstrategiaLabel(val) {
         const map = { 'STRANGLE':'🔀 Strangle', 'venda_coberta_call':'📊 Venda Coberta CALL',
-            'compra_call':'📈 Compra CALL', 'bear_put_spread':'📉 Bear Put Spread',
-            'day_trade':'⚡ Day Trade', 'personalizado':'⚙️ Personalizado' };
+            'compra_call':'📈 Compra CALL', 'bear_put_spread':'📉 Bear Put Spread', 'personalizado':'⚙️ Personalizado' };
         return map[val] || val || '—';
     }
 
@@ -7262,10 +7160,7 @@ function renderizarOpcoes() {
     tbody.innerHTML = '';
 
     if (!lista.length) {
-        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:30px;color:#888;">Nenhuma opção encontrada</td></tr>`;
-        const chkAll = document.getElementById('opc-sel-all');
-        if (chkAll) chkAll.checked = false;
-        opcAtualizarContadorSel();
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:#888;">Nenhuma opção encontrada</td></tr>`;
         return;
     }
 
@@ -7288,11 +7183,7 @@ function renderizarOpcoes() {
             : `<button onclick="this.closest('tr').remove()" title="Ocultar desta view" style="${btnStyle('128,128,128','128,128,128')}opacity:0.5;" title="Remove da view (dado estático)">✕</button>`;
 
         const tr = document.createElement('tr');
-        const chkCell = o.source === 'supabase'
-            ? `<td style="text-align:center;"><input type="checkbox" class="opc-row-check" data-id="${o.id}" onchange="opcAtualizarContadorSel()"></td>`
-            : `<td style="text-align:center;color:#555;font-size:10px;" title="Registro histórico (não pode ser excluído)">—</td>`;
         tr.innerHTML = `
-            ${chkCell}
             <td style="font-size:12px;color:#888;white-space:nowrap;">${o.dataBR}${sourceTag}</td>
             <td><span class="${o.tipo==='compra'?'badge-compra':'badge-venda'}">${o.tipo==='compra'?'▲ C':'▼ V'}</span></td>
             <td><span class="${isCall?'hist-badge-call':'hist-badge-put'}">${isCall?'CALL':'PUT'}</span></td>
@@ -7307,11 +7198,6 @@ function renderizarOpcoes() {
         `;
         tbody.appendChild(tr);
     });
-
-    // Reseta estado de seleção após re-renderizar
-    const chkAll = document.getElementById('opc-sel-all');
-    if (chkAll) { chkAll.checked = false; chkAll.indeterminate = false; }
-    opcAtualizarContadorSel();
 }
 
 // ══════════════════════════════
@@ -7434,9 +7320,10 @@ function parsePasteOpcoes() {
 async function confirmarPasteOpcoes() {
     if (!pastePendentes.length) return;
 
-    const estVal     = document.getElementById('pasteEstrategia')?.value || '';
-    const nomeCustom = document.getElementById('pastePersonalizadoNome')?.value || '';
-    const estLabel   = opcMontarEstLabel(estVal, nomeCustom);
+    const estVal   = document.getElementById('pasteEstrategia')?.value || '';
+    const ESTS     = { 'STRANGLE':'🔀 Strangle', 'venda_coberta_call':'📊 Venda Coberta CALL',
+                       'compra_call':'📈 Compra CALL', 'bear_put_spread':'📉 Bear Put Spread', 'personalizado':'⚙️ Personalizado' };
+    const estLabel = ESTS[estVal] || '';
 
     showLoading(true);
     let importados = 0, erros = 0;
@@ -8091,6 +7978,12 @@ function fecharDashboardCompleto() {
     if (modal) modal.style.display = 'block';
 }
 
+async function abrirConsolidadoCarteiras() {
+    fecharDashboardCompleto();
+    await abrirCarteirasBanco();
+    setTimeout(() => cartConsolidarTodos(), 300);
+}
+
 // popstate: dashboard é a home, nunca fecha
 window.addEventListener('popstate', function(e) {
     // Sub-modais fecham e voltam pro dashboard
@@ -8121,10 +8014,11 @@ async function carregarDashboardCompleto() {
     if (!dolarFallbackHoje) await new Promise(r => setTimeout(r, 300));
 
     // ── Coleta async em PARALELO ──────────────────────────
-    const [dadosBancos, dadosImoveis, dadosEvolucao] = await Promise.all([
+    const [dadosBancos, dadosImoveis, dadosEvolucao, dadosCarteirasResumo] = await Promise.all([
         _db_calcularBancos(),
         _db_calcularImoveis(),
         _db_calcularEvolucao(),
+        _db_calcularCarteirasResumo(),
     ]);
     // Síncronos — instantâneos
     const dadosAcoes    = _db_calcularAcoes();
@@ -8147,7 +8041,7 @@ async function carregarDashboardCompleto() {
 
         <!-- ═══ HERO ═══ -->
         <div class="db-section-title">💎 VISÃO GERAL DO PATRIMÔNIO</div>
-        <div class="db-hero-grid" style="grid-template-columns: 1.3fr 1fr 1fr 1fr 1fr;">
+        <div class="db-hero-grid" style="grid-template-columns: 1.3fr 1fr 1fr 1fr 1fr 1fr;">
 <div class="db-card green" onclick="abrirPatrimonio()" style="cursor:pointer;background:linear-gradient(135deg,rgba(0,255,136,0.08),rgba(0,212,255,0.05));border:1px solid rgba(0,255,136,0.22);">
     <div class="db-card-label" style="color:#00ff88;">🏆 PATRIMÔNIO TOTAL</div>
     <div class="db-card-value" style="font-size:24px;background:linear-gradient(135deg,#00ff88,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">${_dbFmt(patrimonioTotalGeral)}</div>
@@ -8175,6 +8069,11 @@ async function carregarDashboardCompleto() {
                     P&L: <span class="${dadosAcoes.pl >= 0 ? 'db-badge-pos' : 'db-badge-neg'}">${_dbFmt(dadosAcoes.pl)}</span>
                     (${dadosAcoes.rentPct.toFixed(2)}%)
                 </div>
+            </div>
+            <div class="db-card purple" onclick="abrirConsolidadoCarteiras()" style="cursor:pointer;">
+                <div class="db-card-label">📂 Consolidado Carteiras</div>
+                <div class="db-card-value" style="font-size:20px;">${_dbFmt(dadosCarteirasResumo.total)}</div>
+                <div class="db-card-sub">${dadosCarteirasResumo.count} carteira${dadosCarteirasResumo.count !== 1 ? 's' : ''} · Ver consolidado ↗</div>
             </div>
             <div class="db-card purple" onclick="fecharDashboardCompleto(); abrirPatrimonio();" style="display:none;">
                 <div class="db-card-label">🏠 Imóveis</div>
@@ -8692,6 +8591,21 @@ function _db_calcularOpcoes() {
         else pago += total;
     });
     return { total: ops.length, recebido, pago, liquido: recebido - pago };
+}
+
+// ── Resumo carteiras para card do dashboard ──────────────────
+async function _db_calcularCarteirasResumo() {
+    try {
+        const { data, error } = await sb.from('carteiras_analise')
+            .select('total_carteira');
+        if (error) throw error;
+        if (!data?.length) return { total: 0, count: 0 };
+        const total = data.reduce((s, c) => s + (c.total_carteira || 0), 0);
+        return { total, count: data.length };
+    } catch(e) {
+        console.error('Erro ao carregar resumo carteiras:', e);
+        return { total: 0, count: 0 };
+    }
 }
 
 // ── Calcular evolução (carry-forward) ────────────────────────
@@ -9521,18 +9435,13 @@ function _dbFmtPeriodo(periodo) {
                 <button onclick="limparFiltrosTabOpcoes()" style="background:transparent;color:#888;border:1px solid var(--border-color);padding:6px 10px;border-radius:7px;font-size:12px;cursor:pointer;white-space:nowrap;transition:all 0.2s;" onmouseover="this.style.color='#dc3545';this.style.borderColor='#dc3545';" onmouseout="this.style.color='#888';this.style.borderColor='var(--border-color)';">✕ Limpar</button>
             </div>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;margin-bottom:10px;">
             <h3 style="font-size:15px;margin:0;">📋 Opções Registradas</h3>
-            <span id="opc-sel-count" style="display:none;font-size:12px;color:#888;">0 selecionada(s)</span>
-            <button id="opc-btn-excluir-sel" onclick="excluirOpcoesSelecionadas()" style="display:none;margin-left:auto;background:linear-gradient(135deg,#7f0000,#dc3545);color:white;border:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;width:auto;">
-                🗑️ Excluir selecionadas
-            </button>
         </div>
         <div class="acoes-table-wrap">
             <table class="acoes-table">
                 <thead>
                     <tr>
-                        <th style="width:32px;text-align:center;"><input type="checkbox" id="opc-sel-all" onchange="opcToggleSelAll(this.checked)" title="Selecionar todas"></th>
                         <th>Data</th><th>C/V</th><th>Modal.</th><th>Estratégia</th><th>Código</th>
                         <th>Ativo</th><th>Strike</th><th>Prêmio</th><th>Qtd</th><th>Total</th><th>Ação</th>
                     </tr>
@@ -9734,20 +9643,15 @@ function _dbFmtPeriodo(periodo) {
             </div>
             <div class="acoes-form-group" style="grid-column:1/-1;">
                 <label>Estratégia</label>
-                <select id="opcEstrategiaSelect" onchange="document.getElementById('opcEstrategia').value=this.value; toggleOpcPersonalizadoInput('opcEstrategiaSelect','opcPersonalizadoNome');"
+                <select id="opcEstrategiaSelect" onchange="document.getElementById('opcEstrategia').value=this.value"
                     style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;">
                     <option value="">— Avulso (sem estratégia) —</option>
                     <option value="STRANGLE">🔀 Strangle</option>
                     <option value="venda_coberta_call">📊 Venda Coberta CALL</option>
                     <option value="compra_call">📈 Compra CALL</option>
                     <option value="bear_put_spread">📉 Bear Put Spread</option>
-                    <option value="day_trade">⚡ Day Trade</option>
                     <option value="personalizado">⚙️ Personalizado</option>
                 </select>
-                <div class="opc-personalizado-wrap" style="display:none;margin-top:8px;">
-                    <input type="text" id="opcPersonalizadoNome" placeholder="Nome da estratégia personalizada (ex: Butterfly, Collar...)"
-                        style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;box-sizing:border-box;">
-                </div>
             </div>
         </div>
 
@@ -9783,19 +9687,14 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
             <div class="acoes-form-group">
                 <label>Estratégia (opcional)</label>
-                <select id="pasteEstrategia" onchange="toggleOpcPersonalizadoInput('pasteEstrategia','pastePersonalizadoNome');" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;">
+                <select id="pasteEstrategia" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;">
                     <option value="">— Avulso —</option>
                     <option value="STRANGLE">🔀 Strangle</option>
                     <option value="venda_coberta_call">📊 Venda Coberta CALL</option>
                     <option value="compra_call">📈 Compra CALL</option>
                     <option value="bear_put_spread">📉 Bear Put Spread</option>
-                    <option value="day_trade">⚡ Day Trade</option>
                     <option value="personalizado">⚙️ Personalizado</option>
                 </select>
-                <div class="opc-personalizado-wrap" style="display:none;margin-top:8px;">
-                    <input type="text" id="pastePersonalizadoNome" placeholder="Nome personalizado..."
-                        style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;box-sizing:border-box;">
-                </div>
             </div>
             <div class="acoes-form-group">
                 <label>Ativo Objeto (opcional, auto-detecta)</label>
@@ -9899,19 +9798,14 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
             </div>
             <div class="acoes-form-group" style="grid-column:1/-1;">
                 <label>Estratégia</label>
-                <select id="editOpcEstrategia" onchange="toggleOpcPersonalizadoInput('editOpcEstrategia','editOpcPersonalizadoNome');" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;">
+                <select id="editOpcEstrategia" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;">
                     <option value="">— Avulso —</option>
                     <option value="STRANGLE">🔀 Strangle</option>
                     <option value="venda_coberta_call">📊 Venda Coberta CALL</option>
                     <option value="compra_call">📈 Compra CALL</option>
                     <option value="bear_put_spread">📉 Bear Put Spread</option>
-                    <option value="day_trade">⚡ Day Trade</option>
                     <option value="personalizado">⚙️ Personalizado</option>
                 </select>
-                <div class="opc-personalizado-wrap" style="display:none;margin-top:8px;">
-                    <input type="text" id="editOpcPersonalizadoNome" placeholder="Nome personalizado..."
-                        style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;box-sizing:border-box;">
-                </div>
             </div>
         </div>
 
@@ -13935,6 +13829,82 @@ function fmtBRL(v) {
             <div style="color:rgba(255,255,255,0.3);font-size:13px;padding:10px 0;">Carregando...</div>
         </div>
 
+        <!-- UPLOAD EXTRATO PJ (separado das carteiras) -->
+        <div class="cart-section-title" style="margin-top:24px;">💸 Extrato PJ — Upload de Extratos Bancários</div>
+        <div style="background:rgba(255,180,0,0.04);border:1px solid rgba(255,180,0,0.12);border-radius:10px;padding:16px;margin-bottom:16px;">
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:12px;">
+                📄 Envie o extrato bancário da conta PJ (PDF) para identificar transferências PJ→PF automaticamente.
+            </div>
+            <div class="cart-form-row" style="margin-bottom:12px;">
+                <div class="cart-form-group">
+                    <label>Banco / Instituição</label>
+                    <input type="text" id="extPJBancoNome" class="cart-input" placeholder="Ex: Inter, XP, Mercado Pago...">
+                </div>
+                <div class="cart-form-group" style="flex:0 0 140px;">
+                    <label>Mês / Referência</label>
+                    <input type="month" id="extPJMesRef" class="cart-input">
+                </div>
+                <button class="cart-btn-analisar" onclick="extPJTrigarAnalise()" id="extPJBtnAnalisar">
+                    <span>🔍</span> Analisar Extrato
+                </button>
+            </div>
+
+            <!-- DROP ZONE EXTRATO PJ -->
+            <div class="cart-upload-zone" id="extPJUploadZone"
+                 onclick="document.getElementById('extPJFileInput').click()"
+                 ondragover="event.preventDefault();this.classList.add('drag-over')"
+                 ondragleave="this.classList.remove('drag-over')"
+                 ondrop="event.preventDefault();this.classList.remove('drag-over');extPJArquivoSelecionado(event.dataTransfer.files[0])"
+                 style="border-color:rgba(255,180,0,0.25);">
+                <div class="upload-icon">💸</div>
+                <h3>Arraste o extrato PJ ou clique para selecionar</h3>
+                <p id="extPJFileNome">Extrato bancário PJ em PDF (Inter, XP, etc.)</p>
+                <div class="upload-formats">
+                    <span class="cart-fmt-badge cart-fmt-pdf">PDF</span>
+                </div>
+            </div>
+            <input type="file" id="extPJFileInput" accept=".pdf" style="display:none" onchange="extPJArquivoSelecionado(this.files[0])">
+
+            <!-- SENHA PDF EXTRATO PJ -->
+            <div id="extPJSenhaPDFWrap" style="display:none;margin-top:12px;">
+                <div style="display:flex;align-items:center;gap:10px;background:rgba(255,180,0,0.08);border:1px solid rgba(255,180,0,0.3);border-radius:10px;padding:10px 14px;">
+                    <span style="font-size:18px;">🔐</span>
+                    <div style="flex:1;">
+                        <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:4px;">Senha do PDF</div>
+                        <div style="display:flex;gap:6px;align-items:center;">
+                            <input type="password" id="extPJSenhaPDF" placeholder="Digite a senha do PDF..."
+                                style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:7px;
+                                       color:#fff;font-size:14px;padding:7px 10px;outline:none;box-sizing:border-box;">
+                            <button type="button" onclick="(function(){const i=document.getElementById('extPJSenhaPDF');i.type=i.type==='password'?'text':'password';this.textContent=i.type==='password'?'👁':'🙈';}).call(this)"
+                                style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:7px;
+                                       color:#fff;font-size:14px;padding:6px 10px;cursor:pointer;white-space:nowrap;">👁</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ERRO EXTRATO PJ -->
+            <div class="cart-erro" id="extPJErroMsg"></div>
+
+            <!-- LOADING EXTRATO PJ -->
+            <div id="extPJLoading" style="display:none;text-align:center;padding:30px 0;">
+                <div class="cart-spinner"></div>
+                <div id="extPJLoadingStep" style="color:rgba(255,255,255,0.5);font-size:13px;margin-top:12px;">Processando...</div>
+            </div>
+
+            <!-- RESULTADO EXTRATO PJ -->
+            <div id="extPJResultado" style="display:none;"></div>
+        </div>
+
+        <!-- ALERTA PJ→PF — LIMITE ANUAL -->
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:24px;">
+            <div class="cart-section-title" style="margin:0;">💸 Alerta PJ→PF — Limite Anual por CPF (R$ 600k)</div>
+            <button onclick="extPJLimparTudo()" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);color:#ff6b6b;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:600;">🗑️ Limpar tudo</button>
+        </div>
+        <div id="cartPJPFPanel" style="margin-bottom:16px;">
+            <div style="color:rgba(255,255,255,0.3);font-size:13px;padding:10px 0;">Carregando...</div>
+        </div>
+
         <!-- CONSULTAS CROSS-PORTFOLIO -->
         <div class="cart-section-title" style="margin-top:24px;">🔎 Consultas</div>
         <div style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.12);border-radius:10px;padding:16px;margin-bottom:16px;">
@@ -14174,6 +14144,8 @@ async function abrirCarteirasBanco() {
     const hoje = new Date();
     const mes = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
     document.getElementById('cartMesRef').value = mes;
+    const extPJMes = document.getElementById('extPJMesRef');
+    if (extPJMes) extPJMes.value = mes;
 }
 
 function fecharCarteirasBanco() {
@@ -14245,6 +14217,10 @@ async function cartTrigarAnalise() {
 
             _cartSetStep('Identificando formato PDF...');
             const formatoPDF = cartDetectarFormatoPDF(textoPDF);
+
+            if (formatoPDF === 'ExtratoPJ') {
+                throw new Error('Este arquivo parece ser um extrato bancário PJ, não uma carteira de investimentos.\n\nUse a seção "💸 Extrato PJ" mais acima para enviar extratos bancários.');
+            }
 
             _cartSetStep('Processando carteira...');
             if (formatoPDF === 'InterPJ') {
@@ -14575,6 +14551,15 @@ function cartDetectarFormatoPDF(texto) {
                       (t.includes('inter') && t.includes('valor bruto') && t.includes('renda fixa')) ||
                       (t.includes('inter') && t.includes('fundos de investimentos'));
     if (isInterPJ) return 'InterPJ';
+
+    // Extrato bancário PJ (movimentação/transferências)
+    const isExtratoPJ = (t.includes('extrato') && (t.includes('movimenta') || t.includes('lancamento') || t.includes('lançamento'))) ||
+                        (t.includes('saldo anterior') && t.includes('saldo final')) ||
+                        (t.includes('extrato') && (t.includes('conta corrente') || t.includes('conta pj'))) ||
+                        (t.includes('conta digital xp') && t.includes('extrato')) ||
+                        (t.includes('saldo do dia') && (t.includes('pix enviado') || t.includes('pix recebido'))) ||
+                        (t.includes('pix enviado para') && t.includes('pix recebido de'));
+    if (isExtratoPJ) return 'ExtratoPJ';
 
     return 'PDF_Desconhecido';
 }
@@ -15286,6 +15271,7 @@ async function _cartLoadCarteiras() {
     }
     cartRenderBanksList();
     cartRenderFGC();
+    cartRenderPJPF();
 }
 
 function cartRenderBanksList() {
@@ -15741,6 +15727,682 @@ async function cartLerExcel(file) {
     });
 }
 
+// === UPLOAD DEDICADO EXTRATO PJ ===
+let _extPJArquivoAtual = null;
+
+function extPJArquivoSelecionado(file) {
+    if (!file) return;
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (ext !== 'pdf') {
+        extPJMostrarErro('Apenas PDF é suportado para extratos PJ.');
+        return;
+    }
+    _extPJArquivoAtual = file;
+    document.getElementById('extPJFileNome').textContent = `✅ ${file.name} (${(file.size/1024).toFixed(0)} KB)`;
+    document.getElementById('extPJUploadZone').style.borderColor = 'rgba(0,255,136,0.5)';
+    extPJMostrarErro('');
+    const senhaPDFWrap = document.getElementById('extPJSenhaPDFWrap');
+    if (senhaPDFWrap) senhaPDFWrap.style.display = 'block';
+}
+
+function extPJMostrarErro(msg) {
+    const el = document.getElementById('extPJErroMsg');
+    if (el) { el.textContent = msg; el.style.display = msg ? 'block' : 'none'; }
+}
+
+async function extPJTrigarAnalise() {
+    const banco = document.getElementById('extPJBancoNome').value.trim();
+    const mes   = document.getElementById('extPJMesRef').value;
+
+    if (!banco) { extPJMostrarErro('Informe o nome do banco.'); return; }
+    if (!_extPJArquivoAtual) { extPJMostrarErro('Selecione um arquivo PDF primeiro.'); return; }
+
+    extPJMostrarErro('');
+    document.getElementById('extPJLoading').style.display = 'block';
+    document.getElementById('extPJResultado').style.display = 'none';
+    document.getElementById('extPJBtnAnalisar').disabled = true;
+    document.getElementById('extPJUploadZone').style.display = 'none';
+
+    try {
+        document.getElementById('extPJLoadingStep').textContent = 'Lendo PDF...';
+        const senha = (document.getElementById('extPJSenhaPDF')?.value || '').trim();
+        const textoPDF = await cartLerPDF(_extPJArquivoAtual, senha);
+
+        document.getElementById('extPJLoadingStep').textContent = 'Identificando transferências...';
+        const transferencias = cartParsearExtratoPJ(textoPDF, _extPJArquivoAtual.name);
+
+        document.getElementById('extPJLoading').style.display = 'none';
+        document.getElementById('extPJBtnAnalisar').disabled = false;
+        extPJRenderConfirmacao(transferencias, banco, mes, _extPJArquivoAtual.name);
+
+    } catch(err) {
+        console.error(err);
+        extPJMostrarErro(`Erro na análise: ${err.message}`);
+        document.getElementById('extPJUploadZone').style.display = 'block';
+    } finally {
+        document.getElementById('extPJLoading').style.display = 'none';
+        document.getElementById('extPJBtnAnalisar').disabled = false;
+    }
+}
+
+function extPJRenderConfirmacao(transferencias, banco, mes, nomeArquivo) {
+    const el = document.getElementById('extPJResultado');
+    const totalBruno = transferencias.filter(t => t.destinatario === 'Bruno').reduce((s, t) => s + t.valor, 0);
+    const totalEllen = transferencias.filter(t => t.destinatario === 'Ellen').reduce((s, t) => s + t.valor, 0);
+    const empresaPJ = transferencias[0]?.empresaPJ || banco;
+    const bancoDetectado = transferencias[0]?.banco || banco;
+
+    let html = `
+    <div style="padding:16px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <div style="font-size:16px;font-weight:700;color:#ffc107;">💸 Transferências Detectadas</div>
+            <button onclick="extPJNovaAnalise()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;">✕ Fechar</button>
+        </div>
+        <div style="background:rgba(255,180,0,0.06);border:1px solid rgba(255,180,0,0.15);border-radius:10px;padding:12px;margin-bottom:14px;">
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);">📄 ${nomeArquivo} · 🏦 ${bancoDetectado} · 🏢 ${empresaPJ} · 📅 ${mes}</div>
+        </div>`;
+
+    if (!transferencias.length) {
+        html += `
+        <div style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);border-radius:10px;padding:20px;text-align:center;">
+            <div style="font-size:14px;color:#ffd700;margin-bottom:8px;">⚠️ Nenhuma transferência PJ→PF encontrada</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.4);">O extrato foi lido mas não encontrei transferências para Bruno ou Ellen.</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:8px;">Você pode adicionar manualmente abaixo:</div>
+        </div>`;
+    } else {
+        html += `
+        <div style="margin-bottom:12px;display:flex;gap:12px;">
+            <div style="flex:1;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.15);border-radius:8px;padding:10px 14px;">
+                <div style="font-size:11px;color:rgba(255,255,255,0.4);">👤 Bruno</div>
+                <div style="font-size:18px;font-weight:700;color:#00ff88;">${fmtBRL(totalBruno)}</div>
+            </div>
+            <div style="flex:1;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);border-radius:8px;padding:10px 14px;">
+                <div style="font-size:11px;color:rgba(255,255,255,0.4);">👤 Ellen</div>
+                <div style="font-size:18px;font-weight:700;color:#00d4ff;">${fmtBRL(totalEllen)}</div>
+            </div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px;">
+            <thead>
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <th style="text-align:left;padding:8px 6px;color:rgba(255,255,255,0.5);">Data</th>
+                    <th style="text-align:left;padding:8px 6px;color:rgba(255,255,255,0.5);">Destinatário</th>
+                    <th style="text-align:right;padding:8px 6px;color:rgba(255,255,255,0.5);">Valor</th>
+                    <th style="text-align:left;padding:8px 6px;color:rgba(255,255,255,0.5);">Descrição</th>
+                    <th style="padding:8px 6px;color:rgba(255,255,255,0.5);width:40px;">×</th>
+                </tr>
+            </thead>
+            <tbody id="extPJExtratoTabela">
+                ${transferencias.map((t, i) => `
+                <tr data-idx="${i}" style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                    <td style="padding:6px;color:rgba(255,255,255,0.7);">${t.data || '-'}</td>
+                    <td style="padding:6px;"><span style="color:${t.destinatario === 'Bruno' ? '#00ff88' : '#00d4ff'};font-weight:600;">${t.destinatario}</span></td>
+                    <td style="padding:6px;text-align:right;color:#ffd700;font-weight:600;">${fmtBRL(t.valor)}</td>
+                    <td style="padding:6px;color:rgba(255,255,255,0.5);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.descricao}">${t.descricao}</td>
+                    <td style="padding:6px;text-align:center;"><button onclick="this.closest('tr').remove()" style="background:none;border:none;color:#ff6b6b;cursor:pointer;font-size:14px;">🗑️</button></td>
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+    }
+
+    // Adicionar manualmente
+    html += `
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px;margin-bottom:14px;">
+        <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:8px;">➕ Adicionar transferência manualmente</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
+            <div style="flex:0 0 100px;">
+                <label style="font-size:10px;color:rgba(255,255,255,0.4);">Data</label>
+                <input type="date" id="extPJManualData" class="cart-input" style="font-size:11px;">
+            </div>
+            <div style="flex:0 0 100px;">
+                <label style="font-size:10px;color:rgba(255,255,255,0.4);">Destinatário</label>
+                <select id="extPJManualDest" class="cart-input" style="font-size:11px;">
+                    <option value="Bruno">Bruno</option>
+                    <option value="Ellen">Ellen</option>
+                </select>
+            </div>
+            <div style="flex:0 0 120px;">
+                <label style="font-size:10px;color:rgba(255,255,255,0.4);">Valor (R$)</label>
+                <input type="number" id="extPJManualValor" class="cart-input" placeholder="0,00" step="0.01" style="font-size:11px;">
+            </div>
+            <div style="flex:1;min-width:120px;">
+                <label style="font-size:10px;color:rgba(255,255,255,0.4);">Descrição</label>
+                <input type="text" id="extPJManualDesc" class="cart-input" placeholder="PIX, TED..." style="font-size:11px;">
+            </div>
+            <button onclick="extPJAdicionarManual()" style="background:rgba(0,255,136,0.12);border:1px solid rgba(0,255,136,0.3);color:#00ff88;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;">+ Adicionar</button>
+        </div>
+    </div>`;
+
+    const empEsc = (empresaPJ || '').replace(/'/g, "\\'");
+    const bcoEsc = (bancoDetectado || '').replace(/'/g, "\\'");
+    const mesEsc = (mes || '').replace(/'/g, "\\'");
+    const arqEsc = (nomeArquivo || '').replace(/'/g, "\\'");
+
+    html += `
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button onclick="extPJNovaAnalise()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;">Cancelar</button>
+            <button onclick="extPJSalvar('${empEsc}','${bcoEsc}','${mesEsc}','${arqEsc}')" style="background:linear-gradient(135deg,#ffc107,#ff9800);border:none;color:#070b14;padding:8px 22px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;">💾 Salvar Transferências</button>
+        </div>
+    </div>`;
+
+    el.innerHTML = html;
+    el.style.display = 'block';
+    document.getElementById('extPJUploadZone').style.display = 'none';
+}
+
+function extPJAdicionarManual() {
+    const data = document.getElementById('extPJManualData').value;
+    const dest = document.getElementById('extPJManualDest').value;
+    const valor = parseFloat(document.getElementById('extPJManualValor').value);
+    const desc = document.getElementById('extPJManualDesc').value.trim();
+
+    if (!valor || valor <= 0) { alert('Informe um valor válido.'); return; }
+
+    let tbody = document.getElementById('extPJExtratoTabela');
+    if (!tbody) {
+        // Se não existia tabela (0 transferências detectadas), cria agora
+        const el = document.getElementById('extPJResultado');
+        const existingTable = el.querySelector('table');
+        if (!existingTable) {
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:14px;">
+                <thead><tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <th style="text-align:left;padding:8px 6px;color:rgba(255,255,255,0.5);">Data</th>
+                    <th style="text-align:left;padding:8px 6px;color:rgba(255,255,255,0.5);">Destinatário</th>
+                    <th style="text-align:right;padding:8px 6px;color:rgba(255,255,255,0.5);">Valor</th>
+                    <th style="text-align:left;padding:8px 6px;color:rgba(255,255,255,0.5);">Descrição</th>
+                    <th style="padding:8px 6px;color:rgba(255,255,255,0.5);width:40px;">×</th>
+                </tr></thead>
+                <tbody id="extPJExtratoTabela"></tbody>
+            </table>`;
+            const warningDiv = el.querySelector('div[style*="text-align:center"]');
+            if (warningDiv) warningDiv.replaceWith(wrapper.firstElementChild);
+            else el.querySelector('div > div:nth-child(2)')?.after(wrapper.firstElementChild);
+        }
+        tbody = document.getElementById('extPJExtratoTabela');
+    }
+    if (!tbody) return;
+
+    const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid rgba(255,255,255,0.04)';
+    tr.innerHTML = `
+        <td style="padding:6px;color:rgba(255,255,255,0.7);">${data || '-'}</td>
+        <td style="padding:6px;"><span style="color:${dest === 'Bruno' ? '#00ff88' : '#00d4ff'};font-weight:600;">${dest}</span></td>
+        <td style="padding:6px;text-align:right;color:#ffd700;font-weight:600;">${fmtBRL(valor)}</td>
+        <td style="padding:6px;color:rgba(255,255,255,0.5);">${desc || 'Manual'}</td>
+        <td style="padding:6px;text-align:center;"><button onclick="this.closest('tr').remove()" style="background:none;border:none;color:#ff6b6b;cursor:pointer;font-size:14px;">🗑️</button></td>`;
+    tbody.appendChild(tr);
+
+    document.getElementById('extPJManualValor').value = '';
+    document.getElementById('extPJManualDesc').value = '';
+}
+
+async function extPJSalvar(empresaPJ, banco, mes, arquivo) {
+    const tbody = document.getElementById('extPJExtratoTabela');
+    if (!tbody || !tbody.rows.length) {
+        alert('Nenhuma transferência para salvar.');
+        return;
+    }
+
+    const registros = [];
+    for (const row of tbody.rows) {
+        const cells = row.cells;
+        const data = cells[0].textContent.trim();
+        const dest = cells[1].textContent.trim();
+        const valorText = cells[2].textContent.replace(/[R$\s.]/g, '').replace(',', '.');
+        const valor = parseFloat(valorText);
+        const desc = cells[3].textContent.trim();
+
+        if (!dest || isNaN(valor) || valor <= 0) continue;
+
+        registros.push({
+            empresa_pj: empresaPJ || banco,
+            destinatario_pf: dest,
+            nome_completo_pf: dest,
+            mes: mes,
+            valor_transferido: valor,
+            banco: banco,
+            descricao: desc,
+            data_transacao: (data && data !== '-') ? data : null,
+            arquivo: arquivo
+        });
+    }
+
+    if (!registros.length) {
+        alert('Nenhuma transferência válida para salvar.');
+        return;
+    }
+
+    try {
+        const { error } = await sb.from('extratos_pj').insert(registros);
+        if (error) throw error;
+        alert(`✅ ${registros.length} transferência(s) salva(s) com sucesso!`);
+        extPJNovaAnalise();
+        cartRenderPJPF();
+    } catch(e) {
+        alert(`❌ Erro ao salvar: ${e.message}`);
+    }
+}
+
+function extPJNovaAnalise() {
+    _extPJArquivoAtual = null;
+    document.getElementById('extPJResultado').style.display = 'none';
+    document.getElementById('extPJUploadZone').style.display = 'block';
+    document.getElementById('extPJUploadZone').style.borderColor = 'rgba(255,180,0,0.25)';
+    document.getElementById('extPJFileNome').textContent = 'Extrato bancário PJ em PDF (Inter, XP, etc.)';
+    document.getElementById('extPJFileInput').value = '';
+    const sp = document.getElementById('extPJSenhaPDFWrap'); if(sp) sp.style.display = 'none';
+    const si = document.getElementById('extPJSenhaPDF'); if(si) si.value = '';
+    extPJMostrarErro('');
+}
+
+async function extPJLimparTudo() {
+    const anoAtual = new Date().getFullYear();
+    if (!confirm(`⚠️ Tem certeza que deseja APAGAR TODOS os registros de transferências PJ→PF de ${anoAtual}?\n\nEssa ação não pode ser desfeita.`)) return;
+
+    try {
+        const { error } = await sb.from('extratos_pj')
+            .delete()
+            .gte('mes', `${anoAtual}-01`)
+            .lte('mes', `${anoAtual}-12`);
+        if (error) throw error;
+        alert('✅ Todos os registros PJ→PF foram excluídos.');
+        cartRenderPJPF();
+    } catch(e) {
+        alert(`❌ Erro ao excluir: ${e.message}`);
+    }
+}
+
+// === EXTRATO PJ — PARSER E CONTROLE PJ→PF ===
+
+// Nomes conhecidos para matching
+const _PJPF_NOMES = {
+    'Bruno': ['bruno herberth', 'bruno herberth rocha bandeira', 'bruno bandeira'],
+    'Ellen': ['ellen bandeira', 'ellen juliane', 'ellen juliane de souza', 'ellen juliane de souza bandeira']
+};
+
+function _pjpfIdentificarDestinatario(texto) {
+    const t = (texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    for (const [nome, variantes] of Object.entries(_PJPF_NOMES)) {
+        for (const v of variantes) {
+            const vNorm = v.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            if (t.includes(vNorm)) return { nome, nomeCompleto: texto.trim() };
+        }
+    }
+    return null;
+}
+
+function cartParsearExtratoPJ(texto, nomeArquivo) {
+    const linhas = texto.split('\n');
+    const transferencias = [];
+    const tLower = texto.toLowerCase();
+
+    // Detectar empresa PJ (primeira ocorrência de razão social)
+    let empresaPJ = '';
+    const regexEmpresa = /([A-ZÀ-Ú][A-Za-zÀ-ú\s]+(?:Ltda|LTDA|ME|SA|S\.A\.|EIRELI|EPP|PARTICIPACOES|Participacoes|Participações))/i;
+    for (const l of linhas) {
+        const m = l.match(regexEmpresa);
+        if (m) { empresaPJ = m[1].trim(); break; }
+    }
+
+    // Detectar banco
+    let bancoDetectado = 'Desconhecido';
+    if (tLower.includes('banco inter') || tLower.includes('brunohrb')) bancoDetectado = 'Inter';
+    else if (tLower.includes('banco xp') || tLower.includes('xp s.a') || tLower.includes('conta digital xp')) bancoDetectado = 'XP';
+    else if (tLower.includes('mercado pago') || tLower.includes('mercadopago')) bancoDetectado = 'Mercado Pago';
+
+    // Detectar formato
+    const isXP = tLower.includes('conta digital xp') || tLower.includes('banco xp s.a') || /\d{2}\/\d{2}\/\d{2}\s+às\s+\d{2}:\d{2}:\d{2}/.test(texto);
+
+    if (isXP) {
+        _parsearExtratoXP(linhas, transferencias, empresaPJ, bancoDetectado);
+    } else {
+        _parsearExtratoInter(linhas, transferencias, empresaPJ, bancoDetectado);
+    }
+
+    return transferencias;
+}
+
+// === PARSER XP ===
+// Busca no texto completo para robustez com pdf.js
+// Formato: "DD/MM/AA às HH:MM:SS  Pix enviado para Nome  -R$ 1.234,56  R$ 0,00"
+function _parsearExtratoXP(linhas, transferencias, empresaPJ, bancoDetectado) {
+    const textoCompleto = linhas.join('\n');
+
+    // Busca "Pix enviado para" ou "TED enviada para" no texto completo
+    const regEnvio = /pix enviado para|ted enviada para/gi;
+    let mEnvio;
+    while ((mEnvio = regEnvio.exec(textoCompleto)) !== null) {
+        const inicio = mEnvio.index;
+        const ctxStart = Math.max(0, inicio - 100);
+        const ctxEnd = Math.min(textoCompleto.length, inicio + 500);
+        const ctxAntes = textoCompleto.substring(ctxStart, inicio);
+        const ctxDepois = textoCompleto.substring(inicio, ctxEnd);
+
+        // Nome do destinatário: texto após "para"
+        const dest = _pjpfIdentificarDestinatario(ctxDepois);
+        if (!dest) continue;
+
+        // Data: "DD/MM/AA às" antes do envio
+        const matchData = ctxAntes.match(/(\d{2})\/(\d{2})\/(\d{2})\s+às\s+[\d:]+\s*$/);
+        let dataTransacao = null;
+        if (matchData) {
+            dataTransacao = `20${matchData[3]}-${matchData[2]}-${matchData[1]}`;
+        }
+
+        // Valor: -R$ X.XXX,XX após o envio
+        const matchValor = ctxDepois.match(/-R\$\s*([\d.,]+)/);
+        if (!matchValor) continue;
+
+        const valorStr = matchValor[1].replace(/\./g, '').replace(',', '.');
+        const valor = parseFloat(valorStr);
+        if (isNaN(valor) || valor <= 0) continue;
+
+        const descricao = textoCompleto.substring(inicio, Math.min(inicio + 120, ctxEnd)).replace(/\n/g, ' ').trim();
+
+        const jaTem = transferencias.some(t =>
+            t.data === dataTransacao && t.destinatario === dest.nome &&
+            Math.abs(t.valor - valor) < 0.01
+        );
+        if (jaTem) continue;
+
+        transferencias.push({
+            destinatario: dest.nome,
+            nomeCompleto: dest.nomeCompleto,
+            valor,
+            data: dataTransacao,
+            descricao,
+            empresaPJ,
+            banco: bancoDetectado
+        });
+    }
+}
+
+// === PARSER INTER ===
+// Busca no texto completo em vez de linha a linha, pois pdf.js pode
+// quebrar linhas de formas diferentes dependendo do PDF
+function _parsearExtratoInter(linhas, transferencias, empresaPJ, bancoDetectado) {
+    const mesesPT = { 'janeiro':'01','fevereiro':'02','março':'03','marco':'03','abril':'04','maio':'05','junho':'06',
+                      'julho':'07','agosto':'08','setembro':'09','outubro':'10','novembro':'11','dezembro':'12' };
+
+    const textoCompleto = linhas.join('\n');
+
+    // 1) Monta mapa de posições de data no texto
+    //    Usa [A-Za-zÀ-ú]+ para capturar meses acentuados (Março, etc.)
+    const datas = [];
+    const regDatas = /(\d{1,2})\s+de\s+([A-Za-zÀ-ú]+)\s+de\s+(\d{4})/gi;
+    let mDate;
+    while ((mDate = regDatas.exec(textoCompleto)) !== null) {
+        const mesNorm = mDate[2].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const mesNum = mesesPT[mesNorm] || mesesPT[mDate[2].toLowerCase()];
+        if (mesNum) {
+            datas.push({
+                pos: mDate.index,
+                data: `${mDate[3]}-${mesNum}-${mDate[1].padStart(2, '0')}`
+            });
+        }
+    }
+
+    // Função: qual data corresponde a uma posição no texto
+    function dataParaPosicao(pos) {
+        let d = null;
+        for (const dt of datas) {
+            if (dt.pos <= pos) d = dt.data;
+            else break;
+        }
+        return d;
+    }
+
+    // 2) Busca todas as ocorrências de "Pix enviado" / "TED enviado" no texto completo
+    const regEnvio = /pix enviado|ted enviad/gi;
+    let mEnvio;
+    while ((mEnvio = regEnvio.exec(textoCompleto)) !== null) {
+        const inicio = mEnvio.index;
+
+        // Limita o contexto até o próximo lançamento (não pegar nomes de outras transações)
+        const proximoLanc = textoCompleto.substring(inicio + 10).search(
+            /\n\s*(Pix enviado|Pix recebido|Boleto|Aplicacao|Pagamento|Credito|Debito|DARF|\d{1,2}\s+de\s+[A-Za-zÀ-ú]+\s+de\s+\d{4})/i
+        );
+        const ctxEnd = proximoLanc > 0
+            ? Math.min(inicio + 10 + proximoLanc, inicio + 300)
+            : Math.min(textoCompleto.length, inicio + 300);
+        const ctxTransacao = textoCompleto.substring(inicio, ctxEnd);
+
+        // Extrai nome do destinatário APENAS desta transação
+        // Inter usa: "Cp :XXXXX-Nome Completo" — extrai o nome entre o hífen e a aspa
+        let dest = null;
+        const matchCp = ctxTransacao.match(/Cp\s*:\s*\d+-([^"]+)"/i);
+        if (matchCp) {
+            dest = _pjpfIdentificarDestinatario(matchCp[1]);
+        }
+        // Fallback: formato "00019 XXXXX NOME" (sem Cp:)
+        if (!dest) {
+            const matchAlt = ctxTransacao.match(/"00019\s+\d+\s+([^"]+)"/i);
+            if (matchAlt) dest = _pjpfIdentificarDestinatario(matchAlt[1]);
+        }
+        // Último fallback: busca no contexto limitado
+        if (!dest) dest = _pjpfIdentificarDestinatario(ctxTransacao);
+        if (!dest) continue;
+
+        // Busca valor negativo: -R$ X.XXX,XX
+        const matchValor = ctxTransacao.match(/-R\$\s*([\d.,]+)/);
+        if (!matchValor) continue;
+
+        const valorStr = matchValor[1].replace(/\./g, '').replace(',', '.');
+        const valor = parseFloat(valorStr);
+        if (isNaN(valor) || valor <= 0) continue;
+
+        const dataTransacao = dataParaPosicao(inicio);
+        const descricao = ctxTransacao.substring(0, 120).replace(/\n/g, ' ').trim();
+
+        const jaTem = transferencias.some(t =>
+            t.data === dataTransacao && t.destinatario === dest.nome &&
+            Math.abs(t.valor - valor) < 0.01
+        );
+        if (jaTem) continue;
+
+        transferencias.push({
+            destinatario: dest.nome,
+            nomeCompleto: dest.nomeCompleto,
+            valor,
+            data: dataTransacao,
+            descricao,
+            empresaPJ,
+            banco: bancoDetectado
+        });
+    }
+}
+
+function cartRenderConfirmacaoExtrato(transferencias, banco, mes, nomeArquivo) {
+    const el = document.getElementById('cartResultado');
+    const totalBruno = transferencias.filter(t => t.destinatario === 'Bruno').reduce((s, t) => s + t.valor, 0);
+    const totalEllen = transferencias.filter(t => t.destinatario === 'Ellen').reduce((s, t) => s + t.valor, 0);
+    const empresaPJ = transferencias[0]?.empresaPJ || banco;
+    const bancoDetectado = transferencias[0]?.banco || banco;
+
+    let html = `
+    <div style="padding:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div style="font-size:18px;font-weight:700;color:#00d4ff;">💸 Extrato PJ Detectado</div>
+            <button onclick="cartNovaAnalise()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;">✕ Fechar</button>
+        </div>
+        <div style="background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);border-radius:10px;padding:14px;margin-bottom:16px;">
+            <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:6px;">📄 ${nomeArquivo} · 🏦 ${bancoDetectado} · 🏢 ${empresaPJ}</div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.5);">📅 Mês referência: ${mes}</div>
+        </div>`;
+
+    if (!transferencias.length) {
+        html += `
+        <div style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);border-radius:10px;padding:20px;text-align:center;">
+            <div style="font-size:14px;color:#ffd700;margin-bottom:8px;">⚠️ Nenhuma transferência PJ→PF encontrada</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.4);">O extrato foi identificado mas não encontrei transferências para Bruno ou Ellen.</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:8px;">Você pode adicionar manualmente:</div>
+        </div>`;
+    } else {
+        html += `
+        <div style="margin-bottom:12px;display:flex;gap:12px;">
+            <div style="flex:1;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.15);border-radius:8px;padding:10px 14px;">
+                <div style="font-size:11px;color:rgba(255,255,255,0.4);">👤 Bruno</div>
+                <div style="font-size:18px;font-weight:700;color:#00ff88;">${fmtBRL(totalBruno)}</div>
+            </div>
+            <div style="flex:1;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);border-radius:8px;padding:10px 14px;">
+                <div style="font-size:11px;color:rgba(255,255,255,0.4);">👤 Ellen</div>
+                <div style="font-size:18px;font-weight:700;color:#00d4ff;">${fmtBRL(totalEllen)}</div>
+            </div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px;">
+            <thead>
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                    <th style="text-align:left;padding:8px 6px;color:rgba(255,255,255,0.5);">Data</th>
+                    <th style="text-align:left;padding:8px 6px;color:rgba(255,255,255,0.5);">Destinatário</th>
+                    <th style="text-align:right;padding:8px 6px;color:rgba(255,255,255,0.5);">Valor</th>
+                    <th style="text-align:left;padding:8px 6px;color:rgba(255,255,255,0.5);">Descrição</th>
+                    <th style="padding:8px 6px;color:rgba(255,255,255,0.5);width:40px;">×</th>
+                </tr>
+            </thead>
+            <tbody id="cartExtratoTabela">
+                ${transferencias.map((t, i) => `
+                <tr data-idx="${i}" style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                    <td style="padding:6px;color:rgba(255,255,255,0.7);">${t.data || '-'}</td>
+                    <td style="padding:6px;"><span style="color:${t.destinatario === 'Bruno' ? '#00ff88' : '#00d4ff'};font-weight:600;">${t.destinatario}</span></td>
+                    <td style="padding:6px;text-align:right;color:#ffd700;font-weight:600;">${fmtBRL(t.valor)}</td>
+                    <td style="padding:6px;color:rgba(255,255,255,0.5);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.descricao}">${t.descricao}</td>
+                    <td style="padding:6px;text-align:center;"><button onclick="this.closest('tr').remove()" style="background:none;border:none;color:#ff6b6b;cursor:pointer;font-size:14px;">🗑️</button></td>
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+    }
+
+    // Adicionar manualmente
+    html += `
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px;margin-bottom:16px;">
+        <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:8px;">➕ Adicionar transferência manualmente</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
+            <div style="flex:0 0 100px;">
+                <label style="font-size:10px;color:rgba(255,255,255,0.4);">Data</label>
+                <input type="date" id="cartExtManualData" class="cart-input" style="font-size:11px;">
+            </div>
+            <div style="flex:0 0 100px;">
+                <label style="font-size:10px;color:rgba(255,255,255,0.4);">Destinatário</label>
+                <select id="cartExtManualDest" class="cart-input" style="font-size:11px;">
+                    <option value="Bruno">Bruno</option>
+                    <option value="Ellen">Ellen</option>
+                </select>
+            </div>
+            <div style="flex:0 0 120px;">
+                <label style="font-size:10px;color:rgba(255,255,255,0.4);">Valor (R$)</label>
+                <input type="number" id="cartExtManualValor" class="cart-input" placeholder="0,00" step="0.01" style="font-size:11px;">
+            </div>
+            <div style="flex:1;min-width:120px;">
+                <label style="font-size:10px;color:rgba(255,255,255,0.4);">Descrição</label>
+                <input type="text" id="cartExtManualDesc" class="cart-input" placeholder="PIX, TED..." style="font-size:11px;">
+            </div>
+            <button onclick="cartAdicionarTransfManual()" style="background:rgba(0,255,136,0.12);border:1px solid rgba(0,255,136,0.3);color:#00ff88;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;">+ Adicionar</button>
+        </div>
+    </div>`;
+
+    html += `
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button onclick="cartNovaAnalise()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;">Cancelar</button>
+            <button onclick="cartSalvarExtratoPJ('${empresaPJ}','${bancoDetectado}','${mes}','${nomeArquivo}')" style="background:linear-gradient(135deg,#00ff88,#00d4ff);border:none;color:#070b14;padding:8px 22px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;">💾 Salvar Transferências</button>
+        </div>
+    </div>`;
+
+    el.innerHTML = html;
+    el.style.display = 'block';
+    document.getElementById('cartUploadZone').style.display = 'none';
+
+    // Armazena dados para salvar
+    window._cartExtratoPJDados = transferencias;
+}
+
+function cartAdicionarTransfManual() {
+    const data = document.getElementById('cartExtManualData').value;
+    const dest = document.getElementById('cartExtManualDest').value;
+    const valor = parseFloat(document.getElementById('cartExtManualValor').value);
+    const desc = document.getElementById('cartExtManualDesc').value.trim();
+
+    if (!valor || valor <= 0) { alert('Informe um valor válido.'); return; }
+
+    const tbody = document.getElementById('cartExtratoTabela');
+    if (!tbody) return;
+
+    const idx = tbody.rows.length;
+    const tr = document.createElement('tr');
+    tr.dataset.idx = idx;
+    tr.style.borderBottom = '1px solid rgba(255,255,255,0.04)';
+    tr.innerHTML = `
+        <td style="padding:6px;color:rgba(255,255,255,0.7);">${data || '-'}</td>
+        <td style="padding:6px;"><span style="color:${dest === 'Bruno' ? '#00ff88' : '#00d4ff'};font-weight:600;">${dest}</span></td>
+        <td style="padding:6px;text-align:right;color:#ffd700;font-weight:600;">${fmtBRL(valor)}</td>
+        <td style="padding:6px;color:rgba(255,255,255,0.5);">${desc || 'Manual'}</td>
+        <td style="padding:6px;text-align:center;"><button onclick="this.closest('tr').remove()" style="background:none;border:none;color:#ff6b6b;cursor:pointer;font-size:14px;">🗑️</button></td>`;
+    tbody.appendChild(tr);
+
+    // Limpar campos
+    document.getElementById('cartExtManualValor').value = '';
+    document.getElementById('cartExtManualDesc').value = '';
+
+    // Adicionar à lista temporária
+    if (!window._cartExtratoPJDados) window._cartExtratoPJDados = [];
+    window._cartExtratoPJDados.push({
+        destinatario: dest,
+        nomeCompleto: dest,
+        valor,
+        data: data || null,
+        descricao: desc || 'Manual',
+        empresaPJ: '',
+        banco: ''
+    });
+}
+
+async function cartSalvarExtratoPJ(empresaPJ, banco, mes, arquivo) {
+    // Coleta dados da tabela visível (respeitando remoções)
+    const tbody = document.getElementById('cartExtratoTabela');
+    if (!tbody || !tbody.rows.length) {
+        alert('Nenhuma transferência para salvar.');
+        return;
+    }
+
+    const registros = [];
+    for (const row of tbody.rows) {
+        const cells = row.cells;
+        const data = cells[0].textContent.trim();
+        const dest = cells[1].textContent.trim();
+        const valorText = cells[2].textContent.replace(/[R$\s.]/g, '').replace(',', '.');
+        const valor = parseFloat(valorText);
+        const desc = cells[3].textContent.trim();
+
+        if (!dest || isNaN(valor) || valor <= 0) continue;
+
+        registros.push({
+            empresa_pj: empresaPJ || banco,
+            destinatario_pf: dest,
+            nome_completo_pf: dest,
+            mes: mes,
+            valor_transferido: valor,
+            banco: banco,
+            descricao: desc,
+            data_transacao: (data && data !== '-') ? data : null,
+            arquivo: arquivo
+        });
+    }
+
+    if (!registros.length) {
+        alert('Nenhuma transferência válida para salvar.');
+        return;
+    }
+
+    try {
+        const { error } = await sb.from('extratos_pj').insert(registros);
+        if (error) throw error;
+        alert(`✅ ${registros.length} transferência(s) salva(s) com sucesso!`);
+        cartNovaAnalise();
+        cartRenderPJPF();
+    } catch(e) {
+        alert(`❌ Erro ao salvar: ${e.message}`);
+    }
+}
+
 // === FGC — TOP CDBs POR PROPRIETÁRIO ===
 async function cartRenderFGC() {
     const el = document.getElementById('cartFGCPanel');
@@ -15819,6 +16481,115 @@ async function cartRenderFGC() {
         el.innerHTML = html;
     } catch(e) {
         el.innerHTML = `<div style="color:#ff6b6b;font-size:13px;padding:10px 0;">Erro ao carregar CDBs: ${e.message}</div>`;
+    }
+}
+
+// === ALERTA PJ→PF — LIMITE ANUAL POR CPF ===
+async function cartRenderPJPF() {
+    const el = document.getElementById('cartPJPFPanel');
+    if (!el) return;
+    el.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:13px;padding:10px 0;">Carregando...</div>';
+
+    try {
+        const anoAtual = new Date().getFullYear();
+        const mesAtual = new Date().getMonth() + 1;
+        const { data, error } = await sb.from('extratos_pj')
+            .select('destinatario_pf,mes,valor_transferido')
+            .gte('mes', `${anoAtual}-01`)
+            .lte('mes', `${anoAtual}-12`)
+            .order('mes');
+        if (error) throw error;
+
+        if (!data?.length) {
+            el.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:13px;padding:10px 0;">Nenhum extrato PJ enviado ainda para ' + anoAtual + '.</div>';
+            return;
+        }
+
+        // Agrupa por destinatário
+        const byPF = {};
+        data.forEach(row => {
+            const pf = row.destinatario_pf || '(sem nome)';
+            if (!byPF[pf]) byPF[pf] = { total: 0, meses: {} };
+            byPF[pf].total += (row.valor_transferido || 0);
+            const m = row.mes;
+            if (!byPF[pf].meses[m]) byPF[pf].meses[m] = 0;
+            byPF[pf].meses[m] += (row.valor_transferido || 0);
+        });
+
+        // Detectar meses pendentes (último mês com extrato vs mês atual)
+        const todosMeses = new Set(data.map(d => d.mes));
+        const mesesEsperados = [];
+        for (let m = 1; m <= mesAtual; m++) {
+            mesesEsperados.push(`${anoAtual}-${String(m).padStart(2, '0')}`);
+        }
+        const mesesPendentes = mesesEsperados.filter(m => !todosMeses.has(m));
+
+        const LIMITE = 600000;
+        let html = '';
+
+        // Aviso de meses pendentes
+        if (mesesPendentes.length > 0) {
+            const nomeMes = (m) => {
+                const nomes = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+                const n = parseInt(m.split('-')[1]);
+                return nomes[n] + '/' + m.split('-')[0];
+            };
+            html += `<div style="background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;">
+                <span style="font-size:12px;color:#ffd700;font-weight:600;">⚠️ Meses pendentes:</span>
+                <span style="font-size:12px;color:rgba(255,255,255,0.6);margin-left:6px;">${mesesPendentes.map(nomeMes).join(', ')}</span>
+            </div>`;
+        }
+
+        html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;">';
+
+        Object.entries(byPF)
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .forEach(([pf, dados]) => {
+                const pct = Math.min(dados.total / LIMITE * 100, 100);
+                const acima = dados.total >= LIMITE;
+                const alerta80 = dados.total >= LIMITE * 0.8;
+                const color = acima ? '#ff6b6b' : alerta80 ? '#ffd700' : '#00d4ff';
+                const excedente = acima ? dados.total - LIMITE : 0;
+                const imposto = excedente * 0.10;
+
+                html += `<div style="background:rgba(255,255,255,0.03);border:1px solid ${acima ? 'rgba(255,107,107,0.4)' : 'rgba(255,255,255,0.08)'};border-radius:10px;padding:14px 16px;">
+                    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+                        <span style="font-weight:700;color:#00ff88;font-size:14px;">👤 ${pf}</span>
+                        ${acima ? '<span style="font-size:10px;background:rgba(255,107,107,0.15);color:#ff6b6b;border:1px solid rgba(255,107,107,0.3);border-radius:4px;padding:2px 6px;font-weight:700;">⚠️ LIMITE ULTRAPASSADO</span>' : ''}
+                    </div>
+
+                    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+                        <span style="font-size:22px;font-weight:700;color:${color};">${fmtBRL(dados.total)}</span>
+                        <span style="font-size:12px;color:rgba(255,255,255,0.4);">/ ${fmtBRL(LIMITE)}</span>
+                    </div>
+
+                    <div style="height:6px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden;margin-bottom:6px;">
+                        <div style="width:${pct.toFixed(1)}%;height:100%;background:${color};border-radius:3px;transition:width 0.5s;"></div>
+                    </div>
+                    <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-bottom:${acima ? '8px' : '10px'};">${(dados.total / LIMITE * 100).toFixed(1)}% do limite anual</div>
+
+                    ${acima ? `<div style="background:rgba(255,107,107,0.08);border:1px solid rgba(255,107,107,0.2);border-radius:6px;padding:8px 10px;margin-bottom:10px;">
+                        <div style="font-size:11px;color:#ff6b6b;font-weight:600;">💰 Excedente: ${fmtBRL(excedente)}</div>
+                        <div style="font-size:11px;color:#ff6b6b;">📊 Imposto estimado (10%): ${fmtBRL(imposto)}</div>
+                    </div>` : ''}
+
+                    <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:4px;">Breakdown mensal:</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                        ${Object.entries(dados.meses).sort((a,b) => a[0].localeCompare(b[0])).map(([m, v]) => {
+                            const nomeMes = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][parseInt(m.split('-')[1])];
+                            return `<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:4px;padding:3px 8px;font-size:10px;">
+                                <span style="color:rgba(255,255,255,0.4);">${nomeMes}:</span>
+                                <span style="color:${color};font-weight:600;">${fmtBRL(v)}</span>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+            });
+
+        html += '</div>';
+        el.innerHTML = html;
+    } catch(e) {
+        el.innerHTML = `<div style="color:#ff6b6b;font-size:13px;padding:10px 0;">Erro ao carregar dados PJ→PF: ${e.message}</div>`;
     }
 }
 
