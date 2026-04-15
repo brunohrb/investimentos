@@ -3075,7 +3075,9 @@ header {
             return;
         }
         try {
-            sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+                db: { schema: 'treino' }
+            });
         } catch(e) {
             console.error('❌ Erro ao conectar Supabase:', e);
         }
