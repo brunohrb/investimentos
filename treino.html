@@ -2214,8 +2214,8 @@ header {
             <div id="loginForm">
                 <form onsubmit="handleLogin(event)">
                     <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="loginEmail" required placeholder="seu@email.com" autocomplete="email">
+                        <label>Nome</label>
+                        <input type="text" id="loginEmail" required placeholder="seu nome" autocomplete="username" autocapitalize="none" spellcheck="false">
                     </div>
                     <div class="form-group">
                         <label>Senha</label>
@@ -2223,7 +2223,6 @@ header {
                             <input type="password" id="loginPassword" required placeholder="••••••••" minlength="6" autocomplete="current-password">
                             <button type="button" class="toggle-pass-btn" onclick="togglePassword('loginPassword', this)" title="Mostrar/ocultar senha">👁️</button>
                         </div>
-                        <button type="button" class="forgot-link" onclick="handleForgotPassword()">Esqueceu a senha?</button>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block" id="btnLogin">🔓 Entrar</button>
                 </form>
@@ -2232,8 +2231,8 @@ header {
             <div id="signupForm" style="display:none;">
                 <form onsubmit="handleSignup(event)">
                     <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="signupEmail" required placeholder="seu@email.com" autocomplete="email">
+                        <label>Nome</label>
+                        <input type="text" id="signupEmail" required placeholder="seu nome" autocomplete="username" autocapitalize="none" spellcheck="false">
                     </div>
                     <div class="form-group">
                         <label>Senha</label>
@@ -3119,10 +3118,20 @@ header {
         if (btnSignup) btnSignup.disabled = show;
     }
 
+    // Converte nome em "email interno" (Supabase Auth exige email)
+    function nomeParaEmail(nome) {
+        const limpo = (nome || '').toString().trim().toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+            .replace(/[^a-z0-9]/g, ''); // só letras/números
+        return limpo ? `${limpo}@bhr.treino` : '';
+    }
+
     async function handleLogin(e) {
         e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
+        const nome = document.getElementById('loginEmail').value;
+        const email = nomeParaEmail(nome);
         const password = document.getElementById('loginPassword').value;
+        if (!email) { showAuthStatus('❌ Digite um nome válido', 'error'); return; }
         setAuthLoading(true); showAuthStatus('Entrando...', 'info');
         try {
             const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
@@ -3131,15 +3140,17 @@ header {
             showAuthStatus('✅ Login realizado! Carregando...', 'success');
             setTimeout(() => hideAuthScreen(), 1000);
         } catch (error) {
-            showAuthStatus('❌ Email ou senha incorretos', 'error'); setAuthLoading(false);
+            showAuthStatus('❌ Nome ou senha incorretos', 'error'); setAuthLoading(false);
         }
     }
 
     async function handleSignup(e) {
         e.preventDefault();
-        const email = document.getElementById('signupEmail').value;
+        const nome = document.getElementById('signupEmail').value;
+        const email = nomeParaEmail(nome);
         const password = document.getElementById('signupPassword').value;
         const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+        if (!email) { showAuthStatus('❌ Digite um nome válido', 'error'); return; }
         if (password !== passwordConfirm) { showAuthStatus('❌ As senhas não conferem!', 'error'); return; }
         setAuthLoading(true); showAuthStatus('Criando sua conta...', 'info');
         try {
@@ -5686,26 +5697,9 @@ Use emojis, seja direto e motivador!`;
         }
     }
 
-    // Esqueceu a senha
+    // Esqueceu a senha — como não usamos email, reset é via SQL no Supabase
     async function handleForgotPassword() {
-        const email = document.getElementById('loginEmail').value.trim();
-        if (!email) {
-            showAuthStatus('Digite seu email acima para redefinir a senha.', 'info');
-            return;
-        }
-        setAuthLoading(true);
-        showAuthStatus('Enviando email de redefinição...', 'info');
-        try {
-            const { error } = await sbClient.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.href
-            });
-            if (error) throw error;
-            showAuthStatus('✅ Email enviado! Verifique sua caixa de entrada.', 'success');
-        } catch (err) {
-            showAuthStatus('❌ ' + err.message, 'error');
-        } finally {
-            setAuthLoading(false);
-        }
+        showAuthStatus('Para redefinir a senha, peça ao admin rodar o SQL de reset no Supabase.', 'info');
     }
 
     // Selecionar modelo de IA
