@@ -6631,6 +6631,49 @@ async function excluirOpcao(id) {
     carregarOpcoes();
 }
 
+// ── Seleção múltipla na tabela de Opções Registradas ──
+function opcToggleSelAll(checked) {
+    document.querySelectorAll('.opc-row-check').forEach(c => { c.checked = checked; });
+    opcAtualizarContadorSel();
+}
+
+function opcAtualizarContadorSel() {
+    const checks = document.querySelectorAll('.opc-row-check');
+    const sel    = document.querySelectorAll('.opc-row-check:checked');
+    const count  = sel.length;
+    const lbl    = document.getElementById('opc-sel-count');
+    const btn    = document.getElementById('opc-btn-excluir-sel');
+    if (lbl) {
+        lbl.textContent = `${count} selecionada(s)`;
+        lbl.style.display = count > 0 ? 'inline' : 'none';
+    }
+    if (btn) btn.style.display = count > 0 ? 'inline-block' : 'none';
+
+    // Sincroniza o checkbox do cabeçalho
+    const all = document.getElementById('opc-sel-all');
+    if (all) {
+        if (checks.length && count === checks.length)      { all.checked = true;  all.indeterminate = false; }
+        else if (count === 0)                              { all.checked = false; all.indeterminate = false; }
+        else                                               { all.checked = false; all.indeterminate = true;  }
+    }
+}
+
+async function excluirOpcoesSelecionadas() {
+    const ids = Array.from(document.querySelectorAll('.opc-row-check:checked'))
+        .map(c => c.dataset.id).filter(Boolean);
+    if (!ids.length) return;
+    if (!confirm(`Excluir ${ids.length} opção(ões) selecionada(s)?\n\nEsta ação não pode ser desfeita.`)) return;
+
+    showLoading(true);
+    const { error } = await sb.from('acoes_transacoes').delete().in('id', ids);
+    showLoading(false);
+
+    if (error) { alert('Erro ao excluir: ' + error.message); return; }
+    await carregarAcoes();
+    carregarOpcoes();
+    alert(`✅ ${ids.length} opção(ões) excluída(s)!`);
+}
+
 function abrirEditarOpcao(id) {
     const op = listaOpcoes.find(o => o.id === id);
     if (!op) return;
@@ -6642,6 +6685,8 @@ function abrirEditarOpcao(id) {
     const ativo      = nomeBase.split(' ')[1] || '';
     const strikeStr  = nomeBase.includes('Strike') ? nomeBase.split('Strike R$ ')[1] : '0,00';
 
+    const parsedEst = opcParseEstLabel(estVal);
+
     document.getElementById('editOpcId').value        = id;
     document.getElementById('editOpcTipo').value       = op.tipo;
     document.getElementById('editOpcModalidade').value = isCall ? 'call' : 'put';
@@ -6651,7 +6696,13 @@ function abrirEditarOpcao(id) {
     document.getElementById('editOpcPremio').value     = formatarMoeda(op.preco_unitario);
     document.getElementById('editOpcQtd').value        = op.quantidade;
     document.getElementById('editOpcData').value       = op.data;
-    document.getElementById('editOpcEstrategia').value = estVal;
+    const editSelEst = document.getElementById('editOpcEstrategia');
+    // Garante que o value salvo exista no select; caso contrário cai em ''
+    const opcoesSelect = Array.from(editSelEst.options).map(o => o.value);
+    editSelEst.value = opcoesSelect.includes(parsedEst.estVal) ? parsedEst.estVal : '';
+    const inpPersEdit = document.getElementById('editOpcPersonalizadoNome');
+    if (inpPersEdit) inpPersEdit.value = parsedEst.nomeCustom || '';
+    toggleOpcPersonalizadoInput('editOpcEstrategia', 'editOpcPersonalizadoNome');
 
     // Labels de tipo/modal
     ['compra','venda'].forEach(t => {
@@ -6677,10 +6728,9 @@ async function salvarEdicaoOpcao() {
     const qtd        = parseFloat(document.getElementById('editOpcQtd').value);
     const data       = document.getElementById('editOpcData').value;
     const estVal     = document.getElementById('editOpcEstrategia').value;
+    const nomeCustom = document.getElementById('editOpcPersonalizadoNome')?.value || '';
 
-    const ESTS = { 'STRANGLE':'🔀 Strangle', 'venda_coberta_call':'📊 Venda Coberta CALL',
-        'compra_call':'📈 Compra CALL', 'bear_put_spread':'📉 Bear Put Spread', 'personalizado':'⚙️ Personalizado' };
-    const estLabel = ESTS[estVal] || '';
+    const estLabel = opcMontarEstLabel(estVal, nomeCustom);
     const nomeBase = `${modalidade.toUpperCase()} ${ativo||ticker} Strike ${formatarMoeda(strike)}`;
     const nome     = estLabel ? `${nomeBase} | ${estLabel}` : nomeBase;
 
@@ -6776,8 +6826,54 @@ const ESTRATEGIAS_CONFIG = {
     straddle_compra:    { label:'Straddle (Compra)',     tipo:'compra', modal:'call', cor:'#20c997' },
     bull_call_spread:   { label:'Bull Call Spread',      tipo:'compra', modal:'call', cor:'#28a745' },
     bear_put_spread:    { label:'Bear Put Spread',       tipo:'compra', modal:'put',  cor:'#dc3545' },
+    day_trade:          { label:'Day Trade',             tipo:'compra', modal:'call', cor:'#17a2b8' },
     personalizado:      { label:'Personalizado',         tipo:'compra', modal:'call', cor:'#888'    },
 };
+
+// Helper: monta a label da estratégia para persistir no campo `nome`
+// Suporta nome customizado quando estVal === 'personalizado'.
+function opcMontarEstLabel(estVal, nomeCustom) {
+    const ESTS = {
+        'STRANGLE':           '🔀 Strangle',
+        'venda_coberta_call': '📊 Venda Coberta CALL',
+        'compra_call':        '📈 Compra CALL',
+        'bear_put_spread':    '📉 Bear Put Spread',
+        'day_trade':          '⚡ Day Trade',
+        'personalizado':      '⚙️ Personalizado',
+    };
+    if (estVal === 'personalizado') {
+        const custom = (nomeCustom || '').trim();
+        return custom ? `⚙️ ${custom}` : '⚙️ Personalizado';
+    }
+    return ESTS[estVal] || '';
+}
+
+// Helper: a partir do label salvo, descobre (estVal, nomeCustom) para popular o form de edição
+function opcParseEstLabel(label) {
+    const raw = (label || '').trim();
+    if (!raw) return { estVal: '', nomeCustom: '' };
+    if (raw.toLowerCase().includes('strangle')) return { estVal: 'STRANGLE', nomeCustom: '' };
+    if (raw === '📊 Venda Coberta CALL' || raw === 'Venda Coberta de CALL') return { estVal: 'venda_coberta_call', nomeCustom: '' };
+    if (raw === '📈 Compra CALL' || raw === 'Compra de CALL')               return { estVal: 'compra_call', nomeCustom: '' };
+    if (raw === '📉 Bear Put Spread' || raw === 'Bear Put Spread')          return { estVal: 'bear_put_spread', nomeCustom: '' };
+    if (raw === '⚡ Day Trade' || raw === 'Day Trade')                      return { estVal: 'day_trade', nomeCustom: '' };
+    if (raw.startsWith('⚙️')) {
+        const custom = raw.replace(/^⚙️\s*/, '').trim();
+        return { estVal: 'personalizado', nomeCustom: custom === 'Personalizado' ? '' : custom };
+    }
+    return { estVal: raw, nomeCustom: '' };
+}
+
+// Alterna visibilidade do input de nome customizado baseado no select
+function toggleOpcPersonalizadoInput(selectId, inputId) {
+    const sel = document.getElementById(selectId);
+    const inp = document.getElementById(inputId);
+    if (!sel || !inp) return;
+    const wrap = inp.closest('.opc-personalizado-wrap') || inp;
+    const ativo = sel.value === 'personalizado';
+    wrap.style.display = ativo ? 'block' : 'none';
+    if (ativo) setTimeout(() => inp.focus(), 50);
+}
 
 function acoesTab(aba) {
     ['carteira','transacoes','adicionar','opcoes'].forEach(a => {
@@ -6873,7 +6969,8 @@ async function salvarOpcao() {
         return;
     }
 
-    const estratLabel = ESTRATEGIAS_CONFIG[estrategia]?.label || '';
+    const nomeCustom  = document.getElementById('opcPersonalizadoNome')?.value || '';
+    const estratLabel = opcMontarEstLabel(estrategia, nomeCustom);
     const nomeBase    = `${modalidade.toUpperCase()} ${ativo||ticker} Strike ${formatarMoeda(strike)}`;
     const nomeEst     = estratLabel ? `${nomeBase} | ${estratLabel}` : nomeBase;
     const nomeFinal   = vencimento  ? `${nomeEst} | venc:${vencimento}` : nomeEst;
@@ -6900,6 +6997,9 @@ async function salvarOpcao() {
     const selEst = document.getElementById('opcEstrategiaSelect');
     if (selEst) selEst.value = '';
     document.getElementById('opcEstrategia').value = '';
+    const inpPers = document.getElementById('opcPersonalizadoNome');
+    if (inpPers) inpPers.value = '';
+    toggleOpcPersonalizadoInput('opcEstrategiaSelect', 'opcPersonalizadoNome');
 
     document.getElementById('modalRegistrarOpcao').style.display = 'none';
     await carregarAcoes();
@@ -6947,6 +7047,7 @@ function preencherFiltrosOpcoes() {
         'Straddle (Compra)':    '🔁 Straddle Compra',
         'Bull Call Spread':     '📈 Bull Call Spread',
         'Bear Put Spread':      '📉 Bear Put Spread',
+        'Day Trade':            '⚡ Day Trade',
         'Personalizado':        '⚙️ Personalizado',
     };
     const supaEsts = listaOpcoes.map(o => {
@@ -7101,7 +7202,8 @@ function renderizarOpcoes() {
     }
     function getEstrategiaLabel(val) {
         const map = { 'STRANGLE':'🔀 Strangle', 'venda_coberta_call':'📊 Venda Coberta CALL',
-            'compra_call':'📈 Compra CALL', 'bear_put_spread':'📉 Bear Put Spread', 'personalizado':'⚙️ Personalizado' };
+            'compra_call':'📈 Compra CALL', 'bear_put_spread':'📉 Bear Put Spread',
+            'day_trade':'⚡ Day Trade', 'personalizado':'⚙️ Personalizado' };
         return map[val] || val || '—';
     }
 
@@ -7160,7 +7262,10 @@ function renderizarOpcoes() {
     tbody.innerHTML = '';
 
     if (!lista.length) {
-        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:#888;">Nenhuma opção encontrada</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:30px;color:#888;">Nenhuma opção encontrada</td></tr>`;
+        const chkAll = document.getElementById('opc-sel-all');
+        if (chkAll) chkAll.checked = false;
+        opcAtualizarContadorSel();
         return;
     }
 
@@ -7183,7 +7288,11 @@ function renderizarOpcoes() {
             : `<button onclick="this.closest('tr').remove()" title="Ocultar desta view" style="${btnStyle('128,128,128','128,128,128')}opacity:0.5;" title="Remove da view (dado estático)">✕</button>`;
 
         const tr = document.createElement('tr');
+        const chkCell = o.source === 'supabase'
+            ? `<td style="text-align:center;"><input type="checkbox" class="opc-row-check" data-id="${o.id}" onchange="opcAtualizarContadorSel()"></td>`
+            : `<td style="text-align:center;color:#555;font-size:10px;" title="Registro histórico (não pode ser excluído)">—</td>`;
         tr.innerHTML = `
+            ${chkCell}
             <td style="font-size:12px;color:#888;white-space:nowrap;">${o.dataBR}${sourceTag}</td>
             <td><span class="${o.tipo==='compra'?'badge-compra':'badge-venda'}">${o.tipo==='compra'?'▲ C':'▼ V'}</span></td>
             <td><span class="${isCall?'hist-badge-call':'hist-badge-put'}">${isCall?'CALL':'PUT'}</span></td>
@@ -7198,6 +7307,11 @@ function renderizarOpcoes() {
         `;
         tbody.appendChild(tr);
     });
+
+    // Reseta estado de seleção após re-renderizar
+    const chkAll = document.getElementById('opc-sel-all');
+    if (chkAll) { chkAll.checked = false; chkAll.indeterminate = false; }
+    opcAtualizarContadorSel();
 }
 
 // ══════════════════════════════
@@ -7320,10 +7434,9 @@ function parsePasteOpcoes() {
 async function confirmarPasteOpcoes() {
     if (!pastePendentes.length) return;
 
-    const estVal   = document.getElementById('pasteEstrategia')?.value || '';
-    const ESTS     = { 'STRANGLE':'🔀 Strangle', 'venda_coberta_call':'📊 Venda Coberta CALL',
-                       'compra_call':'📈 Compra CALL', 'bear_put_spread':'📉 Bear Put Spread', 'personalizado':'⚙️ Personalizado' };
-    const estLabel = ESTS[estVal] || '';
+    const estVal     = document.getElementById('pasteEstrategia')?.value || '';
+    const nomeCustom = document.getElementById('pastePersonalizadoNome')?.value || '';
+    const estLabel   = opcMontarEstLabel(estVal, nomeCustom);
 
     showLoading(true);
     let importados = 0, erros = 0;
@@ -9408,13 +9521,18 @@ function _dbFmtPeriodo(periodo) {
                 <button onclick="limparFiltrosTabOpcoes()" style="background:transparent;color:#888;border:1px solid var(--border-color);padding:6px 10px;border-radius:7px;font-size:12px;cursor:pointer;white-space:nowrap;transition:all 0.2s;" onmouseover="this.style.color='#dc3545';this.style.borderColor='#dc3545';" onmouseout="this.style.color='#888';this.style.borderColor='var(--border-color)';">✕ Limpar</button>
             </div>
         </div>
-        <div style="display:flex;align-items:center;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
             <h3 style="font-size:15px;margin:0;">📋 Opções Registradas</h3>
+            <span id="opc-sel-count" style="display:none;font-size:12px;color:#888;">0 selecionada(s)</span>
+            <button id="opc-btn-excluir-sel" onclick="excluirOpcoesSelecionadas()" style="display:none;margin-left:auto;background:linear-gradient(135deg,#7f0000,#dc3545);color:white;border:none;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;width:auto;">
+                🗑️ Excluir selecionadas
+            </button>
         </div>
         <div class="acoes-table-wrap">
             <table class="acoes-table">
                 <thead>
                     <tr>
+                        <th style="width:32px;text-align:center;"><input type="checkbox" id="opc-sel-all" onchange="opcToggleSelAll(this.checked)" title="Selecionar todas"></th>
                         <th>Data</th><th>C/V</th><th>Modal.</th><th>Estratégia</th><th>Código</th>
                         <th>Ativo</th><th>Strike</th><th>Prêmio</th><th>Qtd</th><th>Total</th><th>Ação</th>
                     </tr>
@@ -9616,15 +9734,20 @@ function _dbFmtPeriodo(periodo) {
             </div>
             <div class="acoes-form-group" style="grid-column:1/-1;">
                 <label>Estratégia</label>
-                <select id="opcEstrategiaSelect" onchange="document.getElementById('opcEstrategia').value=this.value"
+                <select id="opcEstrategiaSelect" onchange="document.getElementById('opcEstrategia').value=this.value; toggleOpcPersonalizadoInput('opcEstrategiaSelect','opcPersonalizadoNome');"
                     style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;">
                     <option value="">— Avulso (sem estratégia) —</option>
                     <option value="STRANGLE">🔀 Strangle</option>
                     <option value="venda_coberta_call">📊 Venda Coberta CALL</option>
                     <option value="compra_call">📈 Compra CALL</option>
                     <option value="bear_put_spread">📉 Bear Put Spread</option>
+                    <option value="day_trade">⚡ Day Trade</option>
                     <option value="personalizado">⚙️ Personalizado</option>
                 </select>
+                <div class="opc-personalizado-wrap" style="display:none;margin-top:8px;">
+                    <input type="text" id="opcPersonalizadoNome" placeholder="Nome da estratégia personalizada (ex: Butterfly, Collar...)"
+                        style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;box-sizing:border-box;">
+                </div>
             </div>
         </div>
 
@@ -9660,14 +9783,19 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
             <div class="acoes-form-group">
                 <label>Estratégia (opcional)</label>
-                <select id="pasteEstrategia" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;">
+                <select id="pasteEstrategia" onchange="toggleOpcPersonalizadoInput('pasteEstrategia','pastePersonalizadoNome');" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;">
                     <option value="">— Avulso —</option>
                     <option value="STRANGLE">🔀 Strangle</option>
                     <option value="venda_coberta_call">📊 Venda Coberta CALL</option>
                     <option value="compra_call">📈 Compra CALL</option>
                     <option value="bear_put_spread">📉 Bear Put Spread</option>
+                    <option value="day_trade">⚡ Day Trade</option>
                     <option value="personalizado">⚙️ Personalizado</option>
                 </select>
+                <div class="opc-personalizado-wrap" style="display:none;margin-top:8px;">
+                    <input type="text" id="pastePersonalizadoNome" placeholder="Nome personalizado..."
+                        style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;box-sizing:border-box;">
+                </div>
             </div>
             <div class="acoes-form-group">
                 <label>Ativo Objeto (opcional, auto-detecta)</label>
@@ -9771,14 +9899,19 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
             </div>
             <div class="acoes-form-group" style="grid-column:1/-1;">
                 <label>Estratégia</label>
-                <select id="editOpcEstrategia" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;">
+                <select id="editOpcEstrategia" onchange="toggleOpcPersonalizadoInput('editOpcEstrategia','editOpcPersonalizadoNome');" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;">
                     <option value="">— Avulso —</option>
                     <option value="STRANGLE">🔀 Strangle</option>
                     <option value="venda_coberta_call">📊 Venda Coberta CALL</option>
                     <option value="compra_call">📈 Compra CALL</option>
                     <option value="bear_put_spread">📉 Bear Put Spread</option>
+                    <option value="day_trade">⚡ Day Trade</option>
                     <option value="personalizado">⚙️ Personalizado</option>
                 </select>
+                <div class="opc-personalizado-wrap" style="display:none;margin-top:8px;">
+                    <input type="text" id="editOpcPersonalizadoNome" placeholder="Nome personalizado..."
+                        style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;box-sizing:border-box;">
+                </div>
             </div>
         </div>
 
