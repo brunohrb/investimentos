@@ -3062,8 +3062,8 @@ header {
     // =====================================================
     // SUPABASE
     // =====================================================
-    const SUPABASE_URL = 'https://fwhsjzkmnfxnlrvspkyr.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3aHNqemttbmZ4bmxydnNwa3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0Nzg3MzUsImV4cCI6MjA4MzA1NDczNX0.lT_tHpkxiOQl2HdsFc5VQr_xfkEvoGi101MaITnSLkc';
+    const SUPABASE_URL = 'https://hisbbtddpoxufvghxqtm.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhpc2JidGRkcG94dWZ2Z2h4cXRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyMDM0OTgsImV4cCI6MjA4Nzc3OTQ5OH0.r3VkLkBxeorkCYjB-y6WOchePdfRKsm5lWE1iSSYlrw';
     
     let USER_ID = null;
     let currentUser = null;
@@ -3254,7 +3254,7 @@ header {
 
     function abrirSetupSupabase() {
         const sql = `-- Execute este SQL no Supabase → SQL Editor
--- URL: https://supabase.com/dashboard/project/fwhsjzkmnfxnlrvspkyr/sql
+-- URL: https://supabase.com/dashboard/project/hisbbtddpoxufvghxqtm/sql
 
 CREATE TABLE IF NOT EXISTS bhr_perfis (
   user_id TEXT PRIMARY KEY,
@@ -3320,7 +3320,7 @@ CREATE POLICY "user_own" ON bhr_scans      FOR ALL USING (auth.uid()::text = use
                     <button onclick="this.closest('div[style*=fixed]').remove()" style="background:none;border:none;color:var(--text-muted);font-size:1.8rem;cursor:pointer;">×</button>
                 </div>
                 <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;">
-                    1. Acesse <a href="https://supabase.com/dashboard/project/fwhsjzkmnfxnlrvspkyr/sql" target="_blank" style="color:var(--primary);">supabase.com → SQL Editor</a><br>
+                    1. Acesse <a href="https://supabase.com/dashboard/project/hisbbtddpoxufvghxqtm/sql" target="_blank" style="color:var(--primary);">supabase.com → SQL Editor</a><br>
                     2. Cole o SQL abaixo e clique em <strong>Run</strong><br>
                     3. Volte e recarregue a página
                 </p>
