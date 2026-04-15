@@ -705,12 +705,12 @@
 
     <!-- API KEY -->
     <div class="panel">
-      <div class="panel-header"><span class="dot" style="background:var(--accent)"></span> Chave da API OpenAI</div>
+      <div class="panel-header"><span class="dot" style="background:var(--accent)"></span> Chave da API Claude</div>
       <div class="panel-body">
         <div class="field">
           <label>Sua API Key</label>
           <div style="position:relative">
-            <input type="password" id="apiKeyInput" placeholder="sk-proj-..."
+            <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..."
               style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 40px 9px 12px;outline:none;transition:border-color 0.2s;"
               oninput="checkApiKey()"
               onfocus="this.style.borderColor='var(--gold)'"
@@ -718,7 +718,7 @@
             <button onclick="toggleApiVis()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;" id="visBtn">👁</button>
           </div>
           <div id="apiStatus" style="font-size:11px;margin-top:6px;color:var(--text3)">
-            Cole sua chave em <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--gold);text-decoration:none">platform.openai.com/api-keys</a>
+            Cole sua chave em <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--gold);text-decoration:none">console.anthropic.com/settings/keys</a>
           </div>
         </div>
       </div>
@@ -979,25 +979,30 @@ Seja específico, use linguagem profissional mas acessível, e inclua dicas prá
     setTimeout(() => resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 
     try {
-      const OPENAI_KEY = document.getElementById('apiKeyInput').value.trim();
-      if (!OPENAI_KEY) { toast('⚠️ Cole sua chave da OpenAI primeiro!'); btn.disabled = false; btn.classList.remove('loading'); return; }
+      const CLAUDE_KEY = document.getElementById('apiKeyInput').value.trim();
+      if (!CLAUDE_KEY) { toast('⚠️ Cole sua chave da Claude primeiro!'); btn.disabled = false; btn.classList.remove('loading'); return; }
 
-      const PROXY = 'https://corsproxy.io/?url=https://api.openai.com/v1/chat/completions';
-      const response = await fetch(PROXY, {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OPENAI_KEY}`
+          'x-api-key': CLAUDE_KEY,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
         },
         body: JSON.stringify({
-          model: 'gpt-4o',
-          max_tokens: 1500,
+          model: 'claude-sonnet-4-6',
+          max_tokens: 2000,
           messages: [{
             role: 'user',
             content: [
               {
-                type: 'image_url',
-                image_url: { url: `data:${imageType};base64,${imageBase64}` }
+                type: 'image',
+                source: {
+                  type: 'base64',
+                  media_type: imageType,
+                  data: imageBase64
+                }
               },
               { type: 'text', text: prompt }
             ]
@@ -1005,13 +1010,16 @@ Seja específico, use linguagem profissional mas acessível, e inclua dicas prá
         })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error?.message || `API error: ${response.status}`);
+        throw new Error(data?.error?.message || `API error: ${response.status}`);
       }
 
-      const data = await response.json();
-      const text = data.choices?.[0]?.message?.content || '';
+      const text = (data.content || [])
+        .filter(c => c.type === 'text')
+        .map(c => c.text)
+        .join('\n') || '';
 
       // Render with formatting
       resultContent.innerHTML = formatResponse(text);
@@ -1047,20 +1055,20 @@ Seja específico, use linguagem profissional mas acessível, e inclua dicas prá
   function checkApiKey() {
     const val = document.getElementById('apiKeyInput').value.trim();
     const status = document.getElementById('apiStatus');
-    if (val.startsWith('sk-') && val.length > 20) {
+    if (val.startsWith('sk-ant-') && val.length > 20) {
       status.innerHTML = '<span style="color:var(--green)">✓ Chave detectada</span>';
       // save to sessionStorage
-      sessionStorage.setItem('oai_key', val);
+      sessionStorage.setItem('anthropic_key', val);
     } else if (val.length > 0) {
       status.innerHTML = '<span style="color:var(--accent)">⚠ Formato inválido</span>';
     } else {
-      status.innerHTML = 'Cole sua chave em <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--gold);text-decoration:none">platform.openai.com/api-keys</a>';
+      status.innerHTML = 'Cole sua chave em <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--gold);text-decoration:none">console.anthropic.com/settings/keys</a>';
     }
   }
 
   // restore key from session
   window.addEventListener('DOMContentLoaded', () => {
-    const saved = sessionStorage.getItem('oai_key');
+    const saved = sessionStorage.getItem('anthropic_key');
     if (saved) {
       document.getElementById('apiKeyInput').value = saved;
       checkApiKey();
