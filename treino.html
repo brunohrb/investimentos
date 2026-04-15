@@ -2214,8 +2214,8 @@ header {
             <div id="loginForm">
                 <form onsubmit="handleLogin(event)">
                     <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="loginEmail" required placeholder="seu@email.com" autocomplete="email">
+                        <label>Nome</label>
+                        <input type="text" id="loginEmail" required placeholder="seu nome" autocomplete="username" autocapitalize="none" spellcheck="false">
                     </div>
                     <div class="form-group">
                         <label>Senha</label>
@@ -2223,7 +2223,6 @@ header {
                             <input type="password" id="loginPassword" required placeholder="••••••••" minlength="6" autocomplete="current-password">
                             <button type="button" class="toggle-pass-btn" onclick="togglePassword('loginPassword', this)" title="Mostrar/ocultar senha">👁️</button>
                         </div>
-                        <button type="button" class="forgot-link" onclick="handleForgotPassword()">Esqueceu a senha?</button>
                     </div>
                     <button type="submit" class="btn btn-primary btn-block" id="btnLogin">🔓 Entrar</button>
                 </form>
@@ -2232,8 +2231,8 @@ header {
             <div id="signupForm" style="display:none;">
                 <form onsubmit="handleSignup(event)">
                     <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="signupEmail" required placeholder="seu@email.com" autocomplete="email">
+                        <label>Nome</label>
+                        <input type="text" id="signupEmail" required placeholder="seu nome" autocomplete="username" autocapitalize="none" spellcheck="false">
                     </div>
                     <div class="form-group">
                         <label>Senha</label>
@@ -3063,8 +3062,8 @@ header {
     // =====================================================
     // SUPABASE
     // =====================================================
-    const SUPABASE_URL = 'https://fwhsjzkmnfxnlrvspkyr.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3aHNqemttbmZ4bmxydnNwa3lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0Nzg3MzUsImV4cCI6MjA4MzA1NDczNX0.lT_tHpkxiOQl2HdsFc5VQr_xfkEvoGi101MaITnSLkc';
+    const SUPABASE_URL = 'https://hisbbtddpoxufvghxqtm.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhpc2JidGRkcG94dWZ2Z2h4cXRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyMDM0OTgsImV4cCI6MjA4Nzc3OTQ5OH0.r3VkLkBxeorkCYjB-y6WOchePdfRKsm5lWE1iSSYlrw';
     
     let USER_ID = null;
     let currentUser = null;
@@ -3076,7 +3075,9 @@ header {
             return;
         }
         try {
-            sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+                db: { schema: 'treino' }
+            });
         } catch(e) {
             console.error('❌ Erro ao conectar Supabase:', e);
         }
@@ -3119,10 +3120,20 @@ header {
         if (btnSignup) btnSignup.disabled = show;
     }
 
+    // Converte nome em "email interno" (Supabase Auth exige email)
+    function nomeParaEmail(nome) {
+        const limpo = (nome || '').toString().trim().toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+            .replace(/[^a-z0-9]/g, ''); // só letras/números
+        return limpo ? `${limpo}@bhr.treino` : '';
+    }
+
     async function handleLogin(e) {
         e.preventDefault();
-        const email = document.getElementById('loginEmail').value;
+        const nome = document.getElementById('loginEmail').value;
+        const email = nomeParaEmail(nome);
         const password = document.getElementById('loginPassword').value;
+        if (!email) { showAuthStatus('❌ Digite um nome válido', 'error'); return; }
         setAuthLoading(true); showAuthStatus('Entrando...', 'info');
         try {
             const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
@@ -3131,15 +3142,17 @@ header {
             showAuthStatus('✅ Login realizado! Carregando...', 'success');
             setTimeout(() => hideAuthScreen(), 1000);
         } catch (error) {
-            showAuthStatus('❌ Email ou senha incorretos', 'error'); setAuthLoading(false);
+            showAuthStatus('❌ Nome ou senha incorretos', 'error'); setAuthLoading(false);
         }
     }
 
     async function handleSignup(e) {
         e.preventDefault();
-        const email = document.getElementById('signupEmail').value;
+        const nome = document.getElementById('signupEmail').value;
+        const email = nomeParaEmail(nome);
         const password = document.getElementById('signupPassword').value;
         const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+        if (!email) { showAuthStatus('❌ Digite um nome válido', 'error'); return; }
         if (password !== passwordConfirm) { showAuthStatus('❌ As senhas não conferem!', 'error'); return; }
         setAuthLoading(true); showAuthStatus('Criando sua conta...', 'info');
         try {
@@ -3241,7 +3254,7 @@ header {
 
     function abrirSetupSupabase() {
         const sql = `-- Execute este SQL no Supabase → SQL Editor
--- URL: https://supabase.com/dashboard/project/fwhsjzkmnfxnlrvspkyr/sql
+-- URL: https://supabase.com/dashboard/project/hisbbtddpoxufvghxqtm/sql
 
 CREATE TABLE IF NOT EXISTS bhr_perfis (
   user_id TEXT PRIMARY KEY,
@@ -3307,7 +3320,7 @@ CREATE POLICY "user_own" ON bhr_scans      FOR ALL USING (auth.uid()::text = use
                     <button onclick="this.closest('div[style*=fixed]').remove()" style="background:none;border:none;color:var(--text-muted);font-size:1.8rem;cursor:pointer;">×</button>
                 </div>
                 <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;">
-                    1. Acesse <a href="https://supabase.com/dashboard/project/fwhsjzkmnfxnlrvspkyr/sql" target="_blank" style="color:var(--primary);">supabase.com → SQL Editor</a><br>
+                    1. Acesse <a href="https://supabase.com/dashboard/project/hisbbtddpoxufvghxqtm/sql" target="_blank" style="color:var(--primary);">supabase.com → SQL Editor</a><br>
                     2. Cole o SQL abaixo e clique em <strong>Run</strong><br>
                     3. Volte e recarregue a página
                 </p>
@@ -5686,26 +5699,9 @@ Use emojis, seja direto e motivador!`;
         }
     }
 
-    // Esqueceu a senha
+    // Esqueceu a senha — como não usamos email, reset é via SQL no Supabase
     async function handleForgotPassword() {
-        const email = document.getElementById('loginEmail').value.trim();
-        if (!email) {
-            showAuthStatus('Digite seu email acima para redefinir a senha.', 'info');
-            return;
-        }
-        setAuthLoading(true);
-        showAuthStatus('Enviando email de redefinição...', 'info');
-        try {
-            const { error } = await sbClient.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.href
-            });
-            if (error) throw error;
-            showAuthStatus('✅ Email enviado! Verifique sua caixa de entrada.', 'success');
-        } catch (err) {
-            showAuthStatus('❌ ' + err.message, 'error');
-        } finally {
-            setAuthLoading(false);
-        }
+        showAuthStatus('Para redefinir a senha, peça ao admin rodar o SQL de reset no Supabase.', 'info');
     }
 
     // Selecionar modelo de IA
