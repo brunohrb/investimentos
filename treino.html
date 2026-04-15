@@ -3060,6 +3060,25 @@ header {
 
     <script>
     // =====================================================
+    // LIMPEZA AUTOMÁTICA: service workers antigos + caches
+    // (evita que um sw antigo intercepte o login do Supabase)
+    // =====================================================
+    (async () => {
+        try {
+            if ('serviceWorker' in navigator) {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                for (const r of regs) await r.unregister();
+            }
+            if ('caches' in window) {
+                const keys = await caches.keys();
+                await Promise.all(keys.map(k => caches.delete(k)));
+            }
+        } catch (e) {
+            console.warn('Limpeza de SW/caches falhou:', e);
+        }
+    })();
+
+    // =====================================================
     // SUPABASE
     // =====================================================
     const SUPABASE_URL = 'https://hisbbtddpoxufvghxqtm.supabase.co';
