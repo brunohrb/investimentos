@@ -992,7 +992,7 @@ Seja específico, use linguagem profissional mas acessível, e inclua dicas prá
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
-          max_tokens: 2000,
+          max_tokens: 8000,
           messages: [{
             role: 'user',
             content: [
@@ -1056,9 +1056,8 @@ Seja específico, use linguagem profissional mas acessível, e inclua dicas prá
     const val = document.getElementById('apiKeyInput').value.trim();
     const status = document.getElementById('apiStatus');
     if (val.startsWith('sk-ant-') && val.length > 20) {
-      status.innerHTML = '<span style="color:var(--green)">✓ Chave detectada</span>';
-      // save to sessionStorage
-      sessionStorage.setItem('anthropic_key', val);
+      status.innerHTML = '<span style="color:var(--green)">✓ Chave salva (persistente)</span>';
+      localStorage.setItem('anthropic_key', val);
     } else if (val.length > 0) {
       status.innerHTML = '<span style="color:var(--accent)">⚠ Formato inválido</span>';
     } else {
@@ -1066,9 +1065,9 @@ Seja específico, use linguagem profissional mas acessível, e inclua dicas prá
     }
   }
 
-  // restore key from session
+  // restore key from localStorage (persists across browser sessions)
   window.addEventListener('DOMContentLoaded', () => {
-    const saved = sessionStorage.getItem('anthropic_key');
+    const saved = localStorage.getItem('anthropic_key');
     if (saved) {
       document.getElementById('apiKeyInput').value = saved;
       checkApiKey();
