@@ -2,7 +2,7 @@
   "name": "Investimentos BEM",
   "short_name": "Investimentos",
   "description": "Sistema de Fechamento Mensal de Investimentos",
-  "start_url": "investimentos.html",
+  "start_url": "index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
