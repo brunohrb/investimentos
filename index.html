@@ -6182,15 +6182,17 @@ function delCallCoberta(ticker) {
 // Soma ganhos (vendas) - gastos (compras) de todas as opções
 // vinculadas a um ticker, combinando Supabase + histórico estático.
 function calcularLucroOpcoesTicker(ticker) {
-    let ganhos = 0, gastos = 0;
+    let ganhos = 0, gastos = 0, taxas = 0;
 
     // Supabase: options are stored with nome like "CALL PETR4 Strike..."
     listaOpcoes.forEach(o => {
-        const ativoOpc = ((o.nome?.split(' ') || [])[1] || o.ticker?.slice(0,4) || '').toUpperCase();
+        const nomeSemTaxa = removerMarcadorTaxa(o.nome);
+        const ativoOpc = ((nomeSemTaxa.split(' ') || [])[1] || o.ticker?.slice(0,4) || '').toUpperCase();
         if (ativoOpc !== ticker.toUpperCase()) return;
         const total = Math.abs(o.preco_unitario || 0) * Math.abs(o.quantidade || 0);
         if (o.tipo === 'venda') ganhos += total;
         else                   gastos += total;
+        taxas += Math.abs(extrairTaxaOpcao(o.nome));
     });
 
     // Histórico estático (r[0]=V/C, r[4]=ticker, r[5]=prêmio, r[6]=qtd)
@@ -6203,7 +6205,7 @@ function calcularLucroOpcoesTicker(ticker) {
         });
     }
 
-    return ganhos - gastos; // positivo = ganhou com opções
+    return ganhos - gastos - taxas; // positivo = ganhou com opções (já descontando taxas)
 }
 
 // ── Renderizar Carteira ─────────────────────────
@@ -6635,7 +6637,7 @@ function abrirEditarOpcao(id) {
     const op = listaOpcoes.find(o => o.id === id);
     if (!op) return;
 
-    const nomeParts  = op.nome?.split('|') || [];
+    const nomeParts  = removerMarcadorTaxa(op.nome).split('|');
     const nomeBase   = nomeParts[0]?.trim() || '';
     const estVal     = nomeParts[1]?.trim() || '';
     const isCall     = nomeBase.startsWith('CALL');
@@ -6682,7 +6684,11 @@ async function salvarEdicaoOpcao() {
         'compra_call':'📈 Compra CALL', 'bear_put_spread':'📉 Bear Put Spread', 'personalizado':'⚙️ Personalizado' };
     const estLabel = ESTS[estVal] || '';
     const nomeBase = `${modalidade.toUpperCase()} ${ativo||ticker} Strike ${formatarMoeda(strike)}`;
-    const nome     = estLabel ? `${nomeBase} | ${estLabel}` : nomeBase;
+    const nomeComEst = estLabel ? `${nomeBase} | ${estLabel}` : nomeBase;
+    // Preserva a taxa original (não editável nesse modal)
+    const opOriginal = listaOpcoes.find(o => o.id === id);
+    const taxaOriginal = opOriginal ? extrairTaxaOpcao(opOriginal.nome) : 0;
+    const nome = anexarTaxaAoNome(nomeComEst, taxaOriginal);
 
     showLoading(true);
     const { error } = await sb.from('acoes_transacoes').update({
@@ -6950,7 +6956,7 @@ function preencherFiltrosOpcoes() {
         'Personalizado':        '⚙️ Personalizado',
     };
     const supaEsts = listaOpcoes.map(o => {
-        const parts = o.nome?.split('|') || [];
+        const parts = removerMarcadorTaxa(o.nome).split('|');
         const raw = (parts[1] || '').trim();
         return raw.toLowerCase().includes('strangle') ? 'STRANGLE' : raw;
     }).filter(Boolean);
@@ -6995,13 +7001,15 @@ function atualizarCardsOpcoes() {
 
     // ── Opções: Supabase ──
     const supaOpc = listaOpcoes.map(o => {
-        const _nomeParts = o.nome?.split('|') || [];
+        const _nomeSemTaxa = removerMarcadorTaxa(o.nome);
+        const _nomeParts = _nomeSemTaxa.split('|');
         const _rawEst    = (_nomeParts[1] || '').trim();
         const _estrategia = _rawEst.toLowerCase().includes('strangle') ? 'STRANGLE' : _rawEst;
         return {
             tipo:      o.tipo,
             valor:     Math.abs(o.preco_unitario || 0) * Math.abs(o.quantidade || 0),
-            ativo:     ((o.nome?.split(' ') || [])[1] || o.ticker?.slice(0,4) || '').toUpperCase(),
+            taxa:      extrairTaxaOpcao(o.nome),
+            ativo:     ((_nomeSemTaxa.split(' ') || [])[1] || o.ticker?.slice(0,4) || '').toUpperCase(),
             data:      o.data || '',
             modal:     (o.modalidade || '').toUpperCase(),
             estrategia: _estrategia
@@ -7032,7 +7040,7 @@ function atualizarCardsOpcoes() {
     if (filtroAte)        opcoes = opcoes.filter(o => o.data <= filtroAte);
 
     // Usa .net quando disponível (Strangle com total real), senão usa tipo + valor
-    let ganhos = 0, gastos = 0;
+    let ganhos = 0, gastos = 0, taxasTotais = 0;
     opcoes.forEach(o => {
         if (o.net !== undefined) {
             if (o.net >= 0) ganhos += o.net;
@@ -7041,10 +7049,11 @@ function atualizarCardsOpcoes() {
             if (o.tipo === 'venda') ganhos += o.valor;
             else                    gastos += o.valor;
         }
+        taxasTotais += Math.abs(o.taxa || 0);
     });
 
     // ── Cálculos finais ──
-    const lucro    = ganhos - gastos;
+    const lucro    = ganhos - gastos - taxasTotais;
     const rentab   = totalInvestido > 0 ? (lucro / totalInvestido) * 100 : 0;
     const pmAjust  = Math.max(0, totalInvestido - Math.max(0, lucro));
 
@@ -7108,7 +7117,9 @@ function renderizarOpcoes() {
     // ── Entradas do Supabase ──
     let supaLista = listaOpcoes.map(o => {
         const isCall    = o.nome?.startsWith('CALL');
-        const nomeParts = o.nome?.split('|');
+        const taxa      = extrairTaxaOpcao(o.nome);
+        const nomeSemTaxa = removerMarcadorTaxa(o.nome);
+        const nomeParts = nomeSemTaxa.split('|');
         const nomeBase  = nomeParts?.[0]?.trim() || '';
         const rawEstVal = nomeParts?.[1]?.trim() || '';
         const estVal    = rawEstVal.toLowerCase().includes('strangle') ? 'STRANGLE' : (rawEstVal || (isCall ? '📊 Venda Coberta CALL' : 'Venda Coberta de PUT'));
@@ -7122,6 +7133,7 @@ function renderizarOpcoes() {
             modal: isCall ? 'call' : 'put',
             codigo: o.ticker, ativo,
             premio: o.preco_unitario, qtd: o.quantidade,
+            taxa,
             strikeStr, estrategia: estVal, estrategiaLabel: getEstrategiaLabel(estVal)
         };
     });
@@ -7160,14 +7172,20 @@ function renderizarOpcoes() {
     tbody.innerHTML = '';
 
     if (!lista.length) {
-        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:#888;">Nenhuma opção encontrada</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:30px;color:#888;">Nenhuma opção encontrada</td></tr>`;
+        atualizarBulkBarOpcoes();
         return;
     }
 
     lista.forEach(o => {
         const isCall = o.modal === 'call';
         const hide   = privacidadeAtiva ? 'hidden-value' : '';
-        const total  = (o.tipo === 'venda' ? 1 : -1) * Math.abs(o.premio) * Math.abs(o.qtd);
+        const bruto  = (o.tipo === 'venda' ? 1 : -1) * Math.abs(o.premio) * Math.abs(o.qtd);
+        const taxa   = Math.abs(o.taxa || 0);
+        const total  = bruto - taxa;
+        const taxaHint = taxa > 0
+            ? `<span style="font-size:9px;color:#888;display:block;">taxa −${formatarMoeda(taxa)}</span>`
+            : '';
         const estBadge = o.estrategia === 'STRANGLE'
             ? `<span class="hist-badge-strangle" style="font-size:10px;">Strangle</span>`
             : o.estrategiaLabel !== '—' && o.estrategiaLabel
@@ -7181,9 +7199,13 @@ function renderizarOpcoes() {
             ? `<button onclick="abrirEditarOpcao('${o.id}')" title="Editar" style="${btnStyle('0,123,255','0,123,255')}margin-right:4px;">✏️</button>`
               + `<button onclick="excluirOpcao('${o.id}')" title="Excluir" style="${btnStyle('220,53,69','220,53,69')}">🗑️</button>`
             : `<button onclick="this.closest('tr').remove()" title="Ocultar desta view" style="${btnStyle('128,128,128','128,128,128')}opacity:0.5;" title="Remove da view (dado estático)">✕</button>`;
+        const checkbox = o.source === 'supabase'
+            ? `<input type="checkbox" class="opc-row-check" data-id="${o.id}" onchange="atualizarBulkBarOpcoes()">`
+            : '';
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
+            <td style="text-align:center;">${checkbox}</td>
             <td style="font-size:12px;color:#888;white-space:nowrap;">${o.dataBR}${sourceTag}</td>
             <td><span class="${o.tipo==='compra'?'badge-compra':'badge-venda'}">${o.tipo==='compra'?'▲ C':'▼ V'}</span></td>
             <td><span class="${isCall?'hist-badge-call':'hist-badge-put'}">${isCall?'CALL':'PUT'}</span></td>
@@ -7193,11 +7215,46 @@ function renderizarOpcoes() {
             <td class="${hide}" style="font-size:12px;">${o.strikeStr}</td>
             <td class="${hide}" style="font-weight:600;color:${o.tipo==='venda'?'#28a745':'#dc3545'}">${o.tipo==='venda'?'+':'−'}${formatarMoeda(Math.abs(o.premio))}</td>
             <td class="${hide}">${o.qtd.toLocaleString('pt-BR')}</td>
-            <td class="${hide}"><strong style="color:${total>=0?'#28a745':'#dc3545'}">${total>=0?'+':'−'}${formatarMoeda(Math.abs(total))}</strong></td>
+            <td class="${hide}"><strong style="color:${total>=0?'#28a745':'#dc3545'}">${total>=0?'+':'−'}${formatarMoeda(Math.abs(total))}</strong>${taxaHint}</td>
             <td>${actionBtn}</td>
         `;
         tbody.appendChild(tr);
     });
+    atualizarBulkBarOpcoes();
+}
+
+// ── Seleção em lote para exclusão ────────────────────
+function toggleSelecionarTodasOpcoes(checked) {
+    document.querySelectorAll('.opc-row-check').forEach(cb => { cb.checked = checked; });
+    atualizarBulkBarOpcoes();
+}
+
+function atualizarBulkBarOpcoes() {
+    const checks = document.querySelectorAll('.opc-row-check');
+    const marcadas = [...checks].filter(cb => cb.checked);
+    const bar = document.getElementById('opc-bulk-bar');
+    const lbl = document.getElementById('opc-bulk-count');
+    const all = document.getElementById('opc-check-all');
+    if (bar) bar.style.display = marcadas.length ? 'flex' : 'none';
+    if (lbl) lbl.textContent = `${marcadas.length} selecionada(s)`;
+    if (all) {
+        all.checked = checks.length > 0 && marcadas.length === checks.length;
+        all.indeterminate = marcadas.length > 0 && marcadas.length < checks.length;
+    }
+}
+
+async function excluirOpcoesSelecionadas() {
+    const ids = [...document.querySelectorAll('.opc-row-check:checked')].map(cb => cb.dataset.id).filter(Boolean);
+    if (!ids.length) return;
+    if (!confirm(`Excluir ${ids.length} opção(ões) selecionada(s)? Esta ação não pode ser desfeita.`)) return;
+
+    showLoading(true);
+    const { error } = await sb.from('acoes_transacoes').delete().in('id', ids);
+    showLoading(false);
+
+    if (error) { alert('Erro ao excluir: ' + error.message); return; }
+    await carregarAcoes();
+    carregarOpcoes();
 }
 
 // ══════════════════════════════
@@ -7223,6 +7280,20 @@ function detectModalOpcao(cod) {
     return 'ABCDEFGHIJKL'.includes(l) ? 'call' : 'put';
 }
 
+// Taxa (corretagem + emolumentos) fica embutida no campo `nome` como `| TAXA:X.XX`
+const TAXA_REGEX = /\s*\|\s*TAXA:([\d.]+)/i;
+function extrairTaxaOpcao(nome) {
+    const m = (nome || '').match(TAXA_REGEX);
+    return m ? (parseFloat(m[1]) || 0) : 0;
+}
+function removerMarcadorTaxa(nome) {
+    return (nome || '').replace(TAXA_REGEX, '');
+}
+function anexarTaxaAoNome(nome, taxa) {
+    const base = removerMarcadorTaxa(nome);
+    return taxa > 0 ? `${base} | TAXA:${taxa.toFixed(4)}` : base;
+}
+
 function parsePremio(s) {
     // aceita "0,02" ou "0.02" ou "1.234,56" ou negativos
     s = (s || '').trim().replace(/\s/g, '');
@@ -7239,6 +7310,7 @@ function parsePremio(s) {
 function parsePasteOpcoes() {
     const raw = document.getElementById('pasteOpctextarea')?.value || '';
     const ativoExtra = document.getElementById('pasteAtivo')?.value.trim().toUpperCase() || '';
+    const taxaTotal  = Math.abs(parsePremio(document.getElementById('pasteTaxa')?.value || ''));
     const tbody = document.getElementById('pastePreviewBody');
     const previewArea = document.getElementById('pastePreviewArea');
     if (!tbody || !previewArea) return;
@@ -7296,25 +7368,48 @@ function parsePasteOpcoes() {
         const ativo   = ATIVO_MAP_TICKER[base] || ativoExtra || base + '3';
         const total   = premio * qtd;
 
-        pastePendentes.push({ tipo, ticker: cod, preco_unitario: premio, quantidade: qtd, modal, ativo, data: dataISO, dataBR });
+        pastePendentes.push({ tipo, ticker: cod, preco_unitario: premio, quantidade: qtd, modal, ativo, data: dataISO, dataBR, bruto: total, taxa: 0 });
+    });
 
+    // Distribui a taxa total proporcionalmente ao valor bruto de cada operação
+    const somaBruto = pastePendentes.reduce((s, p) => s + p.bruto, 0);
+    if (taxaTotal > 0 && somaBruto > 0) {
+        let acc = 0;
+        pastePendentes.forEach((p, i) => {
+            if (i === pastePendentes.length - 1) {
+                p.taxa = Math.max(0, +(taxaTotal - acc).toFixed(4));
+            } else {
+                p.taxa = +((p.bruto / somaBruto) * taxaTotal).toFixed(4);
+                acc += p.taxa;
+            }
+        });
+    }
+
+    // Renderiza o preview já com a taxa por linha
+    pastePendentes.forEach((p, idx) => {
+        const tipo = p.tipo, modal = p.modal, cod = p.ticker;
+        const liquido = (tipo === 'venda' ? p.bruto : -p.bruto) - p.taxa;
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);">${pastePendentes.length}</td>
-            <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);font-size:11px;color:#888;">${dataBR}</td>
+            <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);">${idx + 1}</td>
+            <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);font-size:11px;color:#888;">${p.dataBR}</td>
             <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);"><span class="${tipo==='compra'?'badge-compra':'badge-venda'}">${tipo==='compra'?'▲ C':'▼ V'}</span></td>
             <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);"><span class="${modal==='call'?'hist-badge-call':'hist-badge-put'}">${modal.toUpperCase()}</span></td>
             <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);font-family:monospace;font-size:11px;font-weight:bold;">${cod}</td>
-            <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);">${formatarMoeda(premio)}</td>
-            <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);">${qtd.toLocaleString('pt-BR')}</td>
-            <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);font-weight:bold;color:${total>=0?'#28a745':'#dc3545'}">${formatarMoeda(total)}</td>
+            <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);">${formatarMoeda(p.preco_unitario)}</td>
+            <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);">${p.quantidade.toLocaleString('pt-BR')}</td>
+            <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);color:#dc3545;">${p.taxa > 0 ? '−' + formatarMoeda(p.taxa) : '—'}</td>
+            <td style="padding:5px 8px;border-bottom:1px solid var(--border-color);font-weight:bold;color:${liquido>=0?'#28a745':'#dc3545'}">${formatarMoeda(liquido)}</td>
         `;
         tbody.appendChild(tr);
     });
 
     previewArea.style.display = pastePendentes.length > 0 ? 'block' : 'none';
     const lbl = document.getElementById('pastePreviewLabel');
-    if (lbl) lbl.textContent = `${pastePendentes.length} operação(ões) encontrada(s)`;
+    if (lbl) {
+        const taxaTxt = taxaTotal > 0 ? ` · taxa total −${formatarMoeda(taxaTotal)}` : '';
+        lbl.textContent = `${pastePendentes.length} operação(ões) encontrada(s)${taxaTxt}`;
+    }
 }
 
 async function confirmarPasteOpcoes() {
@@ -7330,7 +7425,8 @@ async function confirmarPasteOpcoes() {
 
     for (const op of pastePendentes) {
         const nomeBase = `${op.modal.toUpperCase()} ${op.ativo} Strike R$ 0,00`;
-        const nome     = estLabel ? `${nomeBase} | ${estLabel}` : nomeBase;
+        const nomeComEst = estLabel ? `${nomeBase} | ${estLabel}` : nomeBase;
+        const nome = anexarTaxaAoNome(nomeComEst, op.taxa || 0);
 
         const { error } = await sb.from('acoes_transacoes').insert([{
             ticker:         op.ticker,
@@ -7354,6 +7450,8 @@ async function confirmarPasteOpcoes() {
     pastePendentes = [];
     const ta = document.getElementById('pasteOpctextarea');
     if (ta) ta.value = '';
+    const tx = document.getElementById('pasteTaxa');
+    if (tx) tx.value = '';
     const pa = document.getElementById('pastePreviewArea');
     if (pa) pa.style.display = 'none';
 
@@ -9435,13 +9533,21 @@ function _dbFmtPeriodo(periodo) {
                 <button onclick="limparFiltrosTabOpcoes()" style="background:transparent;color:#888;border:1px solid var(--border-color);padding:6px 10px;border-radius:7px;font-size:12px;cursor:pointer;white-space:nowrap;transition:all 0.2s;" onmouseover="this.style.color='#dc3545';this.style.borderColor='#dc3545';" onmouseout="this.style.color='#888';this.style.borderColor='var(--border-color)';">✕ Limpar</button>
             </div>
         </div>
-        <div style="display:flex;align-items:center;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
             <h3 style="font-size:15px;margin:0;">📋 Opções Registradas</h3>
+            <div id="opc-bulk-bar" style="display:none;align-items:center;gap:8px;margin-left:auto;">
+                <span id="opc-bulk-count" style="font-size:12px;color:#888;"></span>
+                <button onclick="excluirOpcoesSelecionadas()"
+                    style="background:linear-gradient(135deg,#7f0000,#dc3545);color:white;border:none;padding:7px 12px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;width:auto;">
+                    🗑️ Excluir selecionadas
+                </button>
+            </div>
         </div>
         <div class="acoes-table-wrap">
             <table class="acoes-table">
                 <thead>
                     <tr>
+                        <th style="width:28px;"><input type="checkbox" id="opc-check-all" onchange="toggleSelecionarTodasOpcoes(this.checked)" title="Selecionar todas"></th>
                         <th>Data</th><th>C/V</th><th>Modal.</th><th>Estratégia</th><th>Código</th>
                         <th>Ativo</th><th>Strike</th><th>Prêmio</th><th>Qtd</th><th>Total</th><th>Ação</th>
                     </tr>
@@ -9700,6 +9806,12 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
                 <label>Ativo Objeto (opcional, auto-detecta)</label>
                 <input type="text" id="pasteAtivo" placeholder="ex: PETR4 (auto se vazio)" oninput="this.value=this.value.toUpperCase()" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;box-sizing:border-box;">
             </div>
+            <div class="acoes-form-group" style="grid-column:1/-1;">
+                <label>Taxa total do lote — R$ (corretagem + emolumentos)</label>
+                <input type="text" id="pasteTaxa" placeholder="0,00" oninput="parsePasteOpcoes()"
+                    style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:14px;box-sizing:border-box;">
+                <small style="font-size:11px;color:#888;">Distribuída proporcionalmente entre as operações. Reduz o resultado (lucro).</small>
+            </div>
         </div>
 
         <textarea id="pasteOpctextarea" rows="8" placeholder="Cole aqui as linhas de operações..." oninput="parsePasteOpcoes()"
@@ -9723,6 +9835,7 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
                         <th style="padding:7px 10px;text-align:left;border-bottom:1px solid var(--border-color);">Código</th>
                         <th style="padding:7px 10px;text-align:left;border-bottom:1px solid var(--border-color);">Prêmio</th>
                         <th style="padding:7px 10px;text-align:left;border-bottom:1px solid var(--border-color);">Qtd</th>
+                        <th style="padding:7px 10px;text-align:left;border-bottom:1px solid var(--border-color);">Taxa</th>
                         <th style="padding:7px 10px;text-align:left;border-bottom:1px solid var(--border-color);">Total</th>
                     </tr></thead>
                     <tbody id="pastePreviewBody"></tbody>
