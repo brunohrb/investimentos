@@ -720,6 +720,8 @@ body {
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
         #configModal { z-index: 999999 !important; }
+        #configModal .modal-content { max-height: 90vh; overflow-y: auto; }
+        #listaBancosConfig { max-height: 40vh; overflow-y: auto; padding-right: 4px; }
         .modal-content { background: var(--card-bg); padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; position: relative; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
         .close-modal { cursor: pointer; font-size: 24px; }
@@ -2123,7 +2125,7 @@ header .header-actions .btn-carteiras {
 </button>
 
 <button onclick="toggleModoExcluirBanco()" class="btn-secondary" style="margin-bottom:10px">
-    🗑️ Excluir Banco
+    ⚙️ Gerenciar
 </button>
 
 <div id="listaBancosConfig" style="font-size:14px"></div>
@@ -2946,7 +2948,7 @@ async function mudarSenha() {
 selector.innerHTML = '';
 const carteira = document.getElementById('carteiraSelector')?.value || 'br';
 
-const bancosFiltrados = bancos.filter(b => carteira === 'br' ? !b.is_usd : b.is_usd);
+const bancosFiltrados = bancos.filter(b => !isBancoOculto(b.id) && (carteira === 'br' ? !b.is_usd : b.is_usd));
 
 bancosFiltrados.forEach(banco => {
     const option = document.createElement('option');
@@ -4206,38 +4208,85 @@ async function converterUSDParaBRL(valorUSD, ano, mes) {
 }
 
 
+// ── Bancos ocultos (localStorage, preserva histórico) ──
+function getBancosOcultos() {
+    try { return new Set(JSON.parse(localStorage.getItem('bancos_ocultos') || '[]')); }
+    catch { return new Set(); }
+}
+function isBancoOculto(id) {
+    return getBancosOcultos().has(String(id));
+}
+function setBancoOculto(id, oculto) {
+    const s = getBancosOcultos();
+    if (oculto) s.add(String(id)); else s.delete(String(id));
+    localStorage.setItem('bancos_ocultos', JSON.stringify([...s]));
+}
+
 function renderizarBancosConfig() {
     const container = document.getElementById('listaBancosConfig');
     container.innerHTML = '';
 
-    // 👉 SE NÃO ESTIVER NO MODO EXCLUIR, NÃO MOSTRA NADA
     if (!modoExcluirBanco) {
         container.innerHTML = `
             <p style="font-size:12px; color:#888; margin-top:5px">
-                Clique em <strong>Excluir Banco</strong> para gerenciar remoções
+                Clique em <strong>Gerenciar</strong> para editar, ocultar ou excluir bancos
             </p>
         `;
         return;
     }
 
-    // 👉 SE ESTIVER NO MODO EXCLUIR, MOSTRA A LISTA COM ❌
+    const ocultos = getBancosOcultos();
     bancos.forEach(b => {
+        const oculto = ocultos.has(String(b.id));
         const div = document.createElement('div');
         div.style.display = 'flex';
-        div.style.justifyContent = 'space-between';
         div.style.alignItems = 'center';
+        div.style.gap = '6px';
         div.style.marginBottom = '8px';
+        div.style.opacity = oculto ? '0.55' : '1';
 
+        const nomeEsc = b.nome.replace(/'/g, "\\'");
         div.innerHTML = `
-            <span>${b.nome} ${b.is_usd ? '(USD)' : '(R$)'}</span>
-            <button class="btn-excluir-banco"
-                onclick="excluirBanco('${b.id}', '${b.nome}')">
+            <span style="flex:1;">${b.nome} ${b.is_usd ? '(USD)' : '(R$)'} ${oculto ? '<span style="font-size:10px;color:#888;">• oculto</span>' : ''}</span>
+            <button title="${oculto ? 'Reexibir' : 'Ocultar'}" onclick="toggleOcultarBanco('${b.id}')"
+                style="background:${oculto ? '#6c757d' : '#20c997'};color:white;border:none;padding:6px 9px;border-radius:6px;font-size:13px;cursor:pointer;width:auto;">
+                ${oculto ? '🙈' : '👁️'}
+            </button>
+            <button title="Editar nome" onclick="editarNomeBanco('${b.id}', '${nomeEsc}')"
+                style="background:#007bff;color:white;border:none;padding:6px 9px;border-radius:6px;font-size:13px;cursor:pointer;width:auto;">
+                ✏️
+            </button>
+            <button title="Excluir" class="btn-excluir-banco"
+                onclick="excluirBanco('${b.id}', '${nomeEsc}')">
                 ❌
             </button>
         `;
 
         container.appendChild(div);
     });
+}
+
+function toggleOcultarBanco(id) {
+    setBancoOculto(id, !isBancoOculto(id));
+    renderizarBancosConfig();
+    try { carregarBancos(); } catch (e) {}
+    try { atualizarDashboard(); } catch (e) {}
+}
+
+async function editarNomeBanco(id, nomeAtual) {
+    const novo = prompt('Novo nome do banco:', nomeAtual);
+    if (novo === null) return;
+    const nome = novo.trim();
+    if (!nome || nome === nomeAtual) return;
+
+    showLoading(true);
+    const { error } = await sb.from('bancos').update({ nome }).eq('id', id);
+    showLoading(false);
+    if (error) { alert('Erro ao renomear: ' + error.message); return; }
+
+    await carregarBancos();
+    renderizarBancosConfig();
+    try { atualizarDashboard(); } catch (e) {}
 }
  	
 
@@ -4422,7 +4471,7 @@ function preencherSelectsPortabilidade() {
     const selectDestino = document.getElementById('portabilidadeBancoDestino');
     selectOrigem.innerHTML = '';
     selectDestino.innerHTML = '';
-    bancos.forEach(b => {
+    bancos.filter(b => !isBancoOculto(b.id)).forEach(b => {
         const option1 = document.createElement('option');
         option1.value = b.id;
         option1.textContent = b.nome;
@@ -4512,7 +4561,7 @@ function preencherSelectsPortabilidadeUSD() {
     const selectDestino = document.getElementById('portabilidadeUSDDestino');
     selectOrigem.innerHTML = '';
     selectDestino.innerHTML = '';
-    const bancosUSD = bancos.filter(b => b.is_usd || b.nome.toLowerCase().includes('tasty'));
+    const bancosUSD = bancos.filter(b => !isBancoOculto(b.id) && (b.is_usd || b.nome.toLowerCase().includes('tasty')));
     bancosUSD.forEach(b => {
         const option1 = document.createElement('option');
         option1.value = b.id;
@@ -4605,8 +4654,8 @@ function preencherSelectsPortabilidadeBrlUsd() {
     const selectDestino = document.getElementById('portabilidadeBrlUsdDestino');
     selectOrigem.innerHTML = '';
     selectDestino.innerHTML = '';
-    const bancosBRL = bancos.filter(b => !b.is_usd && !b.nome.toLowerCase().includes('tasty'));
-    const bancosUSD = bancos.filter(b => b.is_usd || b.nome.toLowerCase().includes('tasty'));
+    const bancosBRL = bancos.filter(b => !isBancoOculto(b.id) && !b.is_usd && !b.nome.toLowerCase().includes('tasty'));
+    const bancosUSD = bancos.filter(b => !isBancoOculto(b.id) && (b.is_usd || b.nome.toLowerCase().includes('tasty')));
     bancosBRL.forEach(b => {
         const option = document.createElement('option');
         option.value = b.id;
@@ -4754,8 +4803,8 @@ function preencherSelectsPortabilidadeUsdBrl() {
     const selectDestino = document.getElementById('portabilidadeUsdBrlDestino');
     selectOrigem.innerHTML = '';
     selectDestino.innerHTML = '';
-    const bancosUSD = bancos.filter(b => b.is_usd || b.nome.toLowerCase().includes('tasty'));
-    const bancosBRL = bancos.filter(b => !b.is_usd && !b.nome.toLowerCase().includes('tasty'));
+    const bancosUSD = bancos.filter(b => !isBancoOculto(b.id) && (b.is_usd || b.nome.toLowerCase().includes('tasty')));
+    const bancosBRL = bancos.filter(b => !isBancoOculto(b.id) && !b.is_usd && !b.nome.toLowerCase().includes('tasty'));
     bancosUSD.forEach(b => {
         const option = document.createElement('option');
         option.value = b.id;
@@ -10440,8 +10489,8 @@ function _moeda_renderGraficos(cfg) {
     const hoje = new Date();
     const mesAtual = hoje.getMonth(), anoAtual = hoje.getFullYear();
 
-    // Pizza: distribuição por banco
-    const dadosPizza = bancos.map(banco => {
+    // Pizza: distribuição por banco (ignora bancos ocultos para não poluir o gráfico)
+    const dadosPizza = bancos.filter(banco => !isBancoOculto(banco.id)).map(banco => {
         const regs = todosRegistros.filter(r => r.banco_id === banco.id);
         const ultimo = [...regs].sort((a,b)=>new Date(b.data_fechamento)-new Date(a.data_fechamento)).find(r=>r[cfg.patField]>0);
         if (!ultimo) return null;
