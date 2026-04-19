@@ -6681,7 +6681,7 @@ async function salvarEdicaoOpcao() {
     const estVal     = document.getElementById('editOpcEstrategia').value;
 
     const ESTS = { 'STRANGLE':'🔀 Strangle', 'venda_coberta_call':'📊 Venda Coberta CALL',
-        'compra_call':'📈 Compra CALL', 'bear_put_spread':'📉 Bear Put Spread', 'personalizado':'⚙️ Personalizado' };
+        'compra_call':'📈 Compra CALL', 'bear_put_spread':'📉 Bear Put Spread', 'day_trade':'⚡ Day Trade', 'personalizado':'⚙️ Personalizado' };
     const estLabel = ESTS[estVal] || '';
     const nomeBase = `${modalidade.toUpperCase()} ${ativo||ticker} Strike ${formatarMoeda(strike)}`;
     const nomeComEst = estLabel ? `${nomeBase} | ${estLabel}` : nomeBase;
@@ -6782,6 +6782,7 @@ const ESTRATEGIAS_CONFIG = {
     straddle_compra:    { label:'Straddle (Compra)',     tipo:'compra', modal:'call', cor:'#20c997' },
     bull_call_spread:   { label:'Bull Call Spread',      tipo:'compra', modal:'call', cor:'#28a745' },
     bear_put_spread:    { label:'Bear Put Spread',       tipo:'compra', modal:'put',  cor:'#dc3545' },
+    day_trade:          { label:'Day Trade',             tipo:'compra', modal:'call', cor:'#ffc107' },
     personalizado:      { label:'Personalizado',         tipo:'compra', modal:'call', cor:'#888'    },
 };
 
@@ -6953,6 +6954,7 @@ function preencherFiltrosOpcoes() {
         'Straddle (Compra)':    '🔁 Straddle Compra',
         'Bull Call Spread':     '📈 Bull Call Spread',
         'Bear Put Spread':      '📉 Bear Put Spread',
+        'Day Trade':            '⚡ Day Trade',
         'Personalizado':        '⚙️ Personalizado',
     };
     const supaEsts = listaOpcoes.map(o => {
@@ -7110,7 +7112,7 @@ function renderizarOpcoes() {
     }
     function getEstrategiaLabel(val) {
         const map = { 'STRANGLE':'🔀 Strangle', 'venda_coberta_call':'📊 Venda Coberta CALL',
-            'compra_call':'📈 Compra CALL', 'bear_put_spread':'📉 Bear Put Spread', 'personalizado':'⚙️ Personalizado' };
+            'compra_call':'📈 Compra CALL', 'bear_put_spread':'📉 Bear Put Spread', 'day_trade':'⚡ Day Trade', 'personalizado':'⚙️ Personalizado' };
         return map[val] || val || '—';
     }
 
@@ -7417,7 +7419,7 @@ async function confirmarPasteOpcoes() {
 
     const estVal   = document.getElementById('pasteEstrategia')?.value || '';
     const ESTS     = { 'STRANGLE':'🔀 Strangle', 'venda_coberta_call':'📊 Venda Coberta CALL',
-                       'compra_call':'📈 Compra CALL', 'bear_put_spread':'📉 Bear Put Spread', 'personalizado':'⚙️ Personalizado' };
+                       'compra_call':'📈 Compra CALL', 'bear_put_spread':'📉 Bear Put Spread', 'day_trade':'⚡ Day Trade', 'personalizado':'⚙️ Personalizado' };
     const estLabel = ESTS[estVal] || '';
 
     showLoading(true);
@@ -9756,6 +9758,7 @@ function _dbFmtPeriodo(periodo) {
                     <option value="venda_coberta_call">📊 Venda Coberta CALL</option>
                     <option value="compra_call">📈 Compra CALL</option>
                     <option value="bear_put_spread">📉 Bear Put Spread</option>
+                    <option value="day_trade">⚡ Day Trade</option>
                     <option value="personalizado">⚙️ Personalizado</option>
                 </select>
             </div>
@@ -9799,6 +9802,7 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
                     <option value="venda_coberta_call">📊 Venda Coberta CALL</option>
                     <option value="compra_call">📈 Compra CALL</option>
                     <option value="bear_put_spread">📉 Bear Put Spread</option>
+                    <option value="day_trade">⚡ Day Trade</option>
                     <option value="personalizado">⚙️ Personalizado</option>
                 </select>
             </div>
@@ -9917,6 +9921,7 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
                     <option value="venda_coberta_call">📊 Venda Coberta CALL</option>
                     <option value="compra_call">📈 Compra CALL</option>
                     <option value="bear_put_spread">📉 Bear Put Spread</option>
+                    <option value="day_trade">⚡ Day Trade</option>
                     <option value="personalizado">⚙️ Personalizado</option>
                 </select>
             </div>
