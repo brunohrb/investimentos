@@ -3310,17 +3310,20 @@ const badgeMes = mesAberto
 let rowHTML = `<td style="white-space:nowrap;">${mesAno}${badgeMes}</td>`;
             const hideClass = privacidadeAtiva ? 'hidden-value" data-privacy="true' : '';
 
-            const _realCellFor = (cresc) => {
-                const r = (typeof calcRentabilidadeReal === 'function') ? calcRentabilidadeReal(cresc, mesAno) : { hasIpca: false };
-                return r.hasIpca
-                    ? `<td class="${r.realPct >= 0 ? 'pos' : 'neg'} ${hideClass}" title="IPCA ${r.ipca.toFixed(2)}% no mês">${r.realPct.toFixed(2)}%</td>`
-                    : `<td style="color:#888; font-size:11px;" title="IPCA não disponível para ${mesAno}">—</td>`;
+            const _realCellFor = (cresc, base, moeda) => {
+                const r = (typeof calcRentabilidadeReal === 'function') ? calcRentabilidadeReal(cresc, mesAno, base) : { hasIpca: false };
+                if (!r.hasIpca) return `<td style="color:#888; font-size:11px;" title="IPCA não disponível para ${mesAno}">—</td>`;
+                const fmt = v => formatarMoeda(v, moeda || 'BRL');
+                return `<td class="${r.realPct >= 0 ? 'pos' : 'neg'} ${hideClass}" title="IPCA ${r.ipca.toFixed(2)}% no mês · perda p/ inflação ${r.perdaInflacao!=null?fmt(r.perdaInflacao):'—'}">
+                    ${r.realPct.toFixed(2)}%
+                    ${r.perdaInflacao!=null?`<div style="font-size:11px; color:#ff6b6b; font-weight:400; margin-top:2px;">−${fmt(r.perdaInflacao)}</div>`:''}
+                </td>`;
             };
 
             if (isUSD) {
                 const saldoUSD = dadosMes.patrimonioFinalUSD - patAnteriorUSD - totalAporteUSD;
                 const crescUSD = basePonderadaUSD > 0 ? (saldoUSD / basePonderadaUSD) * 100 : 0;
-                rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinal)}</td><td class="${hideClass}">${formatarMoeda(totalAporteUSD, 'USD')}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinalUSD, 'USD')}</td><td class="${saldoUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoUSD, 'USD')}</td><td class="${crescUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescUSD.toFixed(2)}%</td>${_realCellFor(crescUSD)}`;
+                rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinal)}</td><td class="${hideClass}">${formatarMoeda(totalAporteUSD, 'USD')}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinalUSD, 'USD')}</td><td class="${saldoUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoUSD, 'USD')}</td><td class="${crescUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescUSD.toFixed(2)}%</td>${_realCellFor(crescUSD, patAnteriorUSD, 'USD')}`;
                 patAnteriorUSD = dadosMes.patrimonioFinalUSD;
             } else if (bancoId === 'consolidado_total') {
                 const patrimonioTotal = dadosMes.patrimonioFinal + (dadosMes.patrimonioFinalUSDconvertido || 0);
@@ -3328,11 +3331,11 @@ let rowHTML = `<td style="white-space:nowrap;">${mesAno}${badgeMes}</td>`;
                 const saldoTotalUSD = dadosMes.patrimonioFinalUSD - patAnteriorUSD - totalAporteUSD;
                 const crescTotal = patAnteriorBRL > 0 ? (saldoTotalBRL / patAnteriorBRL) * 100 : 0;
 
-                rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(totalAporteUSD, 'USD')}</td><td class="${hideClass}">${formatarMoeda(patrimonioTotal)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinalUSD, 'USD')}</td><td class="${saldoTotalBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoTotalBRL)}</td><td class="${saldoTotalUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoTotalUSD, 'USD')}</td><td class="${crescTotal >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescTotal.toFixed(2)}%</td>${_realCellFor(crescTotal)}`;
+                rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(totalAporteUSD, 'USD')}</td><td class="${hideClass}">${formatarMoeda(patrimonioTotal)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinalUSD, 'USD')}</td><td class="${saldoTotalBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoTotalBRL)}</td><td class="${saldoTotalUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoTotalUSD, 'USD')}</td><td class="${crescTotal >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescTotal.toFixed(2)}%</td>${_realCellFor(crescTotal, patAnteriorBRL, 'BRL')}`;
                 patAnteriorBRL = patrimonioTotal;
                 patAnteriorUSD = dadosMes.patrimonioFinalUSD;
             } else {
-                rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinal)}</td><td class="${saldoBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoBRL)}</td><td class="${crescBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescBRL.toFixed(2)}%</td>${_realCellFor(crescBRL)}`;
+                rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinal)}</td><td class="${saldoBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoBRL)}</td><td class="${crescBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescBRL.toFixed(2)}%</td>${_realCellFor(crescBRL, patAnteriorBRL, 'BRL')}`;
             }
             
 const mesId = mesAno.replace('/', '_');
@@ -6325,12 +6328,14 @@ async function carregarIpcaAutomatico() {
 }
 
 // Calcula a rentabilidade real dado o crescimento nominal % e o período.
-// Retorna { realPct, ipca, hasIpca }
-function calcRentabilidadeReal(crescPct, periodo) {
+// Se baseValor (patrimônio anterior) for passado, calcula também a perda em $.
+// Retorna { realPct, ipca, perdaInflacao, hasIpca }
+function calcRentabilidadeReal(crescPct, periodo, baseValor) {
     const ipca = window._ipcaCache?.[periodo];
-    if (ipca == null) return { realPct: null, ipca: null, hasIpca: false };
+    if (ipca == null) return { realPct: null, ipca: null, perdaInflacao: null, hasIpca: false };
     const realPct = ((1 + crescPct/100) / (1 + ipca/100) - 1) * 100;
-    return { realPct, ipca, hasIpca: true };
+    const perdaInflacao = (typeof baseValor === 'number' && baseValor > 0) ? baseValor * (ipca/100) : null;
+    return { realPct, ipca, perdaInflacao, hasIpca: true };
 }
 
 // popstate principal - todos os sub-modais voltam pro dashboard
@@ -11344,7 +11349,7 @@ async function bb_calcular() {
 
         const row = {
             mesAno, anoReg, badge, hideClass, totalAporte, patrimonioFinal: dm.patrimonioFinal,
-            saldo, crescPct, mesId, detsHtml, nRegs: dm.regs.length
+            patAnt, saldo, crescPct, mesId, detsHtml, nRegs: dm.regs.length
         };
         _bbLinhas.push(row);
         patAnt = dm.patrimonioFinal;
@@ -11371,10 +11376,13 @@ function bb_renderTabela() {
 
     function rowHTML(r) {
         const real = (typeof calcRentabilidadeReal === 'function')
-            ? calcRentabilidadeReal(r.crescPct, r.mesAno)
+            ? calcRentabilidadeReal(r.crescPct, r.mesAno, r.patAnt)
             : { hasIpca: false };
         const realCell = real.hasIpca
-            ? `<td class="${real.realPct>=0?'bb-pos':'bb-neg'} ${r.hideClass}" title="IPCA ${real.ipca.toFixed(2)}% no mês">${real.realPct.toFixed(2)}%</td>`
+            ? `<td class="${real.realPct>=0?'bb-pos':'bb-neg'} ${r.hideClass}" title="IPCA ${real.ipca.toFixed(2)}% no mês · perda p/ inflação ${real.perdaInflacao!=null?formatarMoeda(real.perdaInflacao):'—'}">
+                ${real.realPct.toFixed(2)}%
+                ${real.perdaInflacao!=null?`<div style="font-size:11px; color:#ff8a8a; font-weight:400; margin-top:2px;">−${formatarMoeda(real.perdaInflacao)}</div>`:''}
+              </td>`
             : `<td style="color:rgba(255,255,255,0.3); font-size:11px;" title="IPCA não disponível para ${r.mesAno}">—</td>`;
         return `<td style="white-space:nowrap; color:#fff; font-weight:600;">${r.mesAno}${r.badge}</td>
             <td class="${r.hideClass}">${formatarMoeda(r.totalAporte)}</td>
@@ -11772,7 +11780,7 @@ async function usd_calcular() {
 
         _usdLinhas.push({ mesAno, anoReg, badge, hideClass, totalAporteBRL, totalAporteUSD,
             patrimonioFinal: dm.patrimonioFinal, patrimonioFinalUSD: dm.patrimonioFinalUSD,
-            saldoUSD, crescUSD, mesId, detsHtml, nRegs: dm.regs.length });
+            patAntUSD, saldoUSD, crescUSD, mesId, detsHtml, nRegs: dm.regs.length });
 
         patAntBRL = dm.patrimonioFinal;
         patAntUSD = dm.patrimonioFinalUSD;
@@ -11796,10 +11804,13 @@ function usd_renderTabela() {
 
     function rowHTML(r) {
         const real = (typeof calcRentabilidadeReal === 'function')
-            ? calcRentabilidadeReal(r.crescUSD, r.mesAno)
+            ? calcRentabilidadeReal(r.crescUSD, r.mesAno, r.patAntUSD)
             : { hasIpca: false };
         const realCell = real.hasIpca
-            ? `<td class="${real.realPct>=0?'bb-pos':'bb-neg'} ${r.hideClass}" title="IPCA ${real.ipca.toFixed(2)}% no mês">${real.realPct.toFixed(2)}%</td>`
+            ? `<td class="${real.realPct>=0?'bb-pos':'bb-neg'} ${r.hideClass}" title="IPCA ${real.ipca.toFixed(2)}% no mês · perda p/ inflação ${real.perdaInflacao!=null?fmtUSD(real.perdaInflacao):'—'}">
+                ${real.realPct.toFixed(2)}%
+                ${real.perdaInflacao!=null?`<div style="font-size:11px; color:#ff8a8a; font-weight:400; margin-top:2px;">−${fmtUSD(real.perdaInflacao)}</div>`:''}
+              </td>`
             : `<td style="color:rgba(255,255,255,0.3); font-size:11px;" title="IPCA não disponível">—</td>`;
         return `<td style="white-space:nowrap;color:#fff;font-weight:600;">${r.mesAno}${r.badge}</td>
             <td class="${r.hideClass}">${fmtBRL(r.totalAporteBRL)}</td>
