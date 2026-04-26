@@ -6334,23 +6334,28 @@ async function salvarInflacao() {
     await atualizarRentabilidadeReal();
 }
 
-async function atualizarRentabilidadeReal() {
+async function atualizarRentabilidadeReal(registrosFonte, scope) {
     const sb = window._sb;
     if (!sb) return;
-    const valEls = document.querySelectorAll('.js-rent-real-valor');
-    const subEls = document.querySelectorAll('.js-rent-real-sub');
+    // Se um scope for passado, atualiza só os elementos daquele scope.
+    // Senão, atualiza apenas cards SEM scope (dashboards principais).
+    const cards = scope
+        ? document.querySelectorAll(`.js-card-rent-real[data-rent-real-scope="${scope}"]`)
+        : document.querySelectorAll('.js-card-rent-real:not([data-rent-real-scope])');
+    const valEls = [...cards].flatMap(c => [...c.querySelectorAll('.js-rent-real-valor')]);
+    const subEls = [...cards].flatMap(c => [...c.querySelectorAll('.js-rent-real-sub')]);
     if (!valEls.length) return;
     const setVal = (txt, cor) => valEls.forEach(e => { e.textContent = txt; if (cor) e.style.color = cor; });
     const setSub = (html) => subEls.forEach(e => { e.innerHTML = html; });
 
-    // Rentabilidade nominal do MÊS mais recente (último mês fechado)
-    if (!Array.isArray(registrosAtuais) || !registrosAtuais.length) {
+    const fonte = Array.isArray(registrosFonte) ? registrosFonte : registrosAtuais;
+    if (!Array.isArray(fonte) || !fonte.length) {
         setVal('0,00%'); setSub('sem registros'); return;
     }
 
     // Agrupa por período e pega último mês com fechamento + mês anterior
     const meses = {};
-    registrosAtuais.forEach(r => {
+    fonte.forEach(r => {
         if (!meses[r.periodo]) meses[r.periodo] = { patrimonio: 0, aportes: 0 };
         if (r.patrimonio > 0) meses[r.periodo].patrimonio += r.patrimonio;
         meses[r.periodo].aportes += r.aportes || 0;
@@ -10956,6 +10961,11 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
                 <div class="bb-stat-value hidden-value" id="bb-aportado" data-privacy="true">R$ 0,00</div>
                 <div class="bb-stat-sub hidden-value" id="bb-aportado-usd" data-privacy="true"></div>
             </div>
+            <div class="bb-stat js-card-rent-real" data-rent-real-scope="bb" onclick="abrirEditarInflacao()" style="cursor:pointer; border-left:3px solid #20c997;" title="Clique para editar inflação do mês (IPCA)">
+                <div class="bb-stat-label">💹 Rentabilidade Real (mês)</div>
+                <div class="bb-stat-value js-rent-real-valor hidden-value" data-privacy="true" style="color:#20c997;">0,00%</div>
+                <div class="bb-stat-sub js-rent-real-sub" style="font-size:11px; color:rgba(255,255,255,0.5);">configure IPCA do mês ↗</div>
+            </div>
         </div>
 
         <!-- Seletor de banco -->
@@ -11358,6 +11368,7 @@ async function bb_calcular() {
 
     // Calcular linhas da tabela usando registros consolidados BRL
     const regsBR = todosRegistros.filter(r => ids.includes(r.banco_id));
+    if (typeof atualizarRentabilidadeReal === 'function') atualizarRentabilidadeReal(regsBR, 'bb');
     const meses = {};
     regsBR.forEach(r => {
         if (!meses[r.periodo]) meses[r.periodo] = { regs:[], patrimonioFinal:0, dataUltimoFechado:null };
@@ -11575,6 +11586,11 @@ window.addEventListener('popstate', function(e) {
                 <div class="bb-stat-value hidden-value" id="usd-dolar-pm" style="color:#ffd700;font-size:20px;" data-privacy="true">R$ 0,00</div>
                 <div class="bb-stat-sub hidden-value" id="usd-dolar-lucro" data-privacy="true"></div>
             </div>
+            <div class="bb-stat js-card-rent-real" data-rent-real-scope="usd" onclick="abrirEditarInflacao()" style="cursor:pointer; border-left:3px solid #20c997;" title="Clique para editar inflação do mês (IPCA)">
+                <div class="bb-stat-label">💹 Rentabilidade Real (mês)</div>
+                <div class="bb-stat-value js-rent-real-valor hidden-value" data-privacy="true" style="color:#20c997;">0,00%</div>
+                <div class="bb-stat-sub js-rent-real-sub" style="font-size:11px; color:rgba(255,255,255,0.5);">configure IPCA do mês ↗</div>
+            </div>
         </div>
 
         <!-- Seletor de banco -->
@@ -11749,6 +11765,14 @@ async function usd_calcular() {
         totalUSD += valUSD;
         totalBRLconvertido += valUSD * (dolarFallbackHoje || 0);
         regs.forEach(r => { totalAportadoUSD += r.aportes_usd||0; totalAportadoBRL += r.aportes||0; });
+    }
+
+    // Rentabilidade real (descontando IPCA) com base no patrimônio_usd dos bancos USD
+    if (typeof atualizarRentabilidadeReal === 'function') {
+        const regsUSD = todosRegistros
+            .filter(r => ids.includes(r.banco_id))
+            .map(r => ({ periodo: r.periodo, patrimonio: r.patrimonio_usd || 0, aportes: r.aportes_usd || 0 }));
+        atualizarRentabilidadeReal(regsUSD, 'usd');
     }
 
     const ganhoUSD = totalAportadoUSD > 0 ? ((totalUSD - totalAportadoUSD) / totalAportadoUSD) * 100 : 0;
