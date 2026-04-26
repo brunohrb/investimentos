@@ -2502,11 +2502,6 @@ header .header-actions .btn-carteiras {
     <div class="total-card"><h3>Patrimônio do Banco</h3><div class="card-vals"><p id="patrimonioTotalGeral" class="hidden-value" data-privacy="true">R$ 0,00</p><p id="patrimonioTotalGeralUSD" class="hidden-value" style="display:none; font-size:0.85em; margin-top:5px; color:#666;" data-privacy="true">US$ 0,00 / R$ 0,00</p></div></div>
     <div class="stats-card"><h4>Ganho sobre Aportado</h4><p id="rendimentoMedio" class="hidden-value" data-privacy="true">0,00%</p></div>
     <div class="stats-card"><h4>Total Aportado (Banco)</h4><p id="totalAportado" class="hidden-value" data-privacy="true">R$ 0,00</p></div>
-    <div class="stats-card js-card-rent-real" onclick="abrirEditarInflacao()" style="cursor:pointer; border:1px solid #20c997; transition: all 0.2s;" onmouseover="this.style.background='rgba(32,201,151,0.08)'" onmouseout="this.style.background=''" title="Clique para editar inflação do mês (IPCA)">
-        <h4>💹 Rentabilidade Real (mês)</h4>
-        <p class="js-rent-real-valor hidden-value" data-privacy="true" style="color:#20c997;">0,00%</p>
-        <span class="js-rent-real-sub" style="font-size:11px; color:#888; display:block; margin-top:4px;">configure IPCA do mês ↗</span>
-    </div>
     <div class="stats-card" id="indicadorDolarComprado" style="display:none;"><h4>Dolar Comprado</h4><p id="valorDolarComprado" style="color:#28a745; font-size:20px; font-weight:bold;">R$ 0,00</p></div>
     <div class="stats-card" id="indicadorDolarComLucro" style="display:none;"><h4>Dolar com Lucro</h4><p id="valorDolarComLucro" style="color:#007bff; font-size:20px; font-weight:bold;">R$ 0,00</p></div>
 </div>
@@ -2548,11 +2543,6 @@ header .header-actions .btn-carteiras {
     <div class="stats-card"><h4>Dólar com Lucro</h4><p id="valorDolarComLucroConsolidado" class="hidden-value" data-privacy="true">R$ 0,00</p></div>
     
     <div class="stats-card"><h4>Ganho sobre Aportado</h4><p id="rendimentoMedioTotal" class="hidden-value" data-privacy="true">0,00%</p></div>
-    <div class="stats-card js-card-rent-real" onclick="abrirEditarInflacao()" style="cursor:pointer; border:1px solid #20c997; transition: all 0.2s;" onmouseover="this.style.background='rgba(32,201,151,0.08)'" onmouseout="this.style.background=''" title="Clique para editar inflação do mês (IPCA)">
-        <h4>💹 Rentabilidade Real (mês)</h4>
-        <p class="js-rent-real-valor hidden-value" data-privacy="true" style="color:#20c997;">0,00%</p>
-        <span class="js-rent-real-sub" style="font-size:11px; color:#888; display:block; margin-top:4px;">configure IPCA do mês ↗</span>
-    </div>
 <div class="stats-card" onclick="abrirFuncionalidades()" style="cursor:pointer; border: 1px solid #0056b3; transition: all 0.2s;" onmouseover="this.style.background='rgba(0,86,179,0.08)'" onmouseout="this.style.background=''">
     <h4>🛠️ Outras Funcionalidades</h4>
     <p style="font-size:14px; color:#0056b3;">Calculadora · ···</p>
@@ -2796,11 +2786,12 @@ function entrarNoSistema() {
     inicializarSistema();
 }
 async function inicializarSistema() {
-    // ── Carrega bancos + registros + dólar em PARALELO ──
+    // ── Carrega bancos + registros + dólar + IPCA em PARALELO ──
     await Promise.all([
         carregarBancos(),
         carregarTodosRegistros(),
         carregarCotacoesHoje(),
+        (typeof carregarIpcaAutomatico === 'function' ? carregarIpcaAutomatico() : Promise.resolve()),
     ]);
     carteiraMudou();
 
@@ -3216,9 +3207,9 @@ if (bancoId === 'consolidado_total') {
         isUSD = banco?.is_usd || banco?.nome.toLowerCase().includes('tasty');
     }
     
-    if (isUSD) head.innerHTML = `<th>Mês/Ano</th><th>Aporte R$</th><th>Patr. R$</th><th>Aporte $</th><th>Patr. $</th><th>Saldo $</th><th>% $</th><th>Ações</th>`;
-    else if (bancoId === 'consolidado_total') head.innerHTML = `<th>Mês/Ano</th><th>Aporte R$</th><th>Aporte $</th><th>Patr. R$</th><th>Patr. $</th><th>Saldo R$</th><th>Saldo $</th><th>%</th><th>Ações</th>`;
-    else head.innerHTML = `<th>Mês/Ano</th><th>Aportes</th><th>Patrimônio</th><th>Saldo</th><th>%</th><th>Ações</th>`;
+    if (isUSD) head.innerHTML = `<th>Mês/Ano</th><th>Aporte R$</th><th>Patr. R$</th><th>Aporte $</th><th>Patr. $</th><th>Saldo $</th><th>% $</th><th title="Real = nominal − IPCA do mês (BCB)">% Real</th><th>Ações</th>`;
+    else if (bancoId === 'consolidado_total') head.innerHTML = `<th>Mês/Ano</th><th>Aporte R$</th><th>Aporte $</th><th>Patr. R$</th><th>Patr. $</th><th>Saldo R$</th><th>Saldo $</th><th>%</th><th title="Real = nominal − IPCA do mês (BCB)">% Real</th><th>Ações</th>`;
+    else head.innerHTML = `<th>Mês/Ano</th><th>Aportes</th><th>Patrimônio</th><th>Saldo</th><th>%</th><th title="Real = nominal − IPCA do mês (BCB)">% Real</th><th>Ações</th>`;
 // Agrupar por mês para cálculo consolidado
 const mesesAgrupados = {};
 registrosAtuais.forEach(r => {
@@ -3319,10 +3310,17 @@ const badgeMes = mesAberto
 let rowHTML = `<td style="white-space:nowrap;">${mesAno}${badgeMes}</td>`;
             const hideClass = privacidadeAtiva ? 'hidden-value" data-privacy="true' : '';
 
+            const _realCellFor = (cresc) => {
+                const r = (typeof calcRentabilidadeReal === 'function') ? calcRentabilidadeReal(cresc, mesAno) : { hasIpca: false };
+                return r.hasIpca
+                    ? `<td class="${r.realPct >= 0 ? 'pos' : 'neg'} ${hideClass}" title="IPCA ${r.ipca.toFixed(2)}% no mês">${r.realPct.toFixed(2)}%</td>`
+                    : `<td style="color:#888; font-size:11px;" title="IPCA não disponível para ${mesAno}">—</td>`;
+            };
+
             if (isUSD) {
                 const saldoUSD = dadosMes.patrimonioFinalUSD - patAnteriorUSD - totalAporteUSD;
                 const crescUSD = basePonderadaUSD > 0 ? (saldoUSD / basePonderadaUSD) * 100 : 0;
-                rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinal)}</td><td class="${hideClass}">${formatarMoeda(totalAporteUSD, 'USD')}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinalUSD, 'USD')}</td><td class="${saldoUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoUSD, 'USD')}</td><td class="${crescUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescUSD.toFixed(2)}%</td>`;
+                rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinal)}</td><td class="${hideClass}">${formatarMoeda(totalAporteUSD, 'USD')}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinalUSD, 'USD')}</td><td class="${saldoUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoUSD, 'USD')}</td><td class="${crescUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescUSD.toFixed(2)}%</td>${_realCellFor(crescUSD)}`;
                 patAnteriorUSD = dadosMes.patrimonioFinalUSD;
             } else if (bancoId === 'consolidado_total') {
                 const patrimonioTotal = dadosMes.patrimonioFinal + (dadosMes.patrimonioFinalUSDconvertido || 0);
@@ -3330,11 +3328,11 @@ let rowHTML = `<td style="white-space:nowrap;">${mesAno}${badgeMes}</td>`;
                 const saldoTotalUSD = dadosMes.patrimonioFinalUSD - patAnteriorUSD - totalAporteUSD;
                 const crescTotal = patAnteriorBRL > 0 ? (saldoTotalBRL / patAnteriorBRL) * 100 : 0;
 
-                rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(totalAporteUSD, 'USD')}</td><td class="${hideClass}">${formatarMoeda(patrimonioTotal)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinalUSD, 'USD')}</td><td class="${saldoTotalBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoTotalBRL)}</td><td class="${saldoTotalUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoTotalUSD, 'USD')}</td><td class="${crescTotal >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescTotal.toFixed(2)}%</td>`;
+                rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(totalAporteUSD, 'USD')}</td><td class="${hideClass}">${formatarMoeda(patrimonioTotal)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinalUSD, 'USD')}</td><td class="${saldoTotalBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoTotalBRL)}</td><td class="${saldoTotalUSD >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoTotalUSD, 'USD')}</td><td class="${crescTotal >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescTotal.toFixed(2)}%</td>${_realCellFor(crescTotal)}`;
                 patAnteriorBRL = patrimonioTotal;
                 patAnteriorUSD = dadosMes.patrimonioFinalUSD;
             } else {
-                rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinal)}</td><td class="${saldoBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoBRL)}</td><td class="${crescBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescBRL.toFixed(2)}%</td>`;
+                rowHTML += `<td class="${hideClass}">${formatarMoeda(totalAporteBRL)}</td><td class="${hideClass}">${formatarMoeda(dadosMes.patrimonioFinal)}</td><td class="${saldoBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${formatarMoeda(saldoBRL)}</td><td class="${crescBRL >= 0 ? 'pos' : 'neg'} ${hideClass}">${crescBRL.toFixed(2)}%</td>${_realCellFor(crescBRL)}`;
             }
             
 const mesId = mesAno.replace('/', '_');
@@ -3691,7 +3689,6 @@ if (bancoSelecionadoId === 'consolidado_total') {
 
     atualizarCardsAportesERentabilidade(patrimonioAtual);
     calcularRentabilidadeAcumuladaSimples(patrimonioAtual);
-    if (typeof atualizarRentabilidadeReal === 'function') atualizarRentabilidadeReal();
 }
 
 function atualizarGrafico() {
@@ -6287,110 +6284,53 @@ async function salvarNota() {
 }
 
 // ═══════════════════════════════════════════════
-//  💹 RENTABILIDADE REAL (descontando IPCA)
+//  💹 IPCA AUTOMÁTICO (BCB SGS-433) + cache
 // ═══════════════════════════════════════════════
-function _periodoAtualKey() {
-    const d = new Date();
-    return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}`;
-}
-function abrirEditarInflacao() {
-    const m = document.getElementById('inflacaoModal');
-    m.style.display = 'flex';
-    const d = new Date();
-    document.getElementById('inflPeriodo').value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    document.getElementById('inflValor').value = '';
-    renderizarHistoricoInflacao();
-}
-function fecharEditarInflacao() {
-    document.getElementById('inflacaoModal').style.display = 'none';
-}
-async function renderizarHistoricoInflacao() {
-    const sb = window._sb;
-    if (!sb) return;
-    const { data } = await sb.from('inflacao_mensal').select('*').order('periodo', { ascending: false }).limit(12);
-    const cont = document.getElementById('inflHistorico');
-    if (!data || !data.length) { cont.innerHTML = '<p style="color:#888; text-align:center;">Nenhum IPCA cadastrado ainda.</p>'; return; }
-    cont.innerHTML = '<h4 style="margin:0 0 8px 0; font-size:13px; color:#888;">Histórico recente</h4>' +
-        data.map(r => `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border-color);">
-            <span>${r.periodo}</span>
-            <strong>${(r.ipca_mes).toFixed(2)}%</strong>
-        </div>`).join('');
-}
-async function salvarInflacao() {
-    const sb = window._sb;
-    if (!sb) { alert('Supabase indisponível.'); return; }
-    const periodoRaw = document.getElementById('inflPeriodo').value; // YYYY-MM
-    const ipca = parseFloat(document.getElementById('inflValor').value);
-    if (!periodoRaw || isNaN(ipca)) { alert('Preencha o período e o valor do IPCA.'); return; }
-    const [ano, mes] = periodoRaw.split('-');
-    const periodo = `${ano}/${mes}`;
-    const { error } = await sb.from('inflacao_mensal').upsert(
-        { periodo, ipca_mes: ipca },
-        { onConflict: 'periodo' }
-    );
-    if (error) { alert('Erro: ' + error.message); return; }
-    document.getElementById('inflValor').value = '';
-    await renderizarHistoricoInflacao();
-    await atualizarRentabilidadeReal();
-}
+window._ipcaCache = window._ipcaCache || {}; // { 'YYYY/MM': ipca% }
 
-async function atualizarRentabilidadeReal(registrosFonte, scope) {
+async function carregarIpcaAutomatico() {
     const sb = window._sb;
-    if (!sb) return;
-    // Se um scope for passado, atualiza só os elementos daquele scope.
-    // Senão, atualiza apenas cards SEM scope (dashboards principais).
-    const cards = scope
-        ? document.querySelectorAll(`.js-card-rent-real[data-rent-real-scope="${scope}"]`)
-        : document.querySelectorAll('.js-card-rent-real:not([data-rent-real-scope])');
-    const valEls = [...cards].flatMap(c => [...c.querySelectorAll('.js-rent-real-valor')]);
-    const subEls = [...cards].flatMap(c => [...c.querySelectorAll('.js-rent-real-sub')]);
-    if (!valEls.length) return;
-    const setVal = (txt, cor) => valEls.forEach(e => { e.textContent = txt; if (cor) e.style.color = cor; });
-    const setSub = (html) => subEls.forEach(e => { e.innerHTML = html; });
-
-    const fonte = Array.isArray(registrosFonte) ? registrosFonte : registrosAtuais;
-    if (!Array.isArray(fonte) || !fonte.length) {
-        setVal('0,00%'); setSub('sem registros'); return;
+    // 1) Carrega o que já estiver no Supabase
+    if (sb) {
+        try {
+            const { data } = await sb.from('inflacao_mensal').select('periodo, ipca_mes');
+            (data || []).forEach(r => { window._ipcaCache[r.periodo] = r.ipca_mes; });
+        } catch (e) { console.warn('inflacao_mensal cache:', e.message); }
     }
-
-    // Agrupa por período e pega último mês com fechamento + mês anterior
-    const meses = {};
-    fonte.forEach(r => {
-        if (!meses[r.periodo]) meses[r.periodo] = { patrimonio: 0, aportes: 0 };
-        if (r.patrimonio > 0) meses[r.periodo].patrimonio += r.patrimonio;
-        meses[r.periodo].aportes += r.aportes || 0;
-    });
-    const ordenados = Object.keys(meses)
-        .filter(k => meses[k].patrimonio > 0)
-        .sort((a, b) => {
-            const [aA, aM] = a.split('/').map(Number);
-            const [bA, bM] = b.split('/').map(Number);
-            return aA !== bA ? aA - bA : aM - bM;
+    // 2) Busca da API do BCB (série 433 = IPCA mensal)
+    try {
+        const hoje = new Date();
+        const dataIni = '01/01/2018';
+        const dataFim = `01/${String(hoje.getMonth()+1).padStart(2,'0')}/${hoje.getFullYear()}`;
+        const url = `https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados?formato=json&dataInicial=${dataIni}&dataFinal=${dataFim}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('BCB ' + res.status);
+        const arr = await res.json(); // [{data:'01/01/2024', valor:'0.42'}]
+        const novos = [];
+        arr.forEach(item => {
+            const [d, m, y] = item.data.split('/');
+            const periodo = `${y}/${m}`;
+            const ipca = parseFloat(String(item.valor).replace(',', '.'));
+            if (!isNaN(ipca) && window._ipcaCache[periodo] !== ipca) {
+                window._ipcaCache[periodo] = ipca;
+                novos.push({ periodo, ipca_mes: ipca });
+            }
         });
-    if (ordenados.length < 2) { setVal('0,00%'); setSub('precisa de 2 meses'); return; }
+        // 3) Salva no Supabase em lote
+        if (sb && novos.length) {
+            await sb.from('inflacao_mensal').upsert(novos, { onConflict: 'periodo' });
+        }
+        console.log(`IPCA: ${Object.keys(window._ipcaCache).length} períodos em cache (${novos.length} novos do BCB)`);
+    } catch (e) { console.warn('Falha ao buscar IPCA do BCB:', e.message); }
+}
 
-    const ultimo   = ordenados[ordenados.length - 1];
-    const anterior = ordenados[ordenados.length - 2];
-    const patUlt = meses[ultimo].patrimonio;
-    const patAnt = meses[anterior].patrimonio;
-    const aporteUlt = meses[ultimo].aportes || 0;
-
-    const ganho = patUlt - patAnt - aporteUlt;
-    const nominalPct = patAnt > 0 ? (ganho / patAnt) : 0;
-
-    // Busca IPCA do período
-    const { data } = await sb.from('inflacao_mensal').select('ipca_mes').eq('periodo', ultimo).maybeSingle();
-    if (!data) {
-        setVal((nominalPct * 100).toFixed(2) + '%', '#888');
-        setSub(`nominal · cadastre IPCA de ${ultimo} ↗`);
-        return;
-    }
-    const ipca = (data.ipca_mes || 0) / 100;
-    const realPct = ((1 + nominalPct) / (1 + ipca)) - 1;
-    const perdaInflacao = patUlt - (patUlt / (1 + ipca));
-
-    setVal((realPct * 100).toFixed(2) + '%', realPct >= 0 ? '#20c997' : '#dc3545');
-    setSub(`${ultimo} · nominal ${(nominalPct*100).toFixed(2)}% − IPCA ${(ipca*100).toFixed(2)}%<br>📉 perda p/ inflação: <strong>${formatarMoeda(perdaInflacao)}</strong>`);
+// Calcula a rentabilidade real dado o crescimento nominal % e o período.
+// Retorna { realPct, ipca, hasIpca }
+function calcRentabilidadeReal(crescPct, periodo) {
+    const ipca = window._ipcaCache?.[periodo];
+    if (ipca == null) return { realPct: null, ipca: null, hasIpca: false };
+    const realPct = ((1 + crescPct/100) / (1 + ipca/100) - 1) * 100;
+    return { realPct, ipca, hasIpca: true };
 }
 
 // popstate principal - todos os sub-modais voltam pro dashboard
@@ -9868,34 +9808,6 @@ function _dbFmtPeriodo(periodo) {
 </div>
 
 <!-- ═══════════════════════════════════════
-     💹 MODAL EDITAR INFLAÇÃO (IPCA)
-     ═══════════════════════════════════════ -->
-<div id="inflacaoModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.55); z-index:9500; align-items:center; justify-content:center;">
-    <div style="background:var(--card-bg); padding:25px; border-radius:14px; width:92%; max-width:480px; border:1px solid var(--border-color);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-            <h3 style="margin:0;">💹 Inflação do mês (IPCA)</h3>
-            <button onclick="fecharEditarInflacao()" style="background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-color);">✕</button>
-        </div>
-        <p style="font-size:12px; color:#888; margin-bottom:14px;">Digite o IPCA mensal de cada período para calcular a rentabilidade real (descontando inflação).</p>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:14px;">
-            <div>
-                <label style="font-size:12px; color:#888;">Período</label>
-                <input type="month" id="inflPeriodo" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-color);">
-            </div>
-            <div>
-                <label style="font-size:12px; color:#888;">IPCA do mês (%)</label>
-                <input type="number" id="inflValor" placeholder="ex: 0.45" step="0.01" style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-color); color:var(--text-color);">
-            </div>
-        </div>
-        <div style="display:flex; gap:10px;">
-            <button onclick="salvarInflacao()" class="btn-success" style="flex:1; padding:10px;">💾 Salvar</button>
-            <button onclick="fecharEditarInflacao()" style="flex:1; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--card-bg); color:var(--text-color); cursor:pointer;">Cancelar</button>
-        </div>
-        <div id="inflHistorico" style="margin-top:18px; max-height:180px; overflow-y:auto; font-size:13px;"></div>
-    </div>
-</div>
-
-<!-- ═══════════════════════════════════════
      📈 MODAL SISTEMA DE AÇÕES
      ═══════════════════════════════════════ -->
 <div id="acoesModal" class="modal">
@@ -10961,11 +10873,6 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
                 <div class="bb-stat-value hidden-value" id="bb-aportado" data-privacy="true">R$ 0,00</div>
                 <div class="bb-stat-sub hidden-value" id="bb-aportado-usd" data-privacy="true"></div>
             </div>
-            <div class="bb-stat js-card-rent-real" data-rent-real-scope="bb" onclick="abrirEditarInflacao()" style="cursor:pointer; border-left:3px solid #20c997;" title="Clique para editar inflação do mês (IPCA)">
-                <div class="bb-stat-label">💹 Rentabilidade Real (mês)</div>
-                <div class="bb-stat-value js-rent-real-valor hidden-value" data-privacy="true" style="color:#20c997;">0,00%</div>
-                <div class="bb-stat-sub js-rent-real-sub" style="font-size:11px; color:rgba(255,255,255,0.5);">configure IPCA do mês ↗</div>
-            </div>
         </div>
 
         <!-- Seletor de banco -->
@@ -11015,6 +10922,7 @@ DD/MM/AAAA HH:MM:SS.mmm    V    VALEC940W1    0,07    5.000</pre>
                         <th>Patrimônio</th>
                         <th>Saldo</th>
                         <th>%</th>
+                        <th title="Rentabilidade real = nominal descontando IPCA do mês (BCB)">% Real</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -11368,7 +11276,6 @@ async function bb_calcular() {
 
     // Calcular linhas da tabela usando registros consolidados BRL
     const regsBR = todosRegistros.filter(r => ids.includes(r.banco_id));
-    if (typeof atualizarRentabilidadeReal === 'function') atualizarRentabilidadeReal(regsBR, 'bb');
     const meses = {};
     regsBR.forEach(r => {
         if (!meses[r.periodo]) meses[r.periodo] = { regs:[], patrimonioFinal:0, dataUltimoFechado:null };
@@ -11463,11 +11370,18 @@ function bb_renderTabela() {
     const filtradas = anoSel === 'todos' ? _bbLinhas : _bbLinhas.filter(r => r.anoReg === anoSel);
 
     function rowHTML(r) {
+        const real = (typeof calcRentabilidadeReal === 'function')
+            ? calcRentabilidadeReal(r.crescPct, r.mesAno)
+            : { hasIpca: false };
+        const realCell = real.hasIpca
+            ? `<td class="${real.realPct>=0?'bb-pos':'bb-neg'} ${r.hideClass}" title="IPCA ${real.ipca.toFixed(2)}% no mês">${real.realPct.toFixed(2)}%</td>`
+            : `<td style="color:rgba(255,255,255,0.3); font-size:11px;" title="IPCA não disponível para ${r.mesAno}">—</td>`;
         return `<td style="white-space:nowrap; color:#fff; font-weight:600;">${r.mesAno}${r.badge}</td>
             <td class="${r.hideClass}">${formatarMoeda(r.totalAporte)}</td>
             <td class="${r.hideClass}">${formatarMoeda(r.patrimonioFinal)}</td>
             <td class="${r.saldo>=0?'bb-pos':'bb-neg'} ${r.hideClass}">${formatarMoeda(r.saldo)}</td>
             <td class="${r.crescPct>=0?'bb-pos':'bb-neg'} ${r.hideClass}">${r.crescPct.toFixed(2)}%</td>
+            ${realCell}
             <td>
                 <button class="bb-expand-btn" onclick="bb_toggleDet('bb_det_${r.mesId}')">
                     ${r.nRegs} lançamento${r.nRegs!==1?'s':''} ▼
@@ -11586,11 +11500,6 @@ window.addEventListener('popstate', function(e) {
                 <div class="bb-stat-value hidden-value" id="usd-dolar-pm" style="color:#ffd700;font-size:20px;" data-privacy="true">R$ 0,00</div>
                 <div class="bb-stat-sub hidden-value" id="usd-dolar-lucro" data-privacy="true"></div>
             </div>
-            <div class="bb-stat js-card-rent-real" data-rent-real-scope="usd" onclick="abrirEditarInflacao()" style="cursor:pointer; border-left:3px solid #20c997;" title="Clique para editar inflação do mês (IPCA)">
-                <div class="bb-stat-label">💹 Rentabilidade Real (mês)</div>
-                <div class="bb-stat-value js-rent-real-valor hidden-value" data-privacy="true" style="color:#20c997;">0,00%</div>
-                <div class="bb-stat-sub js-rent-real-sub" style="font-size:11px; color:rgba(255,255,255,0.5);">configure IPCA do mês ↗</div>
-            </div>
         </div>
 
         <!-- Seletor de banco -->
@@ -11649,6 +11558,7 @@ window.addEventListener('popstate', function(e) {
                         <th>Patr. $</th>
                         <th>Saldo $</th>
                         <th>% $</th>
+                        <th title="Real = nominal − IPCA do mês (BCB)">% Real</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -11765,14 +11675,6 @@ async function usd_calcular() {
         totalUSD += valUSD;
         totalBRLconvertido += valUSD * (dolarFallbackHoje || 0);
         regs.forEach(r => { totalAportadoUSD += r.aportes_usd||0; totalAportadoBRL += r.aportes||0; });
-    }
-
-    // Rentabilidade real (descontando IPCA) com base no patrimônio_usd dos bancos USD
-    if (typeof atualizarRentabilidadeReal === 'function') {
-        const regsUSD = todosRegistros
-            .filter(r => ids.includes(r.banco_id))
-            .map(r => ({ periodo: r.periodo, patrimonio: r.patrimonio_usd || 0, aportes: r.aportes_usd || 0 }));
-        atualizarRentabilidadeReal(regsUSD, 'usd');
     }
 
     const ganhoUSD = totalAportadoUSD > 0 ? ((totalUSD - totalAportadoUSD) / totalAportadoUSD) * 100 : 0;
@@ -11893,6 +11795,12 @@ function usd_renderTabela() {
     const filtradas = anoSel === 'todos' ? _usdLinhas : _usdLinhas.filter(r => r.anoReg === anoSel);
 
     function rowHTML(r) {
+        const real = (typeof calcRentabilidadeReal === 'function')
+            ? calcRentabilidadeReal(r.crescUSD, r.mesAno)
+            : { hasIpca: false };
+        const realCell = real.hasIpca
+            ? `<td class="${real.realPct>=0?'bb-pos':'bb-neg'} ${r.hideClass}" title="IPCA ${real.ipca.toFixed(2)}% no mês">${real.realPct.toFixed(2)}%</td>`
+            : `<td style="color:rgba(255,255,255,0.3); font-size:11px;" title="IPCA não disponível">—</td>`;
         return `<td style="white-space:nowrap;color:#fff;font-weight:600;">${r.mesAno}${r.badge}</td>
             <td class="${r.hideClass}">${fmtBRL(r.totalAporteBRL)}</td>
             <td class="${r.hideClass}">${fmtBRL(r.patrimonioFinal)}</td>
@@ -11900,6 +11808,7 @@ function usd_renderTabela() {
             <td class="${r.hideClass}" style="color:#00d4ff;font-weight:700;">${fmtUSD(r.patrimonioFinalUSD)}</td>
             <td class="${r.saldoUSD>=0?'bb-pos':'bb-neg'} ${r.hideClass}">${fmtUSD(r.saldoUSD)}</td>
             <td class="${r.crescUSD>=0?'bb-pos':'bb-neg'} ${r.hideClass}">${r.crescUSD.toFixed(2)}%</td>
+            ${realCell}
             <td>
                 <button class="bb-expand-btn" onclick="usd_toggleDet('usd_det_${r.mesId}')">
                     ${r.nRegs} lançamento${r.nRegs!==1?'s':''} ▼
